@@ -11,10 +11,6 @@
 #' @param iter An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.
 #' @param twolist The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.
 #' @return A list of estimates containing the following components:
-# \item{psiinvmat}{ A matrix of estimated psi inverse for the folds, list pair, model and method combination.
-#      The rows represent the list pair which is assumed to be independent conditioned on the covariates.
-#      The columns represent the model and method combinations (PI = plug-in, BC = bias-corrected, TMLE = targeted maximum likelihood estimate).}
-# \item{varmat}{ A matrix of estimated sigma^2 in the same format as \code{psimat}.}
 #' \item{psi}{  A matrix of the estimated capture probability for each list pair, model and method combination. In the absence of covariates, the column represents the standard plug-in estimate.
 #' The rows represent the list pair which is assumed to be independent conditioned on the covariates.
 #' The columns represent the model and method combinations (PI = plug-in, BC = bias-corrected, TMLE = targeted maximum likelihood estimate)indicated in the columns.}

@@ -59,7 +59,7 @@ qhat_gam = function(List1, List2, K, i, j, eps){
   fitj = try(gam::gam(formula(paste("L", j, " ~", paste("s(x", 1:l, ")", sep = '', collapse = ' + '), sep = '')), data = List1, family = binomial))
   fitij = try(gam::gam(formula(paste("L", i, "*L", j, " ~", paste("s(x", 1:l, ")", sep = '', collapse = ' + '), sep = '')), data = List1, family = binomial))
 
-  if("try_error" %in% c(class(fiti0), class(fit0j), class(fitij))){
+  if("try_error" %in% c(class(fiti), class(fitj), class(fitij))){
     Warning("One or more fits with GAM regression failed.")
     return(NULL)
   }else{
@@ -114,7 +114,7 @@ qhat_sl = function(List1, List2, K, i, j, eps){
                            X = as.data.frame(List1[,-c(1:K)]),
                            family = binomial(), SL.library = slib2, verbose = FALSE), silent = TRUE)
 
-  if("try_error" %in% c(class(fiti0), class(fit0j), class(fitij))){
+  if("try_error" %in% c(class(fiti), class(fitj), class(fitij))){
     Warning("One or more fits with SuperLearner regression failed.")
     return(NULL)
   }else{

@@ -41,7 +41,7 @@ A list of estimates containing the following components:
 \item{psi}{  A matrix of the estimated capture probability for each list pair, model and method combination. In the absence of covariates, the column represents the standard plug-in estimate.
 The rows represent the list pair which is assumed to be independent conditioned on the covariates.
 The columns represent the model and method combinations (PI = plug-in, BC = bias-corrected, TMLE = targeted maximum likelihood estimate)indicated in the columns.}
-\item{sigma2}{  A matrix of the efficiency bound \code{\sigma^2} in the same format as \code{psi}.}
+\item{sigma2}{  A matrix of the efficiency bound \code{sigma^2} in the same format as \code{psi}.}
 \item{n}{  A matrix of the estimated population size n in the same format as \code{psi}.}
 \item{varn}{  A matrix of the variance for population size estimate in the same format as \code{psi}.}
 \item{N}{  The number of data points used in the estimation after removing rows with missing data.}

@@ -14,7 +14,7 @@
 #' q12 = qhat$q12
 #'
 #' @export
-qhat_logit <- function(List1, List2, K, i, j, eps){
+qhat_logit <- function(List1, List2, K, i, j, eps = 0.005){
 
   fiti0 = try(glm(formula(paste("L", i, "*(1 - L", j, ") ~.", sep = '')), family = binomial(link = "logit"), data = List1[,c(i, j, (K + 1):ncol(List1))]))
   fit0j = try(glm(formula(paste("L", j, "*(1 - L", i, ") ~.", sep = '')), family = binomial(link = "logit"), data = List1[,c(i, j, (K + 1):ncol(List1))]))
@@ -48,8 +48,9 @@ qhat_logit <- function(List1, List2, K, i, j, eps){
 #' q12 = qhat$q12
 #'
 #' @export
-qhat_gam = function(List1, List2, K, i, j, eps){
+qhat_gam <- function(List1, List2, K, i, j, eps = 0.005){
 
+  require("gam")
   l = ncol(List1) - K
   #colnames(List1) = c(paste("L", 1:K, sep = ''), paste("x", 1:l, sep = ''))
   #colnames(List2) = c(paste("L", 1:K, sep = ''), paste("x", 1:l, sep = ''))
@@ -59,7 +60,7 @@ qhat_gam = function(List1, List2, K, i, j, eps){
   fitj = try(gam::gam(formula(paste("L", j, " ~", paste("s(x", 1:l, ")", sep = '', collapse = ' + '), sep = '')), data = List1, family = binomial))
   fitij = try(gam::gam(formula(paste("L", i, "*L", j, " ~", paste("s(x", 1:l, ")", sep = '', collapse = ' + '), sep = '')), data = List1, family = binomial))
 
-  if("try_error" %in% c(class(fiti0), class(fit0j), class(fitij))){
+  if("try_error" %in% c(class(fiti), class(fitj), class(fitij))){
     Warning("One or more fits with GAM regression failed.")
     return(NULL)
   }else{
@@ -87,7 +88,9 @@ qhat_gam = function(List1, List2, K, i, j, eps){
 #' q12 = qhat$q12
 #'
 #' @export
-qhat_sl = function(List1, List2, K, i, j, eps){
+qhat_sl <- function(List1, List2, K, i, j, eps = 0.005){
+
+  require("SuperLearner")
   slib = c("SL.glm"
            , "SL.gam2"
            , "SL.glm.interaction"
@@ -114,7 +117,7 @@ qhat_sl = function(List1, List2, K, i, j, eps){
                            X = as.data.frame(List1[,-c(1:K)]),
                            family = binomial(), SL.library = slib2, verbose = FALSE), silent = TRUE)
 
-  if("try_error" %in% c(class(fiti0), class(fit0j), class(fitij))){
+  if("try_error" %in% c(class(fiti), class(fitj), class(fitij))){
     Warning("One or more fits with SuperLearner regression failed.")
     return(NULL)
   }else{

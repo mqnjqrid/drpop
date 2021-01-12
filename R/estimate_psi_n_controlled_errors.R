@@ -5,7 +5,7 @@
 #' @param n The true population size. Required to calculate the added error.
 #' @param K The number of lists in the data. typically the first \code{K} rows of List_matrix.
 #' @param sigma The standard deviation from zero of the added error.
-#' @param alpha The rate of convergence.
+#' @param alpha The rate of convergence. Takes values in (0, 1].
 #' @param nfolds The number of folds to be used for cross fitting.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
 #' @param iter An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.
@@ -25,11 +25,11 @@
 #' data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
 #' x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
 #'
-#' psin_estimate = psinhat(List_matrix = data)
+#' psin_estimate = psinhat_simul(List_matrix = data, alpha = 0.25, sigma = 1)
 #' #this returns the basic plug-in estimate since covariates are absent.
 #'
 #' data = cbind(data, x)
-#' psin_estimate = psinhat(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005)
+#' psin_estimate = psinhat_simul(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005, alpha = 0.25, sigma = 1)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models
 #' @export
 psinhat_simul = function(List_matrix, n, K, nfolds = 5, sigma, alpha, eps = 0.005, iter = 100, twolist = TRUE){

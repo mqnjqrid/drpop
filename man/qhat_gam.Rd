@@ -4,7 +4,7 @@
 \alias{qhat_gam}
 \title{Estimate marginal and joint distribution of lists i and j using generalized additive models.}
 \usage{
-qhat_gam(List1, List2, K, i, j, eps)
+qhat_gam(List1, List2, K, i, j, eps = 0.005)
 }
 \arguments{
 \item{List1}{The training data matrix used to estimate the distibution functions.}

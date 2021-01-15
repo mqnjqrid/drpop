@@ -4,7 +4,7 @@
 #'                    The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.
 #' @param n The true population size. Required to calculate the added error.
 #' @param K The number of lists in the data. typically the first \code{K} rows of List_matrix.
-#' @param sigma The standard deviation from zero of the added error.
+#' @param omega The standard deviation from zero of the added error.
 #' @param alpha The rate of convergence. Takes values in (0, 1].
 #' @param nfolds The number of folds to be used for cross fitting.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
@@ -25,14 +25,14 @@
 #' data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
 #' x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
 #'
-#' psin_estimate = psinhat_simul(List_matrix = data, alpha = 0.25, sigma = 1)
+#' psin_estimate = psinhat_simul(List_matrix = data, alpha = 0.25, omega = 1)
 #' #this returns the basic plug-in estimate since covariates are absent.
 #'
 #' data = cbind(data, x)
-#' psin_estimate = psinhat_simul(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005, alpha = 0.25, sigma = 1)
+#' psin_estimate = psinhat_simul(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005, alpha = 0.25, omega = 1)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models
 #' @export
-psinhat_simul = function(List_matrix, n, K, nfolds = 5, sigma, alpha, eps = 0.005, iter = 100, twolist = TRUE){
+psinhat_simul = function(List_matrix, n, K, nfolds = 5, omega, alpha, eps = 0.005, iter = 100, twolist = TRUE){
 
   if(missing(n)){
     n = nrow(List_matrix)
@@ -90,7 +90,7 @@ psinhat_simul = function(List_matrix, n, K, nfolds = 5, sigma, alpha, eps = 0.00
         yi = List2[,paste("L", i, sep = '')]
         yj = List2[,paste("L", j, sep = '')]
 
-        epsiln = matrix(rnorm(3*nrow(xmat), 1/eta, sigma/eta), ncol = 3)
+        epsiln = matrix(rnorm(3*nrow(xmat), 1/eta, omega/eta), ncol = 3)
         q12 = expit(logit(q12_0) + epsiln[,3])
         q1 = pmin(expit(logit(q10_0) + epsiln[,1]) + q12, 1)
         q2 = pmax(pmin(expit(logit(q02_0) + epsiln[,2]) + q12, 1 + q12 - q1), q12/q1)

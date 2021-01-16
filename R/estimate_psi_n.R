@@ -164,7 +164,7 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
               datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, eps), 1 - eps))}))
               colnames(datmat) = c("yi", "yj", "yij", "q10", "q02", "q12")
 
-              tmle = tmle(datmat = datmat, iter = iter, eps = eps, eps_stop = 0.00001, twolist = twolist)
+              tmle = tmle(datmat = datmat, iter = iter, eps = eps, eps_stop = 0.00001, twolist = twolist, K = K)
 
               if(tmle$error){
                 warning("TMLE did not run or converge.")

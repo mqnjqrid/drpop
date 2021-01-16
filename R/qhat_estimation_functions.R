@@ -92,7 +92,7 @@ qhat_sl <- function(List1, List2, K, i, j, eps = 0.005){
 
   require("SuperLearner")
   slib = c("SL.glm"
-           , "SL.gam2"
+           , "SL.gam"
            , "SL.glm.interaction"
   )
   slib1 = c("SL.glmnet"

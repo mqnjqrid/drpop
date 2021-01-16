@@ -19,7 +19,7 @@
 #' result = tmle(datmat, eps = 0.005, eps_stop = 0.00001, twolist = TRUE)
 #' @export
 
-tmle = function(datmat, iter = 100, eps = 0.005, eps_stop = 0.00001, twolist = FALSE){
+tmle = function(datmat, iter = 100, eps = 0.005, eps_stop = 0.00001, twolist = FALSE, K = 2){
 
   if(!prod(c("yi", "yj", "yij", "q10", "q02", "q12") %in% colnames(datmat))){
     stop("datmat misses one or more of the following columns: \t (yi, yj, yij, q10, q02, q12).")

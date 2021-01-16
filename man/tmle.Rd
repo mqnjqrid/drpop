@@ -4,7 +4,7 @@
 \alias{tmle}
 \title{Returns the targeted maximum likelihood estimates for the nuisance functions}
 \usage{
-tmle(datmat, iter = 100, eps = 0.005, eps_stop = 1e-05, twolist = FALSE)
+tmle(datmat, iter = 100, eps = 0.005, eps_stop = 1e-05, twolist = FALSE, K = 2)
 }
 \arguments{
 \item{datmat}{The data frame containing columns \code{yi}, \code{yj}, \code{yij}, \code{q10}, \code{q02} and \code{q12}.}

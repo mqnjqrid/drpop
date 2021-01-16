@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of crctmle is to ...
+The goal of crctmle is to provide users doubly-robust and efficient estimates of population size and the variances for a capture-recapture problem.
 
 ## Installation
 
@@ -40,6 +40,17 @@ This is a basic example which shows you how to solve a common problem:
 
 ```{r example}
 library(crctmle)
+
+data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
+x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
+datacrc = cbind(data, x)
+
+options(warn = -1)
+estim <- psinhat(List_matrix = datacrc, func = c("logit"), nfolds = 2, K = 2)
+# The population size estimates are obtained by
+estim$n
+# The corresponding variances are
+estim$varn
 ## basic example code
 ```
 

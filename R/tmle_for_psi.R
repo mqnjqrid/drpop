@@ -47,8 +47,8 @@ tmle = function(datmat, iter = 100, eps = 0.005, eps_stop = 0.00001, twolist = F
     colnames(dat1) = c("yij", "logitq12", "ratio")
     dat1 = as.data.frame(dat1)
     mod1 = try(glm(yij ~ -1 + offset(logitq12) + ratio
-                   , family = binomial(link = logit), data = dat1, na.action = na.omit))
-    if (class(mod1) != "try-error"){
+                   , family = binomial(link = logit), data = dat1, na.action = na.omit), silent = TRUE)
+    if (!("try-error" %in% class(mod1))){
       datmat[,"q12"] = predict(mod1, newdata = dat1, type = "response")
 
     }
@@ -58,8 +58,8 @@ tmle = function(datmat, iter = 100, eps = 0.005, eps_stop = 0.00001, twolist = F
     dat2 = cbind(datmat$yi*(1 - datmat$yj), logit(datmat$q10), (datmat$q02 + datmat$q12)/datmat$q12)
     colnames(dat2) = c("yi0", "logitq10", "ratio")
     dat2 = as.data.frame(dat2)
-    mod2 = try(glm(yi0 ~ -1 + offset(logitq10) + ratio, family = binomial(link = logit), data = dat2, na.action = na.omit))
-    if (class(mod2) != "try-error"){
+    mod2 = try(glm(yi0 ~ -1 + offset(logitq10) + ratio, family = binomial(link = logit), data = dat2, na.action = na.omit), silent = TRUE)
+    if (!("try-error" %in% class(mod2))){
       datmat$q10 = predict(mod2, newdata = dat2, type = "response")
       datmat[,"q10"] = pmin(datmat[,"q10"], 1 - datmat$q12)
     }
@@ -70,8 +70,8 @@ tmle = function(datmat, iter = 100, eps = 0.005, eps_stop = 0.00001, twolist = F
       dat3 = cbind(datmat$yj*(1 - datmat$yi), logit(datmat$q02), (datmat$q10 + datmat$q12)/datmat$q12)
       colnames(dat3) = c("y0j", "logitq02", "ratio")
       dat3 = as.data.frame(dat3)
-      mod3 = try(glm(y0j ~ -1 + offset(logitq02) + ratio, family = binomial(link = logit), data = dat3, na.action = na.omit))
-      if (class(mod3) != "try-error"){
+      mod3 = try(glm(y0j ~ -1 + offset(logitq02) + ratio, family = binomial(link = logit), data = dat3, na.action = na.omit), silent = TRUE)
+      if (!("try-error" %in% class(mod3))){
         datmat$q02 = predict(mod3, newdata = dat3, type = "response")
         datmat[,"q02"] = pmin(datmat[,"q02"], 1 - datmat$q10 - datmat$q12)
       }

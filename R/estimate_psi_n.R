@@ -138,7 +138,7 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
               colsubset = stringr::str_subset(colnames(psiinv_summary), func)
               qhat = try(get(paste0("qhat_", func))(List1, List2, K, i, j, eps), silent = TRUE)
 
-              if (class(qhat) == "try-error") {
+              if ("try-error" %in% class(qhat)) {
                 next
               }
 

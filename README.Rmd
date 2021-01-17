@@ -9,7 +9,10 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%"
+  out.width = "100%",
+  echo = FALSE,
+  messages = FALSE,
+  warnings = FALSE
 )
 ```
 
@@ -41,9 +44,14 @@ This is a basic example which shows you how to solve a common problem:
 ```{r example}
 library(crctmle)
 
-data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
-x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
-datacrc = cbind(data, x)
+n = 1000
+x = matrix(rnorm(n*3, 2, 1), nrow = n)
+expit = function(xi) {
+  exp(sum(xi))/(1 + exp(sum(xi)))
+}
+y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.4*xi), expit(-0.6 + 0.4*xi)))}))
+y2 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.3*xi), expit(-0.6 + 0.3*xi)))}))
+datacrc = cbind(y1, y2, exp(x/2))
 
 options(warn = -1)
 estim <- psinhat(List_matrix = datacrc, func = c("logit"), nfolds = 2, K = 2)
@@ -54,18 +62,30 @@ estim$varn
 ## basic example code
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+The following shows histograms of estimates for toy data. Real population size is 10000.
 
-```{r cars}
-summary(cars)
+```{r plot}
+library(crctmle)
+library(reshape2)
+library(ggplot2)
+
+n = 5000
+x = matrix(rnorm(n*3, 2,1), nrow = n)
+
+expit = function(xi) {
+  exp(sum(xi))/(1 + exp(sum(xi)))
+}
+y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.4*xi), expit(-0.6 + 0.4*xi)))}))
+y2 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.3*xi), expit(-0.6 + 0.3*xi)))}))
+datacrc = cbind(y1, y2, exp(x/2))
+
+estim <- do.call("rbind", lapply(1:100, function(iter){
+  return(psinhat(List_matrix = datacrc, func = c("logit"), nfolds = 2, eps = 0.01)$n)
+}))
+
+result = melt(as.data.frame(estim), variable.name = "estimator", value.name = "population_size")
+ggplot(result, aes(x = population_size - n, fill = estimator, color = estimator)) +
+  geom_density(alpha = 0.4) +
+  xlab("Bias on n")
+
 ```
-
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. You could also use GitHub Actions to re-render `README.Rmd` every time you push. An example workflow can be found here: <https://github.com/r-lib/actions/tree/master/examples>.
-
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
-```
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.

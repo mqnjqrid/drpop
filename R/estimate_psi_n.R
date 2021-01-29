@@ -8,6 +8,7 @@
 #' @param twolist The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
 #' @param iter An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.
+#' @param sl.lib algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".
 #' @return A list of estimates containing the following components:
 # \item{psiinvmat}{ A matrix of estimated psi inverse for the folds, list pair, model and method combination.
 #      The rows represent the list pair which is assumed to be independent conditioned on the covariates.
@@ -20,6 +21,9 @@
 #' \item{n}{  A matrix of the estimated population size n in the same format as \code{psi}.}
 #' \item{varn}{  A matrix of the variance for population size estimate in the same format as \code{psi}.}
 #' \item{N}{  The number of data points used in the estimation after removing rows with missing data.}
+#' \item{ifvals}{  The estimated influence function values for the observed data. Each column corresponds to an element in funcname.}
+#' \item{nuis}{  The estimated nuisance functions (q12, q1, q2) for each element in funcname.}
+#' \item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
 #'
 #' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
 #' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
@@ -34,7 +38,7 @@
 #' psin_estimate = psinhat(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models
 #' @export
-psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolist = FALSE, eps = 0.005, iter = 50){
+psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolist = FALSE, eps = 0.005, iter = 50, sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet")){
 
   l = ncol(List_matrix) - K
   n = nrow(List_matrix)
@@ -86,8 +90,12 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
         q12 = mean(List_matrix[,i]*List_matrix[,j])
         psiinv_summary[paste(i, ", ", j, sep = ''),] = q1*q2/q12
         var_summary[paste(i, ", ", j, sep = ''),] = q1*q2*(q1*q2 - q12)*(1 - q12)/q12^3/N
+        ifvals = NULL
       }
     }
+    return(list(psi = 1/psiinv_summary, sigma2 = N*var_summary, n = N*psiinv_summary,
+                varn = N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1), N = N
+    ))
   }else{
     #renaming the columns of List_matrix for ease of use
     colnames(List_matrix) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List_matrix) - K), sep = ''))
@@ -99,6 +107,13 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
       })}))
     colnames(psiinv_summary) = paste(rep(funcname, each = 3), c(" PI", " BC", " TMLE"), sep = '')
     var_summary = psiinv_summary
+
+    ifvals = matrix(0, nrow = N, ncol = length(funcname))
+    colnames(ifvals) = funcname
+
+    nuis = matrix(0, nrow = N, ncol = 3*length(funcname))
+    colnames(nuis) = paste(c("q12", "q1", "q2"), rep(funcname, each = 3))
+    nuistmle = nuis
 
     permutset = sample(1:N, N, replace = FALSE)
 
@@ -121,6 +136,7 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
           if(nfolds == 1){
             List1 = List_matrix
             List2 = List1
+            sbset = 1:N
           }else{
             sbset = ((folds - 1)*ceiling(N/nfolds) + 1):(folds*ceiling(N/nfolds))
             sbset = sbset[sbset <= N]
@@ -136,7 +152,7 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
             for (func in funcname){
 
               colsubset = stringr::str_subset(colnames(psiinv_summary), func)
-              qhat = try(get(paste0("qhat_", func))(List1, List2, K, i, j, eps), silent = TRUE)
+              qhat = try(get(paste0("qhat_", func))(List1, List2, K, i, j, eps, sl.lib = sl.lib), silent = TRUE)
 
               if ("try-error" %in% class(qhat)) {
                 next
@@ -146,10 +162,13 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
               q1 = pmin(pmax(q12, qhat$q1), 1)
               q2 = pmax(q12/q1, pmin(qhat$q2, 1 + q12 - q1, 1))
 
+              nuis[sbset, paste(c("q12", "q1", "q2"), func)] = cbind(q12, q1, q2)
+
               gammainvhat = q1*q2/q12
               psiinvhat = mean(gammainvhat, na.rm = TRUE)
 
               phihat = gammainvhat*(yj/q2 + yi/q1 - yi*yj/q12) - psiinvhat
+              ifvals[sbset, func] = phihat
 
               Qnphihat = mean(phihat, na.rm = TRUE)
 
@@ -176,6 +195,9 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
                 q1 = pmin(datmat$q12 + datmat$q10, 1)
                 q2 = pmax(pmin(datmat$q12 + datmat$q02, 1 + q12 - q1, 1), q12/q1)
 
+
+                nuistmle[sbset, paste(c("q12", "q1", "q2"), func)] = cbind(q12, q1, q2)
+
                 gammainvhat = q1*q2/q12
                 psiinvhat = mean(gammainvhat, na.rm = TRUE)
 
@@ -199,10 +221,9 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
         var_summary[paste(i, ", ", j, sep = ''),] = colMeans(varmat, na.rm = TRUE)
       }
     }
+    return(list(psi = 1/psiinv_summary, sigma2 = N*var_summary, n = N*psiinv_summary,
+                varn = N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1), N = N,
+                ifvals = ifvals, nuis = nuis, nuistmle = nuistmle
+    ))
   }
-  return(list(psi = 1/psiinv_summary, sigma2 = N*var_summary,
-    n = N*psiinv_summary,
-    varn = N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1),
-    N = N
-  ))
 }

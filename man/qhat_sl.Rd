@@ -4,7 +4,7 @@
 \alias{qhat_sl}
 \title{Estimate marginal and joint distribution of lists i and j using super learner.}
 \usage{
-qhat_sl(List1, List2, K, i, j, eps = 0.005)
+qhat_sl(List1, List2, K, i, j, eps = 0.005, sl.lib = sl.lib)
 }
 \arguments{
 \item{List1}{The training data matrix used to estimate the distibution functions.}

@@ -4,7 +4,7 @@
 \alias{qhat_logit}
 \title{Estimate marginal and joint distribution of lists i and j using logistic regression.}
 \usage{
-qhat_logit(List1, List2, K, i, j, eps = 0.005)
+qhat_logit(List1, List2, K, i, j, eps = 0.005, ...)
 }
 \arguments{
 \item{List1}{The training data matrix used to estimate the distibution functions.}

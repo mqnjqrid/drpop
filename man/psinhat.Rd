@@ -11,7 +11,8 @@ psinhat(
   nfolds = 5,
   twolist = FALSE,
   eps = 0.005,
-  iter = 50
+  iter = 50,
+  sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet")
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ The first K columns are the capture history indicators for the K lists. The rema
 \item{eps}{The minimum value the estimates can attain to bound them away from zero.}
 
 \item{iter}{An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.}
+
+\item{sl.lib}{algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
 }
 \value{
 A list of estimates containing the following components:
@@ -39,6 +42,9 @@ The columns represent the model and method combinations (PI = plug-in, BC = bias
 \item{n}{  A matrix of the estimated population size n in the same format as \code{psi}.}
 \item{varn}{  A matrix of the variance for population size estimate in the same format as \code{psi}.}
 \item{N}{  The number of data points used in the estimation after removing rows with missing data.}
+\item{ifvals}{  The estimated influence function values for the observed data. Each column corresponds to an element in funcname.}
+\item{nuis}{  The estimated nuisance functions (q12, q1, q2) for each element in funcname.}
+\item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
 }
 \description{
 Estimate total population size and capture probability using user provided set of models.

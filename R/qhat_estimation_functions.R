@@ -14,7 +14,7 @@
 #' q12 = qhat$q12
 #'
 #' @export
-qhat_logit <- function(List1, List2, K, i, j, eps = 0.005){
+qhat_logit <- function(List1, List2, K, i, j, eps = 0.005, ...){
 
   fiti0 = try(glm(formula(paste("L", i, "*(1 - L", j, ") ~.", sep = '')), family = binomial(link = "logit"), data = List1[,c(i, j, (K + 1):ncol(List1))]))
   fit0j = try(glm(formula(paste("L", j, "*(1 - L", i, ") ~.", sep = '')), family = binomial(link = "logit"), data = List1[,c(i, j, (K + 1):ncol(List1))]))
@@ -48,7 +48,7 @@ qhat_logit <- function(List1, List2, K, i, j, eps = 0.005){
 #' q12 = qhat$q12
 #'
 #' @export
-qhat_gam <- function(List1, List2, K, i, j, eps = 0.005){
+qhat_gam <- function(List1, List2, K, i, j, eps = 0.005, ...){
 
   require("gam")
   l = ncol(List1) - K
@@ -88,24 +88,18 @@ qhat_gam <- function(List1, List2, K, i, j, eps = 0.005){
 #' q12 = qhat$q12
 #'
 #' @export
-qhat_sl <- function(List1, List2, K, i, j, eps = 0.005){
+qhat_sl <- function(List1, List2, K, i, j, eps = 0.005, sl.lib = sl.lib){
 
   require("SuperLearner")
-  slib = c("SL.glm"
-           , "SL.gam"
-           , "SL.glm.interaction"
-  )
-  slib1 = c("SL.glmnet"
-            ,"SL.ranger"
-            #, "SL.gbm"
-  )
+
+  slib = intersect(sl.lib, c("SL.glm", "SL.gam", "SL.glm.interaction"))
+  slib1 = setdiff(sl.lib, slib)
+
   slib2 <- c(slib1, slib,
              split(rbind(slib,"screen.corP"),
                    rep(1:length(slib),each=2)) ,
              split(rbind(slib,"screen.glmnet"),
                    rep(1:length(slib),each=2)) )
-
-  #suppressWarnings()
 
   fiti = try(SuperLearner(Y = as.numeric(List1[,i]),
                           X = as.data.frame(List1[,-c(1:K)]),

@@ -24,6 +24,8 @@
 #' \item{ifvals}{  The estimated influence function values for the observed data. Each column corresponds to an element in funcname.}
 #' \item{nuis}{  The estimated nuisance functions (q12, q1, q2) for each element in funcname.}
 #' \item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
+#' \item{cin.l}{  The estimated lower bound of a 95% confidence interval of \code{n}.}
+#' \item{cin.u}{  The estimated upper bound of a 95% confidence interval of \code{n}.}
 #'
 #' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
 #' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
@@ -112,7 +114,7 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
     colnames(ifvals) = funcname
 
     nuis = matrix(0, nrow = N, ncol = 3*length(funcname))
-    colnames(nuis) = paste(c("q12", "q1", "q2"), rep(funcname, each = 3))
+    colnames(nuis) = paste(rep(funcname, each = 3), c("q12", "q1", "q2"))
     nuistmle = nuis
 
     permutset = sample(1:N, N, replace = FALSE)
@@ -223,7 +225,9 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
     }
     return(list(psi = 1/psiinv_summary, sigma2 = N*var_summary, n = N*psiinv_summary,
                 varn = N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1), N = N,
-                ifvals = ifvals, nuis = nuis, nuistmle = nuistmle
+                ifvals = ifvals, nuis = nuis, nuistmle = nuistmle,
+                cin.l = N*psiinv_summary - 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)),
+                cin.u = N*psiinv_summary + 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1))
     ))
   }
 }

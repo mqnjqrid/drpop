@@ -45,6 +45,8 @@ The columns represent the model and method combinations (PI = plug-in, BC = bias
 \item{ifvals}{  The estimated influence function values for the observed data. Each column corresponds to an element in funcname.}
 \item{nuis}{  The estimated nuisance functions (q12, q1, q2) for each element in funcname.}
 \item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
+\item{cin.l}{  The estimated lower bound of a 95\% confidence interval of \code{n}.}
+\item{cin.u}{  The estimated upper bound of a 95\% confidence interval of \code{n}.}
 }
 \description{
 Estimate total population size and capture probability using user provided set of models.

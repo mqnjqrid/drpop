@@ -84,10 +84,10 @@ psinhatcond <- function(List_matrix, K = 2, funcname = c("logit"), condvar, nfol
     List_matrixsub = List_matrix[List_matrix[,K+condvar] == cvar,]
     est = psinhat(List_matrix = List_matrixsub, K = K, funcname = funcname, nfolds = 2, twolist = twolist, eps = eps, iter = iter, sl.lib = sl.lib)
 
-    psi = rbind(psi, data.frame(listpair = rownames(est$psi), est$psi, condvar = cvar))
-    sigma2 = rbind(sigma2, data.frame(listpair = rownames(est$psi), est$sigma2, condvar = cvar))
-    n = rbind(n, data.frame(listpair = rownames(est$psi), est$n, condvar = cvar))
-    varn = rbind(varn, data.frame(listpair = rownames(est$psi), est$varn, condvar = cvar))
+    psi = rbind(psi, data.frame(listpair = rownames(est$psi), est$psi, condvar = cvar), make.row.names = FALSE)
+    sigma2 = rbind(sigma2, data.frame(listpair = rownames(est$psi), est$sigma2, condvar = cvar), make.row.names = FALSE)
+    n = rbind(n, data.frame(listpair = rownames(est$psi), est$n, condvar = cvar), make.row.names = FALSE)
+    varn = rbind(varn, data.frame(listpair = rownames(est$psi), est$varn, condvar = cvar), make.row.names = FALSE)
     N = rbind(N, data.frame(N = est$N, condvar = cvar))
   }
   return(list(psi = psi, sigma2 = sigma2, n = n, varn = varn, N = N))

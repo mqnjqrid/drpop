@@ -3,6 +3,7 @@
 export(informat)
 export(psinhat)
 export(psinhat_simul)
+export(psinhatcond)
 export(qhat_gam)
 export(qhat_logit)
 export(qhat_sl)

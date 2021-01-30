@@ -4,23 +4,22 @@
 #'                    The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.
 #' @param K The number of lists in the data. typically the first \code{K} rows of List_matrix.
 #' @param funcname The vector of estimation function names to obtain the population size.
-#' @param condvar The covariate for which conditional estimates are required.
 #' @param nfolds The number of folds to be used for cross fitting.
 #' @param twolist The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
 #' @param iter An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.
 #' @param sl.lib algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".
 #' @return A list of estimates containing the following components:
-# \item{psiinvmat}{ A matrix of estimated psi inverse for the folds, list pair, model and method combination.
+# \item{psiinvmat}{ A dataframe of estimated psi inverse for the folds, list pair, model and method combination.
 #      The rows represent the list pair which is assumed to be independent conditioned on the covariates.
 #      The columns represent the model and method combinations (PI = plug-in, BC = bias-corrected, TMLE = targeted maximum likelihood estimate).}
-# \item{varmat}{ A matrix of estimated sigma^2 in the same format as \code{psimat}.}
-#' \item{psi}{  A matrix of the estimated capture probability for each list pair, model and method combination. In the absence of covariates, the column represents the standard plug-in estimate.
+# \item{varmat}{ A dataframe of estimated sigma^2 in the same format as \code{psimat}.}
+#' \item{psi}{  A dataframe of the estimated capture probability for each list pair, model and method combination. In the absence of covariates, the column represents the standard plug-in estimate.
 #' The rows represent the list pair which is assumed to be independent conditioned on the covariates.
 #' The columns represent the model and method combinations (PI = plug-in, BC = bias-corrected, TMLE = targeted maximum likelihood estimate)indicated in the columns.}
-#' \item{sigma2}{  A matrix of the efficiency bound \code{sigma^2} in the same format as \code{psi}.}
-#' \item{n}{  A matrix of the estimated population size n in the same format as \code{psi}.}
-#' \item{varn}{  A matrix of the variance for population size estimate in the same format as \code{psi}.}
+#' \item{sigma2}{  A dataframe of the efficiency bound \code{sigma^2} in the same format as \code{psi}.}
+#' \item{n}{  A dataframe of the estimated population size n in the same format as \code{psi}.}
+#' \item{varn}{  A dataframe of the variance for population size estimate in the same format as \code{psi}.}
 #' \item{N}{  The number of data points used in the estimation after removing rows with missing data.}
 #' \item{ifvals}{  The estimated influence function values for the observed data. Each column corresponds to an element in funcname.}
 #' \item{nuis}{  The estimated nuisance functions (q12, q1, q2) for each element in funcname.}
@@ -41,7 +40,7 @@
 #' psin_estimate = psinhat(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models
 #' @export
-psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolist = FALSE, eps = 0.005, iter = 50, sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet")){
+psinhat <- function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolist = FALSE, eps = 0.005, iter = 50, sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet")){
 
   l = ncol(List_matrix) - K
   n = nrow(List_matrix)
@@ -101,11 +100,6 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
     ))
   }else{
 
-    if(!missing(condvar)){
-      if(is.character(condvar)){
-        condvar = which(colnames(List_matrix) == condvar) - K
-      }
-    }
     #renaming the columns of List_matrix for ease of use
     colnames(List_matrix) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List_matrix) - K), sep = ''))
 
@@ -114,7 +108,7 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
       sapply((k + 1):K, function(s) {
         return(paste(k, ", ", s, sep = ''))
       })}))
-    colnames(psiinv_summary) = paste(rep(funcname, each = 3), c(" PI", " BC", " TMLE"), sep = '')
+    colnames(psiinv_summary) = paste(rep(funcname, each = 3), c("PI", "BC", "TMLE"), sep = '.')
     var_summary = psiinv_summary
 
     ifvals = matrix(0, nrow = N*K*(K-1)/2, ncol = length(funcname))
@@ -122,7 +116,7 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
     rownames(ifvals) = rep(rownames(psiinv_summary), each = N)
 
     nuis = matrix(0, nrow = N*K*(K-1)/2, ncol = 3*length(funcname))
-    colnames(nuis) = paste(rep(funcname, each = 3), c("q12", "q1", "q2"))
+    colnames(nuis) = paste(rep(funcname, each = 3), c("q12", "q1", "q2"), sep = '.')
     rownames(nuis) = rownames(ifvals)
     nuistmle = nuis
 
@@ -139,14 +133,14 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
           next
         }
         psiinvmat = matrix(NA, nrow = nfolds, ncol = 3*length(funcname))
-        colnames(psiinvmat) = paste(rep(funcname, each = 3), c(" PI", " BC", " TMLE"), sep = '')
+        colnames(psiinvmat) = paste(rep(funcname, each = 3), c("PI", "BC", "TMLE"), sep = '.')
         varmat = psiinvmat
 
         ifvalsfold = matrix(0, nrow = N, ncol = length(funcname))
         colnames(ifvalsfold) = funcname
 
         nuisfold = matrix(0, nrow = N, ncol = 3*length(funcname))
-        colnames(nuisfold) = paste(rep(funcname, each = 3), c("q12", "q1", "q2"))
+        colnames(nuisfold) = paste(rep(funcname, each = 3), c("q12", "q1", "q2"), sep = '.')
         nuistmlefold = nuisfold
 
         for(folds in 1:nfolds){#print(folds)
@@ -180,7 +174,7 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
               q1 = pmin(pmax(q12, qhat$q1), 1)
               q2 = pmax(q12/q1, pmin(qhat$q2, 1 + q12 - q1, 1))
 
-              nuisfold[sbset, paste(func, c("q12", "q1", "q2"))] = cbind(q12, q1, q2)
+              nuisfold[sbset, paste(func, c("q12", "q1", "q2"), sep = '.')] = cbind(q12, q1, q2)
 
               gammainvhat = q1*q2/q12
               psiinvhat = mean(gammainvhat, na.rm = TRUE)
@@ -213,7 +207,7 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
                 q1 = pmin(datmat$q12 + datmat$q10, 1)
                 q2 = pmax(pmin(datmat$q12 + datmat$q02, 1 + q12 - q1, 1), q12/q1)
 
-                nuistmlefold[sbset, paste(func, c("q12", "q1", "q2"))] = cbind(q12, q1, q2)
+                nuistmlefold[sbset, paste(func, c("q12", "q1", "q2"), sep = '.')] = cbind(q12, q1, q2)
 
                 gammainvhat = q1*q2/q12
                 psiinvhat = mean(gammainvhat, na.rm = TRUE)

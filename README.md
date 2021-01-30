@@ -1,30 +1,30 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# crctmle
+# EffPopSize
 
 <!-- badges: start -->
 
 <!-- badges: end -->
 
-The goal of crctmle is to provide users doubly-robust and efficient
+The goal of EffPopSize is to provide users doubly-robust and efficient
 estimates of population size and the variances for a capture-recapture
 problem.
 
 ## Installation
 
-You can install the released version of crctmle from
+You can install the released version of EffPopSize from
 [CRAN](https://CRAN.R-project.org) with:
 
 ``` r
-install.packages("crctmle")
+install.packages("EffPopSize")
 ```
 
 And the development version from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("mqnjqrid/crctmle")
+devtools::install_github("mqnjqrid/EffPopSize")
 ```
 
 ## Example

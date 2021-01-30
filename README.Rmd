@@ -10,39 +10,38 @@ knitr::opts_chunk$set(
   comment = "#>",
   fig.path = "man/figures/README-",
   out.width = "100%",
-  echo = FALSE,
   messages = FALSE,
   warnings = FALSE
 )
 ```
 
-# crctmle
+# EffPopSize
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of crctmle is to provide users doubly-robust and efficient estimates of population size and the variances for a capture-recapture problem.
+The goal of EffPopSize is to provide users doubly-robust and efficient estimates of population size and the variances for a capture-recapture problem.
 
 ## Installation
 
-You can install the released version of crctmle from [CRAN](https://CRAN.R-project.org) with:
+You can install the released version of EffPopSize from [CRAN](https://CRAN.R-project.org) with:
 
 ``` r
-install.packages("crctmle")
+install.packages("EffPopSize")
 ```
 
 And the development version from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("mqnjqrid/crctmle")
+devtools::install_github("mqnjqrid/EffPopSize")
 ```
 ## Example
 
 This is a basic example which shows you how to solve a common problem:
 
 ```{r example}
-library(crctmle)
+library(EffPopSize)
 
 n = 1000
 x = matrix(rnorm(n*3, 2, 1), nrow = n)
@@ -65,7 +64,7 @@ estim$varn
 The following shows histograms of estimates for toy data. Real population size is 10000.
 
 ```{r plot}
-library(crctmle)
+library(EffPopSize)
 library(reshape2)
 library(ggplot2)
 

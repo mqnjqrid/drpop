@@ -103,6 +103,10 @@ psinhat <- function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twoli
     #renaming the columns of List_matrix for ease of use
     colnames(List_matrix) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List_matrix) - K), sep = ''))
 
+    if(nfolds > N/100) {
+      nfolds = floor(N/100)
+      cat("nfolds is reduced to ", nfolds, " to have sufficient training data.\n")
+    }
     psiinv_summary = matrix(0, nrow = K*(K - 1)/2, ncol = 3*length(funcname))
     rownames(psiinv_summary) = unlist(sapply(1:(K - 1), function(k) {
       sapply((k + 1):K, function(s) {

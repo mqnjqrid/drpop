@@ -32,6 +32,8 @@ The first K columns are the capture history indicators for the K lists. The rema
 \item{iter}{An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.}
 
 \item{sl.lib}{algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
+
+\item{condvar}{The covariate for which conditional estimates are required.}
 }
 \value{
 A list of estimates containing the following components:

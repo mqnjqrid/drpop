@@ -4,6 +4,7 @@
 #'                    The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.
 #' @param K The number of lists in the data. typically the first \code{K} rows of List_matrix.
 #' @param funcname The vector of estimation function names to obtain the population size.
+#' @param condvar The covariate for which conditional estimates are required.
 #' @param nfolds The number of folds to be used for cross fitting.
 #' @param twolist The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
@@ -99,6 +100,12 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
                 varn = N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1), N = N
     ))
   }else{
+
+    if(!missing(condvar)){
+      if(is.character(condvar)){
+        condvar = which(colnames(List_matrix) == condvar) - K
+      }
+    }
     #renaming the columns of List_matrix for ease of use
     colnames(List_matrix) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List_matrix) - K), sep = ''))
 
@@ -110,11 +117,13 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
     colnames(psiinv_summary) = paste(rep(funcname, each = 3), c(" PI", " BC", " TMLE"), sep = '')
     var_summary = psiinv_summary
 
-    ifvals = matrix(0, nrow = N, ncol = length(funcname))
+    ifvals = matrix(0, nrow = N*K*(K-1)/2, ncol = length(funcname))
     colnames(ifvals) = funcname
+    rownames(ifvals) = rep(rownames(psiinv_summary), each = N)
 
-    nuis = matrix(0, nrow = N, ncol = 3*length(funcname))
+    nuis = matrix(0, nrow = N*K*(K-1)/2, ncol = 3*length(funcname))
     colnames(nuis) = paste(rep(funcname, each = 3), c("q12", "q1", "q2"))
+    rownames(nuis) = rownames(ifvals)
     nuistmle = nuis
 
     permutset = sample(1:N, N, replace = FALSE)
@@ -132,6 +141,13 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
         psiinvmat = matrix(NA, nrow = nfolds, ncol = 3*length(funcname))
         colnames(psiinvmat) = paste(rep(funcname, each = 3), c(" PI", " BC", " TMLE"), sep = '')
         varmat = psiinvmat
+
+        ifvalsfold = matrix(0, nrow = N, ncol = length(funcname))
+        colnames(ifvalsfold) = funcname
+
+        nuisfold = matrix(0, nrow = N, ncol = 3*length(funcname))
+        colnames(nuisfold) = paste(rep(funcname, each = 3), c("q12", "q1", "q2"))
+        nuistmlefold = nuisfold
 
         for(folds in 1:nfolds){#print(folds)
 
@@ -164,13 +180,13 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
               q1 = pmin(pmax(q12, qhat$q1), 1)
               q2 = pmax(q12/q1, pmin(qhat$q2, 1 + q12 - q1, 1))
 
-              nuis[sbset, paste(c("q12", "q1", "q2"), func)] = cbind(q12, q1, q2)
+              nuisfold[sbset, paste(func, c("q12", "q1", "q2"))] = cbind(q12, q1, q2)
 
               gammainvhat = q1*q2/q12
               psiinvhat = mean(gammainvhat, na.rm = TRUE)
 
               phihat = gammainvhat*(yj/q2 + yi/q1 - yi*yj/q12) - psiinvhat
-              ifvals[sbset, func] = phihat
+              ifvalsfold[sbset, func] = phihat
 
               Qnphihat = mean(phihat, na.rm = TRUE)
 
@@ -197,8 +213,7 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
                 q1 = pmin(datmat$q12 + datmat$q10, 1)
                 q2 = pmax(pmin(datmat$q12 + datmat$q02, 1 + q12 - q1, 1), q12/q1)
 
-
-                nuistmle[sbset, paste(c("q12", "q1", "q2"), func)] = cbind(q12, q1, q2)
+                nuistmlefold[sbset, paste(func, c("q12", "q1", "q2"))] = cbind(q12, q1, q2)
 
                 gammainvhat = q1*q2/q12
                 psiinvhat = mean(gammainvhat, na.rm = TRUE)
@@ -221,13 +236,18 @@ psinhat = function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twolis
 
         psiinv_summary[paste(i, ", ", j, sep = ''),] = colMeans(psiinvmat, na.rm = TRUE)
         var_summary[paste(i, ", ", j, sep = ''),] = colMeans(varmat, na.rm = TRUE)
+
+        ifvals[rownames(ifvals) == paste(i, ", ", j, sep = ''),] = ifvalsfold
+        nuis[rownames(nuis) == paste(i, ", ", j, sep = ''),] = nuisfold
+        nuistmle[rownames(nuistmle) == paste(i, ", ", j, sep = ''),] = nuistmlefold
       }
     }
+
     return(list(psi = 1/psiinv_summary, sigma2 = N*var_summary, n = N*psiinv_summary,
                 varn = N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1), N = N,
                 ifvals = ifvals, nuis = nuis, nuistmle = nuistmle,
                 cin.l = N*psiinv_summary - 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)),
-                cin.u = N*psiinv_summary + 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1))
+                cin.u = N*psiinv_summary + 1.96 *sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1))
     ))
   }
 }

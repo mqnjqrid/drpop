@@ -7,6 +7,7 @@
 psinhatcond(
   List_matrix,
   K = 2,
+  filterrows = FALSE,
   funcname = c("logit"),
   condvar,
   nfolds = 5,
@@ -21,6 +22,8 @@ psinhatcond(
 The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.}
 
 \item{K}{The number of lists in the data. typically the first \code{K} rows of List_matrix.}
+
+\item{filterrows}{A logical value denoting whether to remove all rows with only zeroes.}
 
 \item{funcname}{The vector of estimation function names to obtain the population size.}
 

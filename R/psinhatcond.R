@@ -3,6 +3,7 @@
 #' @param List_matrix The data frame in capture-recapture format for which total population is to be estimated.
 #'                    The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.
 #' @param K The number of lists in the data. typically the first \code{K} rows of List_matrix.
+#' @param filterrows A logical value denoting whether to remove all rows with only zeroes.
 #' @param funcname The vector of estimation function names to obtain the population size.
 #' @param condvar The covariate for which conditional estimates are required.
 #' @param nfolds The number of folds to be used for cross fitting.
@@ -37,22 +38,16 @@
 #' psin_estimate = psinhatcond(List_matrix = data, funcname = c("logit", "sl"), condvar = 'ss', nfolds = 2, twolist = FALSE, eps = 0.005)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models conditioned on column ss
 #' @export
-psinhatcond <- function(List_matrix, K = 2, funcname = c("logit"), condvar, nfolds = 5, twolist = FALSE, eps = 0.005, iter = 50, sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet")){
+psinhatcond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("logit"), condvar, nfolds = 5, twolist = FALSE, eps = 0.005, iter = 50, sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet")){
 
   l = ncol(List_matrix) - K
   n = nrow(List_matrix)
+
   stopifnot(!is.null(dim(List_matrix)))
-  stopifnot(K >= 2)
-  stopifnot(nrow(List_matrix)>1)
-  stopifnot(ncol(List_matrix) >= 2)
-  stopifnot(((ncol(List_matrix) == K)&(nrow(List_matrix)>50)) | (nrow(List_matrix) > 0))
+
   stopifnot(!missing(condvar))
   stopifnot(is.element(condvar, colnames(List_matrix)))
 
-  List_matrix = na.omit(List_matrix)
-
-  #removing all rows with only 0's
-  List_matrix = List_matrix[which(rowSums(List_matrix[,1:K]) > 0),]
   List_matrix = as.data.frame(List_matrix)
   #N = number of observed or captured units
   N = nrow(List_matrix)
@@ -86,7 +81,7 @@ psinhatcond <- function(List_matrix, K = 2, funcname = c("logit"), condvar, nfol
   for(cvar in condvar_vec){
 
     List_matrixsub = List_matrix[List_matrix[,K + condvar] == cvar, -c(K + condvar)]
-    est = try(psinhat(List_matrix = List_matrixsub, K = K, funcname = funcname, nfolds = 2, twolist = twolist, eps = eps, iter = iter, sl.lib = sl.lib), silent = TRUE)
+    est = try(psinhat(List_matrix = List_matrixsub, K = K, filterrows = filterrows, funcname = funcname, nfolds = 2, twolist = twolist, eps = eps, iter = iter, sl.lib = sl.lib), silent = TRUE)
 
     if("try-error" %in% class(est)){
       next

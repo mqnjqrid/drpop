@@ -44,11 +44,10 @@ psinhat <- function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twoli
 
   l = ncol(List_matrix) - K
   n = nrow(List_matrix)
+
   stopifnot(!is.null(dim(List_matrix)))
-  stopifnot(K >= 2)
-  stopifnot(nrow(List_matrix)>1)
-  stopifnot(ncol(List_matrix) >= 2)
-  stopifnot(((ncol(List_matrix) == K)&(nrow(List_matrix)>50)) | (nrow(List_matrix) > 0))
+
+  stopifnot(informat(List_matrix = List_matrix, K = K))
 
   List_matrix = na.omit(List_matrix)
 
@@ -57,6 +56,8 @@ psinhat <- function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twoli
   List_matrix = as.data.frame(List_matrix)
   #N = number of observed or captured units
   N = nrow(List_matrix)
+
+  stopifnot(((l == 0)&(nrow(List_matrix)>50)) | (nrow(List_matrix) > 0))
 
   conforminglists = apply(List_matrix[,1:K], 2, function(col){return(setequal(col, c(0,1)))})
   if(sum(conforminglists) < 2){
@@ -103,8 +104,8 @@ psinhat <- function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twoli
     #renaming the columns of List_matrix for ease of use
     colnames(List_matrix) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List_matrix) - K), sep = ''))
 
-    if(nfolds > N/100) {
-      nfolds = floor(N/100)
+    if(nfolds > 1 & nfolds > N/50) {
+      nfolds = pmax(floor(N/50), 1)
       cat("nfolds is reduced to ", nfolds, " to have sufficient training data.\n")
     }
     psiinv_summary = matrix(0, nrow = K*(K - 1)/2, ncol = 3*length(funcname))
@@ -244,7 +245,7 @@ psinhat <- function(List_matrix, K = 2, funcname = c("logit"), nfolds = 5, twoli
     return(list(psi = 1/psiinv_summary, sigma2 = N*var_summary, n = N*psiinv_summary,
                 varn = N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1), N = N,
                 ifvals = ifvals, nuis = nuis, nuistmle = nuistmle,
-                cin.l = N*psiinv_summary - 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)),
+                cin.l = pmax(N*psiinv_summary - 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)), N),
                 cin.u = N*psiinv_summary + 1.96 *sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1))
     ))
   }

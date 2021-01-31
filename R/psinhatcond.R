@@ -22,8 +22,10 @@
 #' \item{sigma2}{  A dataframe of the efficiency bound \code{sigma^2} in the same format as \code{psi}.}
 #' \item{n}{  A dataframe of the estimated population size n in the same format as \code{psi}.}
 #' \item{varn}{  A dataframe of the variance for population size estimate in the same format as \code{psi}.}
-#' \item{N}{  The number of data points used in the estimation after removing rows with missing data.}
-
+#' \item{N}{  The number of data points used in the estimation for each value of \code{condvar}.}
+#' \item{cin.l}{  The daraframe of estimated lower bound of a 95% confidence interval of \code{n}.}
+#' \item{cin.u}{  The dataframe of estimated upper bound of a 95% confidence interval of \code{n}.}
+#'
 #' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
 #' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
 #' @examples
@@ -78,6 +80,8 @@ psinhatcond <- function(List_matrix, K = 2, funcname = c("logit"), condvar, nfol
   n = numeric(0)
   varn = numeric(0)
   N = numeric(0)
+  cin.l = numeric(0)
+  cin.u = numeric(0)
 
   for(cvar in condvar_vec){
 
@@ -89,6 +93,8 @@ psinhatcond <- function(List_matrix, K = 2, funcname = c("logit"), condvar, nfol
     n = rbind(n, data.frame(listpair = rownames(est$psi), est$n, condvar = cvar), make.row.names = FALSE)
     varn = rbind(varn, data.frame(listpair = rownames(est$psi), est$varn, condvar = cvar), make.row.names = FALSE)
     N = rbind(N, data.frame(N = est$N, condvar = cvar))
+    cin.l = rbind(cin.l, data.frame(listpair = rownames(est$psi), est$cin.l, condvar = cvar), make.row.names = FALSE)
+    cin.u = rbind(cin.u, data.frame(listpair = rownames(est$psi), est$cin.u, condvar = cvar), make.row.names = FALSE)
   }
-  return(list(psi = psi, sigma2 = sigma2, n = n, varn = varn, N = N))
+  return(list(psi = psi, sigma2 = sigma2, n = n, varn = varn, N = N, cin.l = cin.l, cin.u = cin.u))
 }

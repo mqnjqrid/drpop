@@ -45,7 +45,9 @@ The columns represent the model and method combinations (PI = plug-in, BC = bias
 \item{sigma2}{  A dataframe of the efficiency bound \code{sigma^2} in the same format as \code{psi}.}
 \item{n}{  A dataframe of the estimated population size n in the same format as \code{psi}.}
 \item{varn}{  A dataframe of the variance for population size estimate in the same format as \code{psi}.}
-\item{N}{  The number of data points used in the estimation after removing rows with missing data.}
+\item{N}{  The number of data points used in the estimation for each value of \code{condvar}.}
+\item{cin.l}{  The daraframe of estimated lower bound of a 95\% confidence interval of \code{n}.}
+\item{cin.u}{  The dataframe of estimated upper bound of a 95\% confidence interval of \code{n}.}
 }
 \description{
 Estimate total population size and capture probability using user provided set of models conditioned on an attribute.

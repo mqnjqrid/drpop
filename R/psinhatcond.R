@@ -85,9 +85,9 @@ psinhatcond <- function(List_matrix, K = 2, funcname = c("logit"), condvar, nfol
 
   for(cvar in condvar_vec){
 
-    List_matrixsub = List_matrix[List_matrix[,K+condvar] == cvar,]
+    List_matrixsub = List_matrix[List_matrix[,K + condvar] == cvar, -c(K + condvar)]
     est = try(psinhat(List_matrix = List_matrixsub, K = K, funcname = funcname, nfolds = 2, twolist = twolist, eps = eps, iter = iter, sl.lib = sl.lib), silent = TRUE)
-    
+
     if("try-error" %in% class(est)){
       next
     }

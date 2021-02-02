@@ -4,12 +4,20 @@
 \alias{qhat_sl}
 \title{Estimate marginal and joint distribution of lists i and j using super learner.}
 \usage{
-qhat_sl(List1, List2, K, i, j, eps = 0.005, sl.lib = sl.lib)
+qhat_sl(
+  List.train,
+  List.test,
+  K = 2,
+  i = 1,
+  j = 2,
+  eps = 0.005,
+  sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet")
+)
 }
 \arguments{
-\item{List1}{The training data matrix used to estimate the distibution functions.}
+\item{List.train}{The training data matrix used to estimate the distibution functions.}
 
-\item{List2}{The data matrix on which the estimator function is applied.}
+\item{List.test}{The data matrix on which the estimator function is applied.}
 
 \item{K}{The number of lists in the data.}
 
@@ -26,7 +34,7 @@ A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
 Estimate marginal and joint distribution of lists i and j using super learner.
 }
 \examples{
-qhat = qhat_sl(List1 = List1, List2 = List2, K = 3, i = 1, j = 2, eps = 0.005)
+qhat = qhat_sl(List.train = List.train, List.test = List.test, K = 3, i = 1, j = 2, eps = 0.005)
 q1 = qhat$q1
 q2 = qhat$q2
 q12 = qhat$q12

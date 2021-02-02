@@ -169,7 +169,7 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
             for (func in funcname){
 
               colsubset = stringr::str_subset(colnames(psiinv_summary), func)
-              qhat = try(get(paste0("qhat_", func))(List1, List2, K, i, j, eps, sl.lib = sl.lib), silent = TRUE)
+              qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, i, j, eps, sl.lib = sl.lib), silent = TRUE)
 
               if ("try-error" %in% class(qhat)) {
                 next

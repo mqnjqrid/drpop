@@ -1,30 +1,30 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# EffPopSize
+# drpop
 
 <!-- badges: start -->
 
 <!-- badges: end -->
 
-The goal of EffPopSize is to provide users doubly-robust and efficient
+The goal of drpop is to provide users doubly-robust and efficient
 estimates of population size and the variances for a capture-recapture
 problem.
 
 ## Installation
 
-You can install the released version of EffPopSize from
+You can install the released version of drpop from
 [CRAN](https://CRAN.R-project.org) with:
 
 ``` r
-install.packages("EffPopSize")
+install.packages("drpop")
 ```
 
 And the development version from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("mqnjqrid/EffPopSize")
+devtools::install_github("mqnjqrid/drpop")
 ```
 
 ## Example
@@ -32,7 +32,7 @@ devtools::install_github("mqnjqrid/EffPopSize")
 This is a basic example which shows you how to solve a common problem:
 
 ``` r
-library(EffPopSize)
+library(drpop)
 
 n = 1000
 x = matrix(rnorm(n*3, 2, 1), nrow = n)
@@ -60,7 +60,7 @@ The following shows histograms of estimates for toy data. Real
 population size is 10000.
 
 ``` r
-library(EffPopSize)
+library(drpop)
 library(reshape2)
 library(ggplot2)
 

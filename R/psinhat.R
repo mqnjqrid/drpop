@@ -116,11 +116,11 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
     colnames(psiinv_summary) = paste(rep(funcname, each = 3), c("PI", "BC", "TMLE"), sep = '.')
     var_summary = psiinv_summary
 
-    ifvals = matrix(0, nrow = N*K*(K-1)/2, ncol = length(funcname))
+    ifvals = matrix(NA, nrow = N*K*(K-1)/2, ncol = length(funcname))
     colnames(ifvals) = funcname
     rownames(ifvals) = rep(rownames(psiinv_summary), each = N)
 
-    nuis = matrix(0, nrow = N*K*(K-1)/2, ncol = 3*length(funcname))
+    nuis = matrix(NA, nrow = N*K*(K-1)/2, ncol = 3*length(funcname))
     colnames(nuis) = paste(rep(funcname, each = 3), c("q12", "q1", "q2"), sep = '.')
     rownames(nuis) = rownames(ifvals)
     nuistmle = nuis
@@ -141,10 +141,10 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
         colnames(psiinvmat) = paste(rep(funcname, each = 3), c("PI", "BC", "TMLE"), sep = '.')
         varmat = psiinvmat
 
-        ifvalsfold = matrix(0, nrow = N, ncol = length(funcname))
+        ifvalsfold = matrix(NA, nrow = N, ncol = length(funcname))
         colnames(ifvalsfold) = funcname
 
-        nuisfold = matrix(0, nrow = N, ncol = 3*length(funcname))
+        nuisfold = matrix(NA, nrow = N, ncol = 3*length(funcname))
         colnames(nuisfold) = paste(rep(funcname, each = 3), c("q12", "q1", "q2"), sep = '.')
         nuistmlefold = nuisfold
 

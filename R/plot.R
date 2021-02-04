@@ -1,47 +1,68 @@
 #' Estimate total population size and capture probability using user provided set of models.
 #'
-#' @param List_matrix The data frame in capture-recapture format for which total population is to be estimated.
-#'                    The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.
-#' @param K The number of lists in the data. typically the first \code{K} rows of List_matrix.
-#' @param filterrows A logical value denoting whether to remove all rows with only zeroes.
-#' @param funcname The vector of estimation function names to obtain the population size.
-#' @param nfolds The number of folds to be used for cross fitting.
-#' @param twolist The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.
-#' @param eps The minimum value the estimates can attain to bound them away from zero.
-#' @param iter An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.
-#' @param sl.lib algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".
-#' @return A list of estimates containing the following components:
-#' \item{psi}{  A dataframe of the estimated capture probability for each list pair, model and method combination. In the absence of covariates, the column represents the standard plug-in estimate.
-#' The rows represent the list pair which is assumed to be independent conditioned on the covariates.
-#' The columns represent the model and method combinations (PI = plug-in, BC = bias-corrected, TMLE = targeted maximum likelihood estimate)indicated in the columns.}
-#' \item{sigma2}{  A dataframe of the efficiency bound \code{sigma^2} in the same format as \code{psi}.}
-#' \item{n}{  A dataframe of the estimated population size n in the same format as \code{psi}.}
-#' \item{varn}{  A dataframe of the variance for population size estimate in the same format as \code{psi}.}
-#' \item{N}{  The number of data points used in the estimation after removing rows with missing data.}
-#' \item{ifvals}{  The estimated influence function values for the observed data. Each column corresponds to an element in funcname.}
-#' \item{nuis}{  The estimated nuisance functions (q12, q1, q2) for each element in funcname.}
-#' \item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
-#' \item{cin.l}{  The estimated lower bound of a 95% confidence interval of \code{n}.}
-#' \item{cin.u}{  The estimated upper bound of a 95% confidence interval of \code{n}.}
-#'
-#' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
-#' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
+#' @param psinhat An object of type psinhat returned value.
+#' @param psinhatcond An object of type psinhat returned value.
+#' @param show.plot a logical value indicating whether it will show plots.
+#' @return A list of containing the following components:
+#' \item{result}{  A dataframe of the values in \code{psinhat} which can be passed to ggplot.}
+#' \item{sigma2}{  A dataframe of the values in \code{psinhatcond} which can be passed to ggplot.}
+#' \item{g1}{  A ggplot object with population size estimates and the 95% confidence interval of the population size \code{n}.}
+#' \item{g2}{  A ggplot object with population size estimates and the 95% confidence interval of the population size \code{n} conditional on \code{condvar}.}
 #' @examples
-#' data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
-#' x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
+#' n = 10000
+#' x = matrix(rnorm(n*3, 2, 1), nrow = n)
+#' expit = function(xi) {
+#'   exp(sum(xi))/(1 + exp(sum(xi)))
+#' }
+#' y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.4*xi), expit(-0.6 + 0.4*xi)))}))
+#' y2 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.3*xi), expit(-0.6 + 0.3*xi)))}))
+#' datacrc = cbind(y1, y2, exp(x/2))
 #'
-#' psin_estimate = psinhat(List_matrix = data)
-#' #this returns the basic plug-in estimate since covariates are absent.
+#' p = psinhat(List_matrix = datacrc, funcname = c("logit", "gam", "sl"))
+#' plot(psinhat = p)
 #'
-#' data = cbind(data, x)
-#' psin_estimate = psinhat(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005)
-#' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models
+#' ss = sample(c('a','b','c','d','e','f'), nrow(datacrc), replace = TRUE, prob = (1:6)/sum(1:6))
+#'
+#' datacrc1 = data.frame(datacrc, ss)
+#
+#' p = psinhatcond(List_matrix = datacrc1, condvar = 'ss')
+#' plot(psinhatcond = p)
 #' @export
-plot <- function(psinhat, psinhatcond){
+plot <- function(psinhat, psinhatcond, show.plot = TRUE){
     require(ggplot2)
     require(reshape2)
     require(tidyr)
+  result = NA
+  resultcond = NA
+  g1 = NA
+  g2 = NA
   if(!missing(psinhat)){
+    psi <- reshape2::melt(psinhat$psi, value.name = "psi")%>% separate(Var2, c("model", "method"))
+    sigma2 <- reshape2::melt(psinhat$sigma2, value.name = "sigma2")%>% separate(Var2, c("model", "method"))
+    n <- reshape2::melt(psinhat$n, value.name = "n")%>% separate(Var2, c("model", "method"))
+    varn <- reshape2::melt(psinhat$varn, value.name = "varn")%>% separate(Var2, c("model", "method"))
+    N <- psinhat$N
+    cin.l <- reshape2::melt(psinhat$cin.l, value.name = "cin.l")%>% separate(Var2, c("model", "method"))
+    cin.u <- reshape2::melt(psinhat$cin.u, value.name = "cin.u")%>% separate(Var2, c("model", "method"))
+
+    result<- merge(psi, sigma2, by = c("Var1", "model", "method")) %>%
+      merge(n, by = c("Var1", "model", "method")) %>%
+      merge(varn, by = c("Var1", "model", "method")) %>%
+      merge(cin.l, by = c("Var1", "model", "method")) %>%
+      merge(cin.u, by = c("Var1", "model", "method")) %>% dplyr::rename(listpair = Var1)
+
+    result <- na.omit(result)
+
+    g1 <- ggplot(result, aes(x = model, color = method)) +
+      #geom_line(aes(y = n, linetype = method)) +
+      geom_point(aes(y = n), position=position_dodge(0.25)) +
+      geom_errorbar(aes(ymin = cin.l, ymax = cin.u), width=.2, position=position_dodge(0.25)) +
+      facet_wrap(~listpair, labeller = label_both) +
+      theme_bw()
+
+    if(show.plot){
+      g1
+    }
 
   }
 
@@ -54,17 +75,23 @@ plot <- function(psinhat, psinhatcond){
     cin.l <- reshape2::melt(psinhatcond$cin.l, id.vars = c("listpair", "condvar"), value.name = "cin.l")%>% separate(variable, c("model", "method"))
     cin.u <- reshape2::melt(psinhatcond$cin.u, id.vars = c("listpair", "condvar"), value.name = "cin.u")%>% separate(variable, c("model", "method"))
 
-    result<- merge(psi, sigma2, by = c("listpair", "condvar", "model", "method")) %>%
+    resultcond <- merge(psi, sigma2, by = c("listpair", "condvar", "model", "method")) %>%
              merge(n, by = c("listpair", "condvar", "model", "method")) %>%
              merge(varn, by = c("listpair", "condvar", "model", "method")) %>%
              merge(cin.l, by = c("listpair", "condvar", "model", "method")) %>%
-             merge(cin.u, by = c("listpair", "condvar", "model", "method"))  %>%
+             merge(cin.u, by = c("listpair", "condvar", "model", "method")) %>%
              merge(N, by = "condvar")
-    ggplot(result, aes(x = condvar, color = method)) +
-      geom_line(aes(y = n)) +
-      geom_point(aes(y = n)) +
-      geom_errorbar(aes(ymin = cin.l, ymax = cin.u)) +
-      facet_wrap(~model) +
+    g2<- ggplot(resultcond, aes(x = condvar, color = method)) +
+      #geom_line(aes(y = n, linetype = method)) +
+      geom_point(aes(y = n), position=position_dodge(0.25)) +
+      geom_errorbar(aes(ymin = cin.l, ymax = cin.u), width=.2, position=position_dodge(0.25)) +
+      facet_grid(listpair~model, labeller = label_both) +
+      scale_x_discrete(name = "conditional variable (number of observations)", breaks = c(N$condvar), labels = paste(N$condvar, " (", N$N, ')', sep = '')) +
       theme_bw()
+
+    if(show.plot){
+      g2
+    }
   }
+  return(list(result = result, resultcond = resultcond, g1 = g1, g2 = g2))
 }

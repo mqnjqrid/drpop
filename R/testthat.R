@@ -1,5 +1,5 @@
 if(FALSE){
-n = 10000
+n = 100
 x = matrix(rnorm(n*3, 2, 1), nrow = n)
 expit = function(xi) {
   exp(sum(xi))/(1 + exp(sum(xi)))
@@ -15,6 +15,6 @@ ss = sample(c('a','b','c','d','e','f'), nrow(datacrc), replace = TRUE, prob = (1
 
 datacrc1 = data.frame(datacrc, ss)
 
-p = psinhatcond(List_matrix = datacrc1[1:1000,], condvar = 'ss')
+p = psinhatcond(List_matrix = datacrc1, condvar = 'ss')
 plot(psinhatcond = p)
 }

@@ -101,6 +101,8 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
     ))
   }else{
 
+    #converting factor columns to numeric
+    List_matrix = reformat(List_matrix)
     #renaming the columns of List_matrix for ease of use
     colnames(List_matrix) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List_matrix) - K), sep = ''))
 

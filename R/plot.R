@@ -50,6 +50,7 @@ plot <- function(psinhat, psinhatcond, show.plot = TRUE){
       merge(varn, by = c("Var1", "model", "method")) %>%
       merge(cin.l, by = c("Var1", "model", "method")) %>%
       merge(cin.u, by = c("Var1", "model", "method")) %>% dplyr::rename(listpair = Var1)
+    result$method <- factor(result$method, levels = c("PI", "BC", "TMLE"))
 
     result <- na.omit(result)
 
@@ -58,6 +59,7 @@ plot <- function(psinhat, psinhatcond, show.plot = TRUE){
       geom_point(aes(y = n), position=position_dodge(0.25)) +
       geom_errorbar(aes(ymin = cin.l, ymax = cin.u), width=.2, position=position_dodge(0.25)) +
       facet_wrap(~listpair, labeller = label_both) +
+      scale_color_manual("Estimation method", values=c("PI" = "red", "BC" = "#E69F00", "TMLE" = "#56B4E9")) +
       theme_bw()
 
     if(show.plot){
@@ -81,17 +83,22 @@ plot <- function(psinhat, psinhatcond, show.plot = TRUE){
              merge(cin.l, by = c("listpair", "condvar", "model", "method")) %>%
              merge(cin.u, by = c("listpair", "condvar", "model", "method")) %>%
              merge(N, by = "condvar")
+    resultcond$method <- factor(resultcond$method, levels = c("PI", "BC", "TMLE"))
+
+    resultcond <- na.omit(resultcond)
+
     g2<- ggplot(resultcond, aes(x = condvar, color = method)) +
       #geom_line(aes(y = n, linetype = method)) +
       geom_point(aes(y = n), position=position_dodge(0.25)) +
       geom_errorbar(aes(ymin = cin.l, ymax = cin.u), width=.2, position=position_dodge(0.25)) +
       facet_grid(listpair~model, labeller = label_both) +
       scale_x_discrete(name = "conditional variable (number of observations)", breaks = c(N$condvar), labels = paste(N$condvar, " (", N$N, ')', sep = '')) +
+      scale_color_manual("Estimation method", values=c("PI" = "red", "BC" = "#E69F00", "TMLE" = "#56B4E9")) +
       theme_bw()
 
     if(show.plot){
       g2
     }
   }
-  return(list(result = result, resultcond = resultcond, g1 = g1, g2 = g2))
+  return(invisible(list(result = result, resultcond = resultcond, g1 = g1, g2 = g2)))
 }

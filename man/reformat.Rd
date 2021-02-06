@@ -2,24 +2,26 @@
 % Please edit documentation in R/reformat.R
 \name{reformat}
 \alias{reformat}
-\title{A function to reorder the columns of a data table/matrix/data frame to match the required format for crctmle.}
+\title{A function to reorder the columns of a data table/matrix/data frame and to change factor variables to numeric.}
 \usage{
-reformat(List_matrix, capturelists)
+reformat(List_matrix, capturelists, condvar)
 }
 \arguments{
 \item{List_matrix}{The data table/matrix/data frame which is to be checked.}
 
-\item{capturelists}{The vctor of column names or locations for the capture history list columns.}
+\item{capturelists}{The vector of column names or locations for the capture history list columns.}
+
+\item{condvar}{The column to obtain conditional estimates. This column is not converted to numeric.}
 }
 \value{
-\code{List_matrix} With reordered columns so that the capture historu columns are followed by the rest.
+\code{List_matrix} With reordered columns so that the capture history columns are followed by the rest.
 }
 \description{
-A function to reorder the columns of a data table/matrix/data frame to match the required format for crctmle.
+A function to reorder the columns of a data table/matrix/data frame and to change factor variables to numeric.
 }
 \examples{
 data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
-x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
+x = matrix(rnorm(nrow(data)*3, 2, 1), nrow = nrow(data))
 
 data = cbind(x, data)
 result<- reformat(List_matrix = data, capturelists = c(4,5))

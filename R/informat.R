@@ -1,4 +1,4 @@
-#' A function to check whether a given data table/matrix/data frame is in the appropriate for crctmle.
+#' A function to check whether a given data table/matrix/data frame is in the appropriate for drpop.
 #'
 #' @param List_matrix The data table/matrix/data frame which is to be checked.
 #' @param K The number of lists (optional).

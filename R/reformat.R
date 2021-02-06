@@ -15,6 +15,8 @@ reformat <- function(List_matrix, capturelists, condvar){
 
   require(tidyverse)
 
+  List_matrix = as.data.frame(List_matrix)
+
   if(!missing(capturelists)){
     stopifnot(length(capturelists) > 1)
     stopifnot(class(capturelists) %in% c("character", "integer"))
@@ -33,8 +35,10 @@ reformat <- function(List_matrix, capturelists, condvar){
     factor_cols = setdiff(factor_cols, "condvar")
   }
 
-  List_matrix = data.frame(List_matrix[,!(names(List_matrix) %in% factor_cols)],
+  if(length(factor_cols)) {
+    List_matrix = data.frame(List_matrix[,!(names(List_matrix) %in% factor_cols)],
                            model.matrix(formula(paste('~', paste(factor_cols, collapse = '+'))), List_matrix))
+  }
 
   return(List_matrix)
 }

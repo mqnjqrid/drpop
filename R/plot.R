@@ -60,7 +60,8 @@ plot <- function(psinhat, psinhatcond, show.plot = TRUE){
       geom_errorbar(aes(ymin = cin.l, ymax = cin.u), width=.2, position=position_dodge(0.25)) +
       facet_wrap(~listpair, labeller = label_both) +
       scale_color_manual("Estimation method", values=c("PI" = "red", "BC" = "#E69F00", "TMLE" = "#56B4E9")) +
-      theme_bw()
+      theme_bw() +
+      theme(legend.position = "bottom")
 
     if(show.plot){
       g1
@@ -94,7 +95,8 @@ plot <- function(psinhat, psinhatcond, show.plot = TRUE){
       facet_grid(listpair~model, labeller = label_both) +
       scale_x_discrete(name = "conditional variable (number of observations)", breaks = c(N$condvar), labels = paste(N$condvar, " (", N$N, ')', sep = '')) +
       scale_color_manual("Estimation method", values=c("PI" = "red", "BC" = "#E69F00", "TMLE" = "#56B4E9")) +
-      theme_bw()
+      theme_bw() +
+      theme(legend.position = "bottom")
 
     if(show.plot){
       g2

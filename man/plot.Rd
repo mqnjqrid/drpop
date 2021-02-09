@@ -4,14 +4,16 @@
 \alias{plot}
 \title{Estimate total population size and capture probability using user provided set of models.}
 \usage{
-plot(psinhat, psinhatcond, show.plot = TRUE)
+plot(psinhat, psinhatcond, show.plot = TRUE, tsize = 12)
 }
 \arguments{
 \item{psinhat}{An object of type psinhat returned value.}
 
 \item{psinhatcond}{An object of type psinhat returned value.}
 
-\item{show.plot}{a logical value indicating whether it will show plots.}
+\item{show.plot}{A logical value indicating whether it will show plots.}
+
+\item{tsize}{The text size for the plots.}
 }
 \value{
 A list of containing the following components:

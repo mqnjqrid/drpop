@@ -2,7 +2,8 @@
 #'
 #' @param psinhat An object of type psinhat returned value.
 #' @param psinhatcond An object of type psinhat returned value.
-#' @param show.plot a logical value indicating whether it will show plots.
+#' @param show.plot A logical value indicating whether it will show plots.
+#' @param tsize The text size for the plots.
 #' @return A list of containing the following components:
 #' \item{result}{  A dataframe of the values in \code{psinhat} which can be passed to ggplot.}
 #' \item{sigma2}{  A dataframe of the values in \code{psinhatcond} which can be passed to ggplot.}
@@ -28,10 +29,10 @@
 #' p = psinhatcond(List_matrix = datacrc1, condvar = 'ss')
 #' plot(psinhatcond = p)
 #' @export
-plot <- function(psinhat, psinhatcond, show.plot = TRUE){
-    require(ggplot2)
-    require(reshape2)
-    require(tidyr)
+plot <- function(psinhat, psinhatcond, show.plot = TRUE, tsize = 12){
+  require(ggplot2)
+  require(reshape2)
+  require(tidyr)
   result = NA
   resultcond = NA
   g1 = NA
@@ -59,14 +60,13 @@ plot <- function(psinhat, psinhatcond, show.plot = TRUE){
       geom_point(aes(y = n), position=position_dodge(0.25)) +
       geom_errorbar(aes(ymin = cin.l, ymax = cin.u), width=.2, position=position_dodge(0.25)) +
       facet_wrap(~listpair, labeller = label_both) +
-      scale_color_manual("Estimation method", values=c("PI" = "red", "BC" = "#E69F00", "TMLE" = "#56B4E9")) +
+      scale_color_manual("Estimation method", values = c("PI" = "red", "BC" = "#E69F00", "TMLE" = "#56B4E9")) +
       theme_bw() +
-      theme(legend.position = "bottom")
+      theme(legend.position = "bottom", text = element_text(size = tsize))
 
     if(show.plot){
       g1
     }
-
   }
 
   if(!missing(psinhatcond)){
@@ -94,9 +94,9 @@ plot <- function(psinhat, psinhatcond, show.plot = TRUE){
       geom_errorbar(aes(ymin = cin.l, ymax = cin.u), width=.2, position=position_dodge(0.25)) +
       facet_grid(listpair~model, labeller = label_both) +
       scale_x_discrete(name = "conditional variable (number of observations)", breaks = c(N$condvar), labels = paste(N$condvar, " (", N$N, ')', sep = '')) +
-      scale_color_manual("Estimation method", values=c("PI" = "red", "BC" = "#E69F00", "TMLE" = "#56B4E9")) +
+      scale_color_manual("Estimation method", values = c("PI" = "red", "BC" = "#E69F00", "TMLE" = "#56B4E9")) +
       theme_bw() +
-      theme(legend.position = "bottom")
+      theme(legend.position = "bottom", text = element_text(size = tsize))
 
     if(show.plot){
       g2

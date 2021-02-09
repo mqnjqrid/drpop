@@ -7,7 +7,7 @@
 psinhatcond(
   List_matrix,
   K = 2,
-  filterrows = FALSE,
+  filterrows = TRUE,
   funcname = c("logit"),
   condvar,
   nfolds = 5,

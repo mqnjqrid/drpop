@@ -38,7 +38,7 @@
 #' psin_estimate = psinhatcond(List_matrix = data, funcname = c("logit", "sl"), condvar = 'ss', nfolds = 2, twolist = FALSE, eps = 0.005)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models conditioned on column ss
 #' @export
-psinhatcond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("logit"), condvar, nfolds = 5, twolist = FALSE, eps = 0.005, iter = 50, sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet")){
+psinhatcond <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit"), condvar, nfolds = 5, twolist = FALSE, eps = 0.005, iter = 50, sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet")){
 
   l = ncol(List_matrix) - K
   n = nrow(List_matrix)

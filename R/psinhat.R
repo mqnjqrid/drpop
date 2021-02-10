@@ -57,7 +57,12 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
   #N = number of observed or captured units
   N = nrow(List_matrix)
 
-  stopifnot(((l == 0)&(nrow(List_matrix)>50)) | (nrow(List_matrix) > 0))
+  stopifnot(N > 1)
+
+  if (l >= 0 & N < 500){
+    l = 0
+    warning(cat("Insufficient number of observations for doubly-robust estimation."))
+  }
 
   conforminglists = apply(List_matrix[,1:K], 2, function(col){return(setequal(col, c(0,1)))})
   if(sum(conforminglists) < 2){

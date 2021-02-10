@@ -150,8 +150,8 @@ qhat_sl <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, sl.
 #' q12 = qhat$q12
 #'
 #' @export
-qhat_mlogit = function(List.train, List.test, K, i, j, eps = 0.005){
-  require(mlogit)
+qhat_mlogit = function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005){
+  require("mlogit")
   q1 = NaN
   q2 = NaN
   q12 = NaN
@@ -192,6 +192,8 @@ qhat_mlogit = function(List.train, List.test, K, i, j, eps = 0.005){
     head(cbind(q1, q2, q12))
     head(cbind(l0, l1, l2, l3))
     
+  }else{
+     Warning("One or more fits with SuperLearner regression failed.")
   }
   
   return(list(q1 = q1, q2 = q2, q12 = q12))

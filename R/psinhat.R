@@ -81,7 +81,7 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
     psiinv_summary = matrix(0, nrow = K*(K - 1)/2, ncol = 1)
     rownames(psiinv_summary) = unlist(sapply(1:(K - 1), function(k) {
       sapply((k + 1):K, function(s) {
-        return(paste(k, ", ", s, sep = ''))
+        return(paste(k, ",", s, sep = ''))
       })}))
     colnames(psiinv_summary) =  c("PI")
     var_summary = psiinv_summary
@@ -96,8 +96,8 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
         q1 = mean(List_matrix[,i])
         q2 = mean(List_matrix[,j])
         q12 = mean(List_matrix[,i]*List_matrix[,j])
-        psiinv_summary[paste(i, ", ", j, sep = ''),] = q1*q2/q12
-        var_summary[paste(i, ", ", j, sep = ''),] = q1*q2*(q1*q2 - q12)*(1 - q12)/q12^3/N
+        psiinv_summary[paste(i, ",", j, sep = ''),] = q1*q2/q12
+        var_summary[paste(i, ",", j, sep = ''),] = q1*q2*(q1*q2 - q12)*(1 - q12)/q12^3/N
         ifvals = NULL
       }
     }
@@ -118,7 +118,7 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
     psiinv_summary = matrix(0, nrow = K*(K - 1)/2, ncol = 3*length(funcname))
     rownames(psiinv_summary) = unlist(sapply(1:(K - 1), function(k) {
       sapply((k + 1):K, function(s) {
-        return(paste(k, ", ", s, sep = ''))
+        return(paste(k, ",", s, sep = ''))
       })}))
     colnames(psiinv_summary) = paste(rep(funcname, each = 3), c("PI", "BC", "TMLE"), sep = '.')
     var_summary = psiinv_summary
@@ -240,12 +240,12 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
           }
         }
 
-        psiinv_summary[paste(i, ", ", j, sep = ''),] = colMeans(psiinvmat, na.rm = TRUE)
-        var_summary[paste(i, ", ", j, sep = ''),] = colMeans(varmat, na.rm = TRUE)
+        psiinv_summary[paste(i, ",", j, sep = ''),] = colMeans(psiinvmat, na.rm = TRUE)
+        var_summary[paste(i, ",", j, sep = ''),] = colMeans(varmat, na.rm = TRUE)
 
-        ifvals[rownames(ifvals) == paste(i, ", ", j, sep = ''),] = ifvalsfold
-        nuis[rownames(nuis) == paste(i, ", ", j, sep = ''),] = nuisfold
-        nuistmle[rownames(nuistmle) == paste(i, ", ", j, sep = ''),] = nuistmlefold
+        ifvals[rownames(ifvals) == paste(i, ",", j, sep = ''),] = ifvalsfold
+        nuis[rownames(nuis) == paste(i, ",", j, sep = ''),] = nuisfold
+        nuistmle[rownames(nuistmle) == paste(i, ",", j, sep = ''),] = nuistmlefold
       }
     }
 

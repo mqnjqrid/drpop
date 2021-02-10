@@ -150,7 +150,7 @@ qhat_sl <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, sl.
 #' q12 = qhat$q12
 #'
 #' @export
-qhat_mlogit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005){
+qhat_mlogit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...){
   require("mlogit")
   q1 = NaN
   q2 = NaN
@@ -158,7 +158,7 @@ qhat_mlogit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005)
   l = ncol(List.train) - K
   colnames(List.train) = c(paste("L", 1:K, sep = ''), paste("x", 1:l, sep = ''))
   colnames(List.test) = c(paste("L", 1:K, sep = ''), paste("x", 1:l, sep = ''))
-  
+
   Listy = cbind(List.train[,"L1"] + 2*List.train[,"L2"], List.train[,-(1:K)])
   #Listy[Listy == 0] = 4
   colnames(Listy) = c("choice", colnames(List.train)[-c(1:K)])
@@ -174,7 +174,7 @@ qhat_mlogit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005)
   if(class(mfit) != "try-error"){
     coef = matrix(mfit$coefficients, nrow = l + 1, byrow = TRUE)
     xlist = as.matrix(cbind(1, List.test[,-(1:K)]))
-    
+
     if ("0" %in% unique(mml_train$alt)){
       l0 = xlist[,1]
       l1 = exp(xlist%*%coef[,1])
@@ -191,10 +191,10 @@ qhat_mlogit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005)
     q12 = pmin(pmax(l3/(l0 + l1 + l2 + l3), eps), 1)
     head(cbind(q1, q2, q12))
     head(cbind(l0, l1, l2, l3))
-    
+
   }else{
      Warning("One or more fits with SuperLearner regression failed.")
   }
-  
+
   return(list(q1 = q1, q2 = q2, q12 = q12))
 }

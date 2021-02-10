@@ -4,7 +4,7 @@
 \alias{qhat_mlogit}
 \title{Estimate marginal and joint distribution of lists i and j using multinomial logistic model.}
 \usage{
-qhat_mlogit(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005)
+qhat_mlogit(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...)
 }
 \arguments{
 \item{List.train}{The training data matrix used to estimate the distibution functions.}

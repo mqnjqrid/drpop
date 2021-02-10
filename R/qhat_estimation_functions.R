@@ -133,3 +133,66 @@ qhat_sl <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, sl.
 
   return(list(q1 = q1, q2 = q2, q12 = q12))
 }
+
+#' Estimate marginal and joint distribution of lists i and j using multinomial logistic model.
+#'
+#' @param List.train The training data matrix used to estimate the distibution functions.
+#' @param List.test The data matrix on which the estimator function is applied.
+#' @param K The number of lists in the data.
+#' @param i The first list that is conditionally independent.
+#' @param j The second list that is conditionally independent.
+#' @param eps The minimum value the estimates can attain to bound them away from zero.
+#' @return A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
+#' @examples
+#' qhat = qhat_mlogit(List.train = List.train, List.test = List.test, K = 3, i = 1, j = 2, eps = 0.005)
+#' q1 = qhat$q1
+#' q2 = qhat$q2
+#' q12 = qhat$q12
+#'
+#' @export
+qhat_mlogit = function(List.train, List.test, K, i, j, eps = 0.005){
+  require(mlogit)
+  q1 = NaN
+  q2 = NaN
+  q12 = NaN
+  l = ncol(List.train) - K
+  colnames(List.train) = c(paste("L", 1:K, sep = ''), paste("x", 1:l, sep = ''))
+  colnames(List.test) = c(paste("L", 1:K, sep = ''), paste("x", 1:l, sep = ''))
+  
+  Listy = cbind(List.train[,"L1"] + 2*List.train[,"L2"], List.train[,-(1:K)])
+  #Listy[Listy == 0] = 4
+  colnames(Listy) = c("choice", colnames(List.train)[-c(1:K)])
+  Listy = as.data.frame(Listy)
+  mml_train = mlogit.data(Listy, choice = "choice", shape = "wide")#, alt.levels = 0:3)
+  Listy = cbind(List.test[,"L1"] + 2*List.test[,"L2"], List.test[,-(1:K)])
+  #Listy[Listy == 0] = 4
+  colnames(Listy) = c("choice", colnames(List.train)[-c(1:K)])
+  Listy = as.data.frame(Listy)
+  #mml_test = mlogit.data(Listy, choice = "choice", shape = "wide")#, alt.levels = 1:3)
+  l = ncol(List.train) - K
+  mfit = try(mlogit(formula = formula(paste("choice ~ 0 |", paste("x", 1:l, sep = '', collapse = ' + '))), data = mml_train, outcome = FALSE))
+  if(class(mfit) != "try-error"){
+    coef = matrix(mfit$coefficients, nrow = l + 1, byrow = TRUE)
+    xlist = as.matrix(cbind(1, List.test[,-(1:K)]))
+    
+    if ("0" %in% unique(mml_train$alt)){
+      l0 = xlist[,1]
+      l1 = exp(xlist%*%coef[,1])
+      l2 = exp(xlist%*%coef[,2])
+      l3 = exp(xlist%*%coef[,3])
+    } else{
+      l0 = 0
+      l1 = xlist[,1]
+      l2 = exp(xlist%*%coef[,1])
+      l3 = exp(xlist%*%coef[,2])
+    }    ##    pred = predict(mfit, newdata = mml_test)
+    q1 = pmin(pmax((l1 + l3)/(l0 + l1 + l2 + l3), eps), 1)
+    q2 = pmin(pmax((l2 + l3)/(l0 + l1 + l2 + l3), eps), 1)
+    q12 = pmin(pmax(l3/(l0 + l1 + l2 + l3), eps), 1)
+    head(cbind(q1, q2, q12))
+    head(cbind(l0, l1, l2, l3))
+    
+  }
+  
+  return(list(q1 = q1, q2 = q2, q12 = q12))
+}

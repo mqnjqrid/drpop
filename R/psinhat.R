@@ -13,7 +13,7 @@
 #' @return A list of estimates containing the following components:
 #' \item{psi}{  A dataframe of the estimated capture probability for each list pair, model and method combination. In the absence of covariates, the column represents the standard plug-in estimate.
 #' The rows represent the list pair which is assumed to be independent conditioned on the covariates.
-#' The columns represent the model and method combinations (PI = plug-in, BC = bias-corrected, TMLE = targeted maximum likelihood estimate)indicated in the columns.}
+#' The columns represent the model and method combinations (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate)indicated in the columns.}
 #' \item{sigma2}{  A dataframe of the efficiency bound \code{sigma^2} in the same format as \code{psi}.}
 #' \item{n}{  A dataframe of the estimated population size n in the same format as \code{psi}.}
 #' \item{varn}{  A dataframe of the variance for population size estimate in the same format as \code{psi}.}
@@ -120,7 +120,7 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
       sapply((k + 1):K, function(s) {
         return(paste(k, ",", s, sep = ''))
       })}))
-    colnames(psiinv_summary) = paste(rep(funcname, each = 3), c("PI", "BC", "TMLE"), sep = '.')
+    colnames(psiinv_summary) = paste(rep(funcname, each = 3), c("PI", "DR", "TMLE"), sep = '.')
     var_summary = psiinv_summary
 
     ifvals = matrix(NA, nrow = N*K*(K-1)/2, ncol = length(funcname))
@@ -145,7 +145,7 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
           next
         }
         psiinvmat = matrix(NA, nrow = nfolds, ncol = 3*length(funcname))
-        colnames(psiinvmat) = paste(rep(funcname, each = 3), c("PI", "BC", "TMLE"), sep = '.')
+        colnames(psiinvmat) = paste(rep(funcname, each = 3), c("PI", "DR", "TMLE"), sep = '.')
         varmat = psiinvmat
 
         ifvalsfold = matrix(NA, nrow = N, ncol = length(funcname))
@@ -196,9 +196,9 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
 
               Qnphihat = mean(phihat, na.rm = TRUE)
 
-              psiinvhatq = max(psiinvhat + Qnphihat, 1)
+              psiinvhat.dr = max(psiinvhat + Qnphihat, 1)
 
-              psiinvmat[folds, colsubset][1:2] = c(psiinvhat, psiinvhatq)
+              psiinvmat[folds, colsubset][1:2] = c(psiinvhat, psiinvhat.dr)
 
               sigmasq = var(phihat, na.rm = TRUE)
               varmat[folds, colsubset][1:2] = sigmasq/N
@@ -222,13 +222,13 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
                 nuistmlefold[sbset, paste(func, c("q12", "q1", "q2"), sep = '.')] = cbind(q12, q1, q2)
 
                 gammainvhat = q1*q2/q12
-                psiinvhat = mean(gammainvhat, na.rm = TRUE)
+                psiinvhat.tmle = mean(gammainvhat, na.rm = TRUE)
 
-                phihat = gammainvhat*(yi/q1 + yj/q2 - yi*yj/q12) - psiinvhat
+                phihat = gammainvhat*(yi/q1 + yj/q2 - yi*yj/q12) - psiinvhat.tmle
 
                 Qnphihat = mean(phihat, na.rm = TRUE)
 
-                psiinvmat[folds,colsubset][3] = psiinvhat
+                psiinvmat[folds,colsubset][3] = psiinvhat.tmle
                 sigmasq = var(phihat, na.rm = TRUE)
                 varmat[folds,colsubset][3] = sigmasq/N
               }

@@ -14,7 +14,7 @@
 #' @return A list of estimates containing the following components:
 # \item{psiinvmat}{ A dataframe of estimated psi inverse for the folds, list pair, model and method combination.
 #      The \code{listpair} column represents the list pair which is assumed to be independent conditioned on the covariates.
-#      The columns represent the model and method combinations (PI = plug-in, BC = bias-corrected, TMLE = targeted maximum likelihood estimate).}
+#      The columns represent the model and method combinations (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate).}
 # \item{varmat}{ A dataframe of estimated sigma^2 in the same format as \code{psimat}.}
 #' \item{psi}{  A dataframe of the estimated capture probability for each list pair, model and method combination. In the absence of covariates, the column represents the standard plug-in estimate.
 #' The \code{listpair} column represents the list pair which is assumed to be independent conditioned on the covariates.

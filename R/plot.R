@@ -51,7 +51,7 @@ plot <- function(psinhat, psinhatcond, show.plot = TRUE, tsize = 12){
       merge(varn, by = c("Var1", "model", "method")) %>%
       merge(cin.l, by = c("Var1", "model", "method")) %>%
       merge(cin.u, by = c("Var1", "model", "method")) %>% dplyr::rename(listpair = Var1)
-    result$method <- factor(result$method, levels = c("PI", "BC", "TMLE"))
+    result$method <- factor(result$method, levels = c("PI", "DR", "TMLE"))
 
     result <- na.omit(result)
 
@@ -60,7 +60,7 @@ plot <- function(psinhat, psinhatcond, show.plot = TRUE, tsize = 12){
       geom_point(aes(y = n), position=position_dodge(0.25)) +
       geom_errorbar(aes(ymin = cin.l, ymax = cin.u), width=.2, position=position_dodge(0.25)) +
       facet_wrap(~listpair, labeller = label_both) +
-      scale_color_manual("Estimation method", values = c("PI" = "red", "BC" = "#E69F00", "TMLE" = "#56B4E9")) +
+      scale_color_manual("Estimation method", values = c("PI" = "red", "DR" = "#E69F00", "TMLE" = "#56B4E9")) +
       theme_bw() +
       theme(legend.position = "bottom", text = element_text(size = tsize))
 
@@ -84,7 +84,7 @@ plot <- function(psinhat, psinhatcond, show.plot = TRUE, tsize = 12){
              merge(cin.l, by = c("listpair", "condvar", "model", "method")) %>%
              merge(cin.u, by = c("listpair", "condvar", "model", "method")) %>%
              merge(N, by = "condvar")
-    resultcond$method <- factor(resultcond$method, levels = c("PI", "BC", "TMLE"))
+    resultcond$method <- factor(resultcond$method, levels = c("PI", "DR", "TMLE"))
 
     resultcond <- na.omit(resultcond)
 
@@ -94,7 +94,7 @@ plot <- function(psinhat, psinhatcond, show.plot = TRUE, tsize = 12){
       geom_errorbar(aes(ymin = cin.l, ymax = cin.u), width=.2, position=position_dodge(0.25)) +
       facet_grid(listpair~model, labeller = label_both) +
       scale_x_discrete(name = "conditional variable (number of observations)", breaks = c(N$condvar), labels = paste(N$condvar, " (", N$N, ')', sep = '')) +
-      scale_color_manual("Estimation method", values = c("PI" = "red", "BC" = "#E69F00", "TMLE" = "#56B4E9")) +
+      scale_color_manual("Estimation method", values = c("PI" = "red", "DR" = "#E69F00", "TMLE" = "#56B4E9")) +
       theme_bw() +
       theme(legend.position = "bottom", text = element_text(size = tsize))
 

@@ -13,7 +13,7 @@
 #' @return A list of estimates containing the following components:
 #' \item{psi}{  A matrix of the estimated capture probability for each list pair, model and method combination. In the absence of covariates, the column represents the standard plug-in estimate.
 #' The rows represent the list pair which is assumed to be independent conditioned on the covariates.
-#' The columns represent the model and method combinations (PI = plug-in, BC = bias-corrected, TMLE = targeted maximum likelihood estimate)indicated in the columns.}
+#' The columns represent the model and method combinations (PI = plug-in, DR = bias-corrected, TMLE = targeted maximum likelihood estimate)indicated in the columns.}
 #' \item{sigma2}{  A matrix of the efficiency bound \code{sigma^2} in the same format as \code{psi}.}
 #' \item{n}{  A matrix of the estimated population size n in the same format as \code{psi}.}
 #' \item{varn}{  A matrix of the variance for population size estimate in the same format as \code{psi}.}
@@ -50,7 +50,7 @@ psinhat_simul = function(List_matrix, n, K, nfolds = 5, omega, alpha, eps = 0.00
     sapply((k + 1):K, function(s) {
       return(paste(k, ", ", s, sep = ''))
     })}))
-  colnames(psiinv_summary) = c("PI", "BC", "TMLE")
+colnames(psiinv_summary) = c("PI", "DR", "TMLE")
   var_summary = psiinv_summary
 
   permutset = sample(1:N, N, replace = FALSE)
@@ -66,7 +66,7 @@ psinhat_simul = function(List_matrix, n, K, nfolds = 5, omega, alpha, eps = 0.00
         next
       }
       psiinvmat = matrix(NA, nrow = nfolds, ncol = 3)
-      colnames(psiinvmat) = c("PI", "BC", "TMLE")
+      colnames(psiinvmat) = c("PI", "DR", "TMLE")
       varmat = psiinvmat
 
       for(folds in 1:nfolds){
@@ -104,9 +104,9 @@ psinhat_simul = function(List_matrix, n, K, nfolds = 5, omega, alpha, eps = 0.00
 
         Qnphihat = mean(phihat, na.rm = TRUE)
 
-        psiinvhatq = max(psiinvhat + Qnphihat, 1)
+        psiinvhat.dr = max(psiinvhat + Qnphihat, 1)
 
-        psiinvmat[folds, 1:2] = c(psiinvhat, psiinvhatq)
+        psiinvmat[folds, 1:2] = c(psiinvhat, psiinvhat.dr)
 
         sigmasq = var(phihat, na.rm = TRUE)
         varmat[folds, 1:2] = sigmasq/N
@@ -128,13 +128,13 @@ psinhat_simul = function(List_matrix, n, K, nfolds = 5, omega, alpha, eps = 0.00
           q2 = pmax(pmin(datmat$q12 + datmat$q02, 1 + q12 - q1, 1), q12/q1)
 
           gammainvhat = q1*q2/q12
-          psiinvhat = mean(gammainvhat, na.rm = TRUE)
+          psiinvhat.dr = mean(gammainvhat, na.rm = TRUE)
 
-          phihat = gammainvhat*(yi/q1 + yj/q2 - yi*yj/q12) - psiinvhat
+          phihat = gammainvhat*(yi/q1 + yj/q2 - yi*yj/q12) - psiinvhat.dr
 
           Qnphihat = mean(phihat, na.rm = TRUE)
 
-          psiinvmat[folds, 3] = psiinvhat
+          psiinvmat[folds, 3] = psiinvhat.dr
           sigmasq = var(phihat, na.rm = TRUE)
           varmat[folds, 3] = sigmasq/N
         }

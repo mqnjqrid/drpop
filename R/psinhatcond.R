@@ -86,12 +86,25 @@ psinhatcond <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("log
     if("try-error" %in% class(est)){
       next
     }
+    if("PI" %in% colnames(est$psi)){
+      next
+    }
 
+    #print(data.frame(listpair = rownames(est$psi), est$psi, condvar = cvar))
+    N = rbind(N, data.frame(N = est$N, condvar = cvar))
+
+    if("PI" %in% colnames(est$psi) & FALSE){
+      psi = rbind(psi, data.frame(listpair = rownames(est$psi), t(rep(est$psi, 3*length(funcname))), condvar = cvar), make.row.names = FALSE)
+      sigma2 = rbind(sigma2, data.frame(listpair = rownames(est$psi), t(rep(est$sigma2, 3*length(funcname))), condvar = cvar), make.row.names = FALSE)
+      n = rbind(n, data.frame(listpair = rownames(est$psi), t(rep(est$n, 3*length(funcname))), condvar = cvar), make.row.names = FALSE)
+      varn = rbind(varn, data.frame(listpair = rownames(est$psi), t(rep(est$varn, 3*length(funcname))), condvar = cvar), make.row.names = FALSE)
+      cin.l = rbind(cin.l, data.frame(listpair = rownames(est$psi), t(rep(est$cin.l, 3*length(funcname))), condvar = cvar), make.row.names = FALSE)
+      cin.u = rbind(cin.u, data.frame(listpair = rownames(est$psi), t(rep(est$cin.u, 3*length(funcname))), condvar = cvar), make.row.names = FALSE)
+    }
     psi = rbind(psi, data.frame(listpair = rownames(est$psi), est$psi, condvar = cvar), make.row.names = FALSE)
     sigma2 = rbind(sigma2, data.frame(listpair = rownames(est$psi), est$sigma2, condvar = cvar), make.row.names = FALSE)
     n = rbind(n, data.frame(listpair = rownames(est$psi), est$n, condvar = cvar), make.row.names = FALSE)
     varn = rbind(varn, data.frame(listpair = rownames(est$psi), est$varn, condvar = cvar), make.row.names = FALSE)
-    N = rbind(N, data.frame(N = est$N, condvar = cvar))
     cin.l = rbind(cin.l, data.frame(listpair = rownames(est$psi), est$cin.l, condvar = cvar), make.row.names = FALSE)
     cin.u = rbind(cin.u, data.frame(listpair = rownames(est$psi), est$cin.u, condvar = cvar), make.row.names = FALSE)
   }

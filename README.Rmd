@@ -61,14 +61,12 @@ estim$varn
 ## basic example code
 ```
 
-The following shows histograms of estimates for toy data. Real population size is 10000.
+The following shows the confidence interval of estimates for a toy data. Real population size is 3000.
 
-```{r plot}
+```{r plot1, message = FALSE}
 library(drpop)
-library(reshape2)
-library(ggplot2)
 
-n = 5000
+n = 3000
 x = matrix(rnorm(n*3, 2,1), nrow = n)
 
 expit = function(xi) {
@@ -78,31 +76,32 @@ y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = 
 y2 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.3*xi), expit(-0.6 + 0.3*xi)))}))
 datacrc = cbind(y1, y2, exp(x/2))
 
-estim <- do.call("rbind", lapply(1:10, function(iter){
-  return(psinhat(List_matrix = datacrc, func = c("logit"), nfolds = 2, eps = 0.01)$n)
-}))
+estim <- psinhat(List_matrix = datacrc, func = c("logit", "sl"), nfolds = 2, eps = 0.01)
 
-result = melt(as.data.frame(estim), variable.name = "estimator", value.name = "population_size")
-ggplot(result, aes(x = population_size - n, fill = estimator, color = estimator)) +
-  geom_density(alpha = 0.4) +
-  xlab("Bias on n")
+plot(psinhat = estim)$g1
+#result = melt(as.data.frame(estim), variable.name = "estimator", value.name = "population_size")
+#ggplot(result, aes(x = population_size - n, fill = estimator, color = estimator)) +
+#  geom_density(alpha = 0.4) +
+#  xlab("Bias on n")
 
 ```
 
-```{r plot}
+The following shows confidence interval of estimates for toy data with a categorical covariate. Real population size is 10000.
+```{r plot2, message = FALSE}
+library(drpop)
+n = 10000
 x = matrix(rnorm(n*3, 2, 1), nrow = n)
 expit = function(xi) {
   exp(sum(xi))/(1 + exp(sum(xi)))
 }
+ss = sample(c('m','f'), n, replace = TRUE, prob = c(0.45, 0.55))
+
 y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.4*xi), expit(-0.6 + 0.4*xi)))}))
-y2 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.3*xi), expit(-0.6 + 0.3*xi)))}))
-datacrc = cbind(y1, y2, exp(x/2))
+y2 = sapply(1:n, function(i) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.3*(ss[i] == 'm') + 0.3*x[i,]), expit(-0.6 + 0.3*(ss[i] == 'm') + 0.3*x[i,])))})
+datacrc = cbind.data.frame(y1, y2, exp(x/2), ss)
 
-ss = sample(c('a','b','c','d','e','f'), nrow(datacrc), replace = TRUE, prob = (1:6)/sum(1:6))
-
-datacrc1 = data.frame(datacrc, ss)
-
-p = psinhatcond(List_matrix = datacrc1, condvar = 'ss')
-plot(psinhatcond = p)
+p = psinhatcond(List_matrix = datacrc, condvar = 'ss')
+summary = plot(psinhatcond = p)
+summary$g2 + geom_hline(yintercept = table(ss), color = "brown", linetype = "dashed")
 
 ```

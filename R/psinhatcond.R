@@ -86,6 +86,9 @@ psinhatcond <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("log
     if("try-error" %in% class(est)){
       next
     }
+    if(ncol(est$psi) == 1){
+      next
+     }
 
     psi = rbind(psi, data.frame(listpair = rownames(est$psi), est$psi, condvar = cvar), make.row.names = FALSE)
     sigma2 = rbind(sigma2, data.frame(listpair = rownames(est$psi), est$sigma2, condvar = cvar), make.row.names = FALSE)

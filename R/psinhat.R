@@ -102,7 +102,9 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
       }
     }
     return(list(psi = 1/psiinv_summary, sigma2 = N*var_summary, n = N*psiinv_summary,
-                varn = N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1), N = N
+                varn = N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1), N = N,
+                cin.l = pmax(N*psiinv_summary - 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)), N),
+                cin.u = N*psiinv_summary + 1.96 *sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1))
     ))
   }else{
 

@@ -1,5 +1,5 @@
 if(FALSE){
-n = 100
+n = 1000
 x = matrix(rnorm(n*3, 2, 1), nrow = n)
 expit = function(xi) {
   exp(sum(xi))/(1 + exp(sum(xi)))

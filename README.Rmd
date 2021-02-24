@@ -78,7 +78,7 @@ y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = 
 y2 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.3*xi), expit(-0.6 + 0.3*xi)))}))
 datacrc = cbind(y1, y2, exp(x/2))
 
-estim <- do.call("rbind", lapply(1:100, function(iter){
+estim <- do.call("rbind", lapply(1:10, function(iter){
   return(psinhat(List_matrix = datacrc, func = c("logit"), nfolds = 2, eps = 0.01)$n)
 }))
 
@@ -86,5 +86,23 @@ result = melt(as.data.frame(estim), variable.name = "estimator", value.name = "p
 ggplot(result, aes(x = population_size - n, fill = estimator, color = estimator)) +
   geom_density(alpha = 0.4) +
   xlab("Bias on n")
+
+```
+
+```{r plot}
+x = matrix(rnorm(n*3, 2, 1), nrow = n)
+expit = function(xi) {
+  exp(sum(xi))/(1 + exp(sum(xi)))
+}
+y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.4*xi), expit(-0.6 + 0.4*xi)))}))
+y2 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.3*xi), expit(-0.6 + 0.3*xi)))}))
+datacrc = cbind(y1, y2, exp(x/2))
+
+ss = sample(c('a','b','c','d','e','f'), nrow(datacrc), replace = TRUE, prob = (1:6)/sum(1:6))
+
+datacrc1 = data.frame(datacrc, ss)
+
+p = psinhatcond(List_matrix = datacrc1, condvar = 'ss')
+plot(psinhatcond = p)
 
 ```

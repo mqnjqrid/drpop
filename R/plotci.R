@@ -20,16 +20,16 @@
 #' datacrc = cbind(y1, y2, exp(x/2))
 #'
 #' p = psinhat(List_matrix = datacrc, funcname = c("logit", "gam", "sl"))
-#' plot(psinhat = p)
+#' plotci(psinhat = p)
 #'
 #' ss = sample(c('a','b','c','d','e','f'), nrow(datacrc), replace = TRUE, prob = (1:6)/sum(1:6))
 #'
 #' datacrc1 = data.frame(datacrc, ss)
 #
 #' p = psinhatcond(List_matrix = datacrc1, condvar = 'ss')
-#' plot(psinhatcond = p)
+#' plotci(psinhatcond = p)
 #' @export
-plot <- function(psinhat, psinhatcond, show.plot = TRUE, tsize = 12){
+plotci <- function(psinhat, psinhatcond, show.plot = TRUE, tsize = 12){
   require(ggplot2)
   require(reshape2)
   require(tidyr)

@@ -89,18 +89,32 @@ qhat_gam <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ..
 #'
 #' @export
 qhat_sl <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet")){
-
+  #print("my superlearner")
   require("SuperLearner")
-
+  require("parallel")
+  
   slib = intersect(sl.lib, c("SL.glm", "SL.gam", "SL.glm.interaction"))
   slib1 = setdiff(sl.lib, slib)
-
+  
   slib2 <- c(slib1, slib,
              split(rbind(slib,"screen.corP"),
                    rep(1:length(slib),each=2)),
              split(rbind(slib,"screen.glmnet"),
                    rep(1:length(slib),each=2)))
-
+  
+  num_cores = parallel::detectCores() - 1# RhpcBLASctl::get_num_cores()
+  # How many cores does this computer have?
+  num_cores
+  # Use all of those cores for parallel SuperLearner.
+  options(mc.cores = num_cores)
+  # Check how many parallel workers we are using: 
+  getOption("mc.cores")
+  
+  cl <- parallel::makeCluster(num_cores, type = "PSOCK") # can use different types here
+  parallel::clusterSetRNGStream(cl, iseed = 2343)
+  foo <- parallel::clusterEvalQ(cl, library(SuperLearner)) 
+  set.seed(1, "L'Ecuyer-CMRG")
+  
   if(ncol(List.train) == K + 1){
     xtrain = data.frame(x1 = List.train[,K+1])
     xtest = data.frame(x1 = List.test[,K+1])
@@ -108,17 +122,17 @@ qhat_sl <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, sl.
     xtrain = List.train[,-c(1:K)]
     xtest = List.test[,-c(1:K)]
   }
-
-  fiti = tryCatch(SuperLearner(Y = as.numeric(List.train[,i]),
-                          X = xtrain,
-                          family = binomial(), SL.library = slib2, verbose = FALSE), silent = TRUE)
-  fitj = tryCatch(SuperLearner(Y = as.numeric(List.train[,j]),
-                          X = xtrain,
-                          family = binomial(), SL.library = slib2, verbose = FALSE), silent = TRUE)
-  fitij = tryCatch(SuperLearner(Y = as.numeric(pmin(List.train[,i], List.train[,j])),
-                           X = xtrain,
-                           family = binomial(), SL.library = slib2, verbose = FALSE), silent = TRUE)
-
+  
+  fiti = tryCatch(snowSuperLearner(cluster = cl, Y = as.numeric(List.train[,i]),
+                               X = xtrain,
+                               family = binomial(), SL.library = slib2, verbose = FALSE), silent = TRUE)
+  fitj = tryCatch(snowSuperLearner(cluster = cl, Y = as.numeric(List.train[,j]),
+                               X = xtrain,
+                               family = binomial(), SL.library = slib2, verbose = FALSE), silent = TRUE)
+  fitij = tryCatch(snowSuperLearner(cluster = cl, Y = as.numeric(pmin(List.train[,i], List.train[,j])),
+                                X = xtrain,
+                                family = binomial(), SL.library = slib2, verbose = FALSE), silent = TRUE)
+  
   if("try-error" %in% c(class(fiti), class(fitj), class(fitij))){
     Warning("One or more fits with SuperLearner regression failed.")
     return(NULL)
@@ -130,9 +144,10 @@ qhat_sl <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, sl.
     q2 = pmin(pmax(
       predict(fitj, newdata = xtest, onlySL = TRUE)$pred, q12), 1)
   }
-
+  parallel::stopCluster(cl)
   return(list(q1 = q1, q2 = q2, q12 = q12))
 }
+
 
 #' Estimate marginal and joint distribution of lists i and j using multinomial logistic model.
 #'

@@ -11,7 +11,9 @@ qhat_sl(
   i = 1,
   j = 2,
   eps = 0.005,
-  sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet")
+  sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"),
+  num_cores = NA,
+  ...
 )
 }
 \arguments{
@@ -26,6 +28,8 @@ qhat_sl(
 \item{j}{The second list that is conditionally independent.}
 
 \item{eps}{The minimum value the estimates can attain to bound them away from zero.}
+
+\item{num_cores}{The number of cores to be used for paralellization in Super Learner.}
 }
 \value{
 A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.

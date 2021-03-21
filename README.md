@@ -33,14 +33,6 @@ This is a basic example which shows you how to solve a common problem:
 
 ``` r
 library(drpop)
-#> 
-#> Attaching package: 'drpop'
-#> The following object is masked from 'package:graphics':
-#> 
-#>     plot
-#> The following object is masked from 'package:base':
-#> 
-#>     plot
 
 n = 1000
 x = matrix(rnorm(n*3, 2, 1), nrow = n)
@@ -54,22 +46,22 @@ datacrc = cbind(y1, y2, exp(x/2))
 options(warn = -1)
 estim <- psinhat(List_matrix = datacrc, func = c("logit"), nfolds = 2, K = 2)
 #> Loading required package: tidyverse
-#> -- Attaching packages ----- tidyverse 1.3.0 --
+#> -- Attaching packages ---------------------- tidyverse 1.3.0 --
 #> v ggplot2 3.3.2     v purrr   0.3.4
 #> v tibble  3.0.3     v dplyr   1.0.1
 #> v tidyr   1.1.1     v stringr 1.4.0
 #> v readr   1.3.1     v forcats 0.5.0
-#> -- Conflicts -------- tidyverse_conflicts() --
+#> -- Conflicts ------------------------- tidyverse_conflicts() --
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 # The population size estimates are obtained by
 estim$n
 #>     logit.PI logit.DR logit.TMLE
-#> 1,2 996.5305 1011.199   990.0618
+#> 1,2 1006.641   1016.9   1011.161
 # The corresponding variances are
 estim$varn
 #>     logit.PI logit.DR logit.TMLE
-#> 1,2 958.9848 980.8106   1019.683
+#> 1,2 909.0767 924.5733   1135.797
 ## basic example code
 ```
 
@@ -91,7 +83,7 @@ datacrc = cbind(y1, y2, exp(x/2))
 
 estim <- psinhat(List_matrix = datacrc, func = c("logit", "sl"), nfolds = 2, eps = 0.01)
 
-plot(psinhat = estim)$g1
+plotci(psinhat = estim)$g1
 ```
 
 <img src="man/figures/README-plot1-1.png" width="100%" />
@@ -120,7 +112,7 @@ y2 = sapply(1:n, function(i) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - e
 datacrc = cbind.data.frame(y1, y2, exp(x/2), ss)
 
 p = psinhatcond(List_matrix = datacrc, condvar = 'ss')
-summary = plot(psinhatcond = p)
+summary = plotci(psinhatcond = p)
 summary$g2 + geom_hline(yintercept = table(ss), color = "brown", linetype = "dashed")
 ```
 

@@ -13,7 +13,9 @@ psinhat(
   twolist = FALSE,
   eps = 0.005,
   iter = 50,
-  sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet")
+  sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"),
+  Nmin = 500,
+  num_cores = NA
 )
 }
 \arguments{
@@ -35,6 +37,10 @@ The first K columns are the capture history indicators for the K lists. The rema
 \item{iter}{An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.}
 
 \item{sl.lib}{algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
+
+\item{Nmin}{The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.}
+
+\item{num_cores}{The number of cores to be used for paralellization in Super Learner.}
 }
 \value{
 A list of estimates containing the following components:

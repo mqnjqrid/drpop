@@ -11,6 +11,7 @@
 #' @param iter An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.
 #' @param sl.lib algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".
 #' @param Nmin The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.
+#' @param num_cores The number of cores to be used for paralellization in Super Learner.
 #' @return A list of estimates containing the following components:
 #' \item{psi}{  A dataframe of the estimated capture probability for each list pair, model and method combination. In the absence of covariates, the column represents the standard plug-in estimate.
 #' The rows represent the list pair which is assumed to be independent conditioned on the covariates.
@@ -38,7 +39,8 @@
 #' psin_estimate = psinhat(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models
 #' @export
-psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit"), nfolds = 5, twolist = FALSE, eps = 0.005, iter = 50, sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500){
+psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit"), nfolds = 5, twolist = FALSE, eps = 0.005, iter = 50,
+                    sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, num_cores){
 
   l = ncol(List_matrix) - K
   n = nrow(List_matrix)
@@ -179,7 +181,7 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
             for (func in funcname){
 
               colsubset = stringr::str_subset(colnames(psiinv_summary), func)
-              qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, i, j, eps, sl.lib = sl.lib), silent = TRUE)
+              qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, i, j, eps, sl.lib = sl.lib, num_cores = num_cores), silent = TRUE)
 
               if ("try-error" %in% class(qhat)) {
                 next

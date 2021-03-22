@@ -135,14 +135,14 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
     xtrain = List.train[, -c(1:K)]
     xtest = List.test[, -c(1:K)]
   }
-  fiti = tryCatch(snowSuperLearner(cluster = cl, Y = as.numeric(List.train[,
-                                                                           i]), X = xtrain, family = binomial(), SL.library = slib2,
+  fiti = tryCatch(snowSuperLearner(cluster = cl, Y = as.numeric(List.train[,i]), X = xtrain, family = binomial(),
+                                   SL.library = slib2, method = "method.AUC",
                                    verbose = FALSE), silent = TRUE)
-  fitj = tryCatch(snowSuperLearner(cluster = cl, Y = as.numeric(List.train[,
-                                                                           j]), X = xtrain, family = binomial(), SL.library = slib2,
+  fitj = tryCatch(snowSuperLearner(cluster = cl, Y = as.numeric(List.train[,j]), X = xtrain, family = binomial(),
+                                   SL.library = slib2, method = "method.AUC",
                                    verbose = FALSE), silent = TRUE)
   fitij = tryCatch(snowSuperLearner(cluster = cl, Y = as.numeric(pmin(List.train[, i], List.train[, j])),
-                                    X = xtrain, family = binomial(),
+                                    X = xtrain, family = binomial(), method = "method.AUC",
                                     SL.library = slib2, verbose = FALSE), silent = TRUE)
   if ("try-error" %in% c(class(fiti), class(fitj), class(fitij))) {
     Warning("One or more fits with SuperLearner regression failed.")

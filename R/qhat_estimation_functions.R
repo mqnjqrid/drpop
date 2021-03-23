@@ -31,6 +31,7 @@ qhat_logit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, 
     return(list(q1 = q1, q2 = q2, q12 = q12))
   }
 }
+if(FALSE){
 qhat_logit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...){
 
   fiti = try(glm(formula(paste("L", i, " ~.", sep = '')), family = binomial(link = "logit"), data = List.train[,c(i, j, (K + 1):ncol(List.train))]))
@@ -45,9 +46,9 @@ qhat_logit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, 
     q1 = pmax(predict(fiti, newdata = List.test, type = "response"), q12)
     q2 = pmax(predict(fitj, newdata = List.test, type = "response"), q12)
 
-    return(list(q1 = q1, q2 = q2, q12 = q12, fiti = fiti, fitj = fitj, fitij = fitij))
+    return(list(q1 = q1, q2 = q2, q12 = q12))
   }
-}
+}}
 
 #' Estimate marginal and joint distribution of lists i and j using generalized additive models.
 #'

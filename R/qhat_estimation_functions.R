@@ -118,9 +118,13 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
   slib = intersect(sl.lib, c("SL.glm", "SL.gam",
                              "SL.glm.interaction"))
   slib1 = setdiff(sl.lib, slib)
-  slib2 <- c(slib1, slib, split(rbind(slib, "screen.corP"),
+  if(length(slib) == 0){
+    slib2 = slib1
+  }else{
+    slib2 <- c(slib1, slib, split(rbind(slib, "screen.corP"),
                                 rep(1:length(slib), each = 2)), split(rbind(slib, "screen.glmnet"),
                                                                       rep(1:length(slib), each = 2)))
+  }
   num_cores = min(num_cores, parallel::detectCores() - 1, na.rm = TRUE)
 
   options(mc.cores = num_cores)

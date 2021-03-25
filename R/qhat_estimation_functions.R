@@ -109,12 +109,14 @@ qhat_gam <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ..
 #'
 #' @export
 qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
-          sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), num_cores = NA,...)
+                     sl.lib = c("SL.glm",# "SL.gam", "SL.glm.interaction", 
+                       "SL.ranger"), num_cores = NA,...)
 {
   require("SuperLearner")
   require("parallel")
   require("gam")
   require("xgboost")
+  require("janitor")
   slib = intersect(sl.lib, c("SL.glm", "SL.gam",
                              "SL.glm.interaction"))
   slib1 = setdiff(sl.lib, slib)
@@ -122,17 +124,18 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
     slib2 = slib1
   }else{
     slib2 <- c(slib1, slib, split(rbind(slib, "screen.corP"),
-                                rep(1:length(slib), each = 2)), split(rbind(slib, "screen.glmnet"),
-                                                                      rep(1:length(slib), each = 2)))
+                                  rep(1:length(slib), each = 2)), split(rbind(slib, "screen.glmnet"),
+                                                                        rep(1:length(slib), each = 2)))
   }
   num_cores = min(num_cores, parallel::detectCores() - 1, na.rm = TRUE)
-
+  
   options(mc.cores = num_cores)
   getOption("mc.cores")
   cl <- parallel::makeCluster(num_cores, type = "PSOCK")
   parallel::clusterSetRNGStream(cl, iseed = 2343)
   foo <- parallel::clusterEvalQ(cl, library(SuperLearner))
-  set.seed(1, "L'Ecuyer-CMRG")
+  parallel::clusterExport(cl, foo)
+  
   if (ncol(List.train) == K + 1) {
     xtrain = data.frame(x1 = List.train[, K + 1])
     xtest = data.frame(x1 = List.test[, K + 1])
@@ -140,6 +143,9 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
     xtrain = List.train[, -c(1:K)]
     xtest = List.test[, -c(1:K)]
   }
+  
+  xtrain = janitor::clean_names(xtrain)
+  xtest = janitor::clean_names(xtest)
   fiti = tryCatch(snowSuperLearner(cluster = cl, Y = as.numeric(List.train[,i]), X = xtrain, family = binomial(),
                                    SL.library = slib2, method = "method.AUC",
                                    verbose = FALSE), silent = TRUE)
@@ -163,7 +169,8 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
     return(list(q1 = q1, q2 = q2, q12 = q12))
   }
   parallel::stopCluster(cl)
- }
+}
+
 
 
 #' Estimate marginal and joint distribution of lists i and j using multinomial logistic model.

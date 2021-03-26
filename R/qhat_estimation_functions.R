@@ -58,7 +58,6 @@ qhat_logit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, 
 #' @param i The first list that is conditionally independent.
 #' @param j The second list that is conditionally independent.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
-#' @param num_cores The number of cores to be used for paralellization.
 #' @return A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
 #' @examples
 #' qhat = qhat_gam(List.train = List.train, List.test = List.test, K = 3, i = 1, j = 2, eps = 0.005)
@@ -91,6 +90,43 @@ qhat_gam <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ..
   }
 }
 
+#' Estimate marginal and joint distribution of lists i and j using ranger.
+#'
+#' @param List.train The training data matrix used to estimate the distibution functions.
+#' @param List.test The data matrix on which the estimator function is applied.
+#' @param K The number of lists in the data.
+#' @param i The first list that is conditionally independent.
+#' @param j The second list that is conditionally independent.
+#' @param eps The minimum value the estimates can attain to bound them away from zero.
+#' @return A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
+#' @examples
+#' qhat = qhat_ranger(List.train = List.train, List.test = List.test, K = 3, i = 1, j = 2, eps = 0.005)
+#' q1 = qhat$q1
+#' q2 = qhat$q2
+#' q12 = qhat$q12
+#'
+#' @export
+qhat_ranger <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...){
+  require("ranger")
+  l = ncol(List.train) - K
+  fiti = ranger(formula(paste("factor(L", i, ") ~.", sep = '')), data = List.train[,-c(1:K)[-i]], probability = TRUE, classification = TRUE)
+  fitj = ranger(formula(paste("factor(L", j, ") ~.", sep = '')), data = List.train[,-c(1:K)[-j]], probability = TRUE, classification = TRUE)
+  fitij = ranger(formula(paste("factor(L", i, "*L", j, ") ~.", sep = '')), data = List.train[,c(i, j, K + 1:l)], probability = TRUE, classification = TRUE)
+
+  if("try-error" %in% c(class(fiti), class(fitj), class(fitij))){
+    Warning("One or more fits with GAM regression failed.")
+    return(NULL)
+  }else{
+    q12 = pmax(predict(fitij, data = List.test, type = "response")$predictions[,'1'], eps)
+    q1 = pmax(predict(fiti, data = List.test, type = "response")$predictions[,'1'], eps)
+    q2 = pmax(predict(fitj, data = List.test, type = "response")$predictions[,'1'], eps)
+
+    return(list(q1 = q1, q2 = q2, q12 = q12))
+  }
+}
+
+
+
 #' Estimate marginal and joint distribution of lists i and j using super learner.
 #'
 #' @param List.train The training data matrix used to estimate the distibution functions.
@@ -109,7 +145,7 @@ qhat_gam <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ..
 #'
 #' @export
 qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
-                     sl.lib = c("SL.glm",# "SL.gam", "SL.glm.interaction", 
+                     sl.lib = c("SL.glm",# "SL.gam", "SL.glm.interaction",
                        "SL.ranger"), num_cores = NA,...)
 {
   require("SuperLearner")
@@ -117,6 +153,7 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
   require("gam")
   require("xgboost")
   require("janitor")
+  require("tidyverse")
   slib = intersect(sl.lib, c("SL.glm", "SL.gam",
                              "SL.glm.interaction"))
   slib1 = setdiff(sl.lib, slib)
@@ -128,14 +165,23 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
                                                                         rep(1:length(slib), each = 2)))
   }
   num_cores = min(num_cores, parallel::detectCores() - 1, na.rm = TRUE)
-  
+
   options(mc.cores = num_cores)
   getOption("mc.cores")
   cl <- parallel::makeCluster(num_cores, type = "PSOCK")
   parallel::clusterSetRNGStream(cl, iseed = 2343)
   foo <- parallel::clusterEvalQ(cl, library(SuperLearner))
   parallel::clusterExport(cl, foo)
-  
+
+  factor_cols <- List.train[,-c(1:K)] %>% select_if(negate(is.numeric)) %>% names()
+
+  if(length(factor_cols)) {
+    List.train = data.frame(List.train[,!(names(List.train) %in% factor_cols)],
+                              model.matrix(formula(paste('~', paste(factor_cols, collapse = '+'))), List.train))
+    List.test = data.frame(List.test[,!(names(List.test) %in% factor_cols)],
+                            model.matrix(formula(paste('~', paste(factor_cols, collapse = '+'))), List.test))
+  }
+
   if (ncol(List.train) == K + 1) {
     xtrain = data.frame(x1 = List.train[, K + 1])
     xtest = data.frame(x1 = List.test[, K + 1])
@@ -143,7 +189,7 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
     xtrain = List.train[, -c(1:K)]
     xtest = List.test[, -c(1:K)]
   }
-  
+
   xtrain = janitor::clean_names(xtrain)
   xtest = janitor::clean_names(xtest)
   fiti = tryCatch(snowSuperLearner(cluster = cl, Y = as.numeric(List.train[,i]), X = xtrain, family = binomial(),

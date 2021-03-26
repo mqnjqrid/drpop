@@ -4,14 +4,12 @@
 \alias{reformat}
 \title{A function to reorder the columns of a data table/matrix/data frame and to change factor variables to numeric.}
 \usage{
-reformat(List_matrix, capturelists, condvar)
+reformat(List_matrix, capturelists)
 }
 \arguments{
 \item{List_matrix}{The data table/matrix/data frame which is to be checked.}
 
 \item{capturelists}{The vector of column names or locations for the capture history list columns.}
-
-\item{condvar}{The column to obtain conditional estimates. This column is not converted to numeric.}
 }
 \value{
 \code{List_matrix} With reordered columns so that the capture history columns are followed by the rest.

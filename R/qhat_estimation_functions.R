@@ -16,6 +16,10 @@
 #' @export
 qhat_logit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...){
 
+  # removing redundant columns
+  rmcols = names(which(apply(List.train[,-c(1:K)], 2, function(col){length(unique(col)) <= 1})))
+  List.train = List.train[, !(names(List.train) %in% rmcols)]
+  
   fiti0 = try(glm(formula(paste("L", i, "*(1 - L", j, ") ~.", sep = '')), family = binomial(link = "logit"), data = List.train[,c(i, j, (K + 1):ncol(List.train))]))
   fit0j = try(glm(formula(paste("L", j, "*(1 - L", i, ") ~.", sep = '')), family = binomial(link = "logit"), data = List.train[,c(i, j, (K + 1):ncol(List.train))]))
   fitij = try(glm(formula(paste("L", i, "*L", j, " ~.", sep = '')), family = binomial(link = "logit"), data = List.train[,c(i, j, (K + 1):ncol(List.train))]))

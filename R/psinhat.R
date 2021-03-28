@@ -118,7 +118,7 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
 
     if(nfolds > 1 & nfolds > N/50) {
       nfolds = pmax(floor(N/50), 1)
-      cat("nfolds is reduced to ", nfolds, " to have sufficient training data.\n")
+      cat("nfolds is reduced to ", nfolds, " to have sufficient test data.\n")
     }
     psiinv_summary = matrix(0, nrow = K*(K - 1)/2, ncol = 3*length(funcname))
     rownames(psiinv_summary) = unlist(sapply(1:(K - 1), function(k) {

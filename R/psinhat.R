@@ -178,13 +178,12 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
 
           overlapij = mean(List1[,i]*List1[,j])
           if(overlapij < eps) {
-            message(cat("Overlap between the lists", i, "and", j, "is less than", eps))
-            message(cat("Using probability cut off", overlapij))
+            warning(cat("Overlap between the lists", i, "and", j, "is less than", eps))
           }
           for (func in funcname){
 
             colsubset = stringr::str_subset(colnames(psiinv_summary), func)
-            qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, i, j, eps = min(eps, overlapij), sl.lib = sl.lib, num_cores = num_cores), silent = TRUE)
+            qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, i, j, eps = eps, sl.lib = sl.lib, num_cores = num_cores), silent = TRUE)
 
             if ("try-error" %in% class(qhat)) {
               next
@@ -212,10 +211,10 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
             varmat[folds, colsubset][1:2] = sigmasq/N
 
             datmat = as.data.frame(cbind(yi, yj, yi*yj, q1 - q12, q2 - q12, q12))
-            datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, min(eps, overlapij)), 1 - min(eps, overlapij)))}))
+            datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, eps), 1 - eps))}))
             colnames(datmat) = c("yi", "yj", "yij", "q10", "q02", "q12")
 
-            tmle = tmle(datmat = datmat, iter = iter, eps = min(eps, overlapij), eps_stop = 0.00001, twolist = twolist, K = K)
+            tmle = tmle(datmat = datmat, iter = iter, eps = eps, eps_stop = 0.00001, twolist = twolist, K = K)
 
             if(tmle$error){
               warning("TMLE did not run or converge.")
@@ -223,7 +222,7 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
               varmat[folds,colsubset][3] = NA
             }else{
               datmat = tmle$datmat
-              q12 = pmax(datmat$q12, min(eps, overlapij))
+              q12 = pmax(datmat$q12, eps)
               q1 = pmin(datmat$q12 + datmat$q10, 1)
               q2 = pmax(pmin(datmat$q12 + datmat$q02, 1 + q12 - q1, 1), q12/q1)
 

@@ -176,72 +176,70 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
           yi = List2[,paste("L", i, sep = '')]
           yj = List2[,paste("L", j, sep = '')]
 
-          if(mean(List1[,i]*List1[,j]) > eps) {
+          overlapij = mean(List1[,i]*List1[,j])
+          if(overlapij < eps) {
+            message(cat("Overlap between the lists", i, "and", j, "is less than", eps))
+            message(cat("Using probability cut off", overlapij))
+          }
+          for (func in funcname){
 
-            for (func in funcname){
+            colsubset = stringr::str_subset(colnames(psiinv_summary), func)
+            qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, i, j, eps = min(eps, overlapij), sl.lib = sl.lib, num_cores = num_cores), silent = TRUE)
 
-              colsubset = stringr::str_subset(colnames(psiinv_summary), func)
-              qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, i, j, eps, sl.lib = sl.lib, num_cores = num_cores), silent = TRUE)
+            if ("try-error" %in% class(qhat)) {
+              next
+            }
 
-              if ("try-error" %in% class(qhat)) {
-                next
-              }
+            q12 = qhat$q12
+            q1 = pmin(pmax(q12, qhat$q1), 1)
+            q2 = pmax(q12/q1, pmin(qhat$q2, 1 + q12 - q1, 1))
 
-              q12 = qhat$q12
-              q1 = pmin(pmax(q12, qhat$q1), 1)
-              q2 = pmax(q12/q1, pmin(qhat$q2, 1 + q12 - q1, 1))
+            nuisfold[sbset, paste(func, c("q12", "q1", "q2"), sep = '.')] = cbind(q12, q1, q2)
 
-              nuisfold[sbset, paste(func, c("q12", "q1", "q2"), sep = '.')] = cbind(q12, q1, q2)
+            gammainvhat = q1*q2/q12
+            psiinvhat = mean(gammainvhat, na.rm = TRUE)
+
+            phihat = gammainvhat*(yj/q2 + yi/q1 - yi*yj/q12) - psiinvhat
+            ifvalsfold[sbset, func] = phihat
+
+            Qnphihat = mean(phihat, na.rm = TRUE)
+
+            psiinvhat.dr = max(psiinvhat + Qnphihat, 1)
+
+            psiinvmat[folds, colsubset][1:2] = c(psiinvhat, psiinvhat.dr)
+
+            sigmasq = var(phihat, na.rm = TRUE)
+            varmat[folds, colsubset][1:2] = sigmasq/N
+
+            datmat = as.data.frame(cbind(yi, yj, yi*yj, q1 - q12, q2 - q12, q12))
+            datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, min(eps, overlapij)), 1 - min(eps, overlapij)))}))
+            colnames(datmat) = c("yi", "yj", "yij", "q10", "q02", "q12")
+
+            tmle = tmle(datmat = datmat, iter = iter, eps = min(eps, overlapij), eps_stop = 0.00001, twolist = twolist, K = K)
+
+            if(tmle$error){
+              warning("TMLE did not run or converge.")
+              psiinvmat[folds,colsubset][3] = NA
+              varmat[folds,colsubset][3] = NA
+            }else{
+              datmat = tmle$datmat
+              q12 = pmax(datmat$q12, min(eps, overlapij))
+              q1 = pmin(datmat$q12 + datmat$q10, 1)
+              q2 = pmax(pmin(datmat$q12 + datmat$q02, 1 + q12 - q1, 1), q12/q1)
+
+              nuistmlefold[sbset, paste(func, c("q12", "q1", "q2"), sep = '.')] = cbind(q12, q1, q2)
 
               gammainvhat = q1*q2/q12
-              psiinvhat = mean(gammainvhat, na.rm = TRUE)
+              psiinvhat.tmle = mean(gammainvhat, na.rm = TRUE)
 
-              phihat = gammainvhat*(yj/q2 + yi/q1 - yi*yj/q12) - psiinvhat
-              ifvalsfold[sbset, func] = phihat
+              phihat = gammainvhat*(yi/q1 + yj/q2 - yi*yj/q12) - psiinvhat.tmle
 
               Qnphihat = mean(phihat, na.rm = TRUE)
 
-              psiinvhat.dr = max(psiinvhat + Qnphihat, 1)
-
-              psiinvmat[folds, colsubset][1:2] = c(psiinvhat, psiinvhat.dr)
-
+              psiinvmat[folds,colsubset][3] = psiinvhat.tmle
               sigmasq = var(phihat, na.rm = TRUE)
-              varmat[folds, colsubset][1:2] = sigmasq/N
-
-              datmat = as.data.frame(cbind(yi, yj, yi*yj, q1 - q12, q2 - q12, q12))
-              datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, eps), 1 - eps))}))
-              colnames(datmat) = c("yi", "yj", "yij", "q10", "q02", "q12")
-
-              tmle = tmle(datmat = datmat, iter = iter, eps = eps, eps_stop = 0.00001, twolist = twolist, K = K)
-
-              if(tmle$error){
-                warning("TMLE did not run or converge.")
-                psiinvmat[folds,colsubset][3] = NA
-                varmat[folds,colsubset][3] = NA
-              }else{
-                datmat = tmle$datmat
-                q12 = pmax(datmat$q12, eps)
-                q1 = pmin(datmat$q12 + datmat$q10, 1)
-                q2 = pmax(pmin(datmat$q12 + datmat$q02, 1 + q12 - q1, 1), q12/q1)
-
-                nuistmlefold[sbset, paste(func, c("q12", "q1", "q2"), sep = '.')] = cbind(q12, q1, q2)
-
-                gammainvhat = q1*q2/q12
-                psiinvhat.tmle = mean(gammainvhat, na.rm = TRUE)
-
-                phihat = gammainvhat*(yi/q1 + yj/q2 - yi*yj/q12) - psiinvhat.tmle
-
-                Qnphihat = mean(phihat, na.rm = TRUE)
-
-                psiinvmat[folds,colsubset][3] = psiinvhat.tmle
-                sigmasq = var(phihat, na.rm = TRUE)
-                varmat[folds,colsubset][3] = sigmasq/N
-              }
+              varmat[folds,colsubset][3] = sigmasq/N
             }
-          }else{
-            message(cat("Overlap between the lists", i, "and", j, "is less than", eps))
-            psiinvmat[folds,] = NA
-            varmat[folds,] = NA
           }
         }
 

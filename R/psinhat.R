@@ -47,7 +47,9 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
 
   stopifnot(!is.null(dim(List_matrix)))
 
-  stopifnot(informat(List_matrix = List_matrix, K = K))
+  if(!informat(List_matrix = List_matrix, K = K)){
+    List_matrix <- reformat(List_matrix = List_matrix, capturelists = 1:K)
+   }
 
   List_matrix = na.omit(List_matrix)
 

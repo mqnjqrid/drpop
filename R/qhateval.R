@@ -89,7 +89,7 @@ qhateval <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit"
       cat("nfolds is reduced to ", nfolds, " to have sufficient training data.\n")
     }
     
-    q1mat = matrix(NA, nrow = N, ncol = length(funcname)*nfolds)
+    q1mat = matrix(numeric(0), nrow = N, ncol = length(funcname)*nfolds)
     colnames(q1mat) = paste(rep(funcname, nfolds), rep(1:nfolds, each = length(funcname)), sep = '.')
     q1mat = as.data.frame(q1mat)
     q2mat = q1mat

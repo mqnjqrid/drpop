@@ -149,14 +149,14 @@ psinhat <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit")
           #       cat("List ", j, " is not in the required format or is degenerate.\n")
           next
         }
-        psiinvmat = matrix(NA, nrow = nfolds, ncol = 3*length(funcname))
+        psiinvmat = matrix(numeric(0), nrow = nfolds, ncol = 3*length(funcname))
         colnames(psiinvmat) = paste(rep(funcname, each = 3), c("PI", "DR", "TMLE"), sep = '.')
         varmat = psiinvmat
 
-        ifvalsfold = matrix(NA, nrow = N, ncol = length(funcname))
+        ifvalsfold = matrix(numeric(0), nrow = N, ncol = length(funcname))
         colnames(ifvalsfold) = funcname
 
-        nuisfold = matrix(NA, nrow = N, ncol = 3*length(funcname))
+        nuisfold = matrix(numeric(0), nrow = N, ncol = 3*length(funcname))
         colnames(nuisfold) = paste(rep(funcname, each = 3), c("q12", "q1", "q2"), sep = '.')
         nuistmlefold = nuisfold
 

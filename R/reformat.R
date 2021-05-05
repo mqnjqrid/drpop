@@ -26,6 +26,9 @@ reformat <- function(List_matrix, capturelists){
     }else{
       List_matrix = List_matrix[,c(capturelists, setdiff(colnames(List_matrix), capturelists))]
     }
+    for(i in 1:length(capturelists)){
+      List_matrix[,i] <- as.numeric(List_matrix[,i])
+     }
   }
 
   return(List_matrix)

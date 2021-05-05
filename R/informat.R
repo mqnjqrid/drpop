@@ -26,7 +26,7 @@ informat = function(List_matrix, K){
   stopifnot(K>1)
   stopifnot(K <= ncol(List_matrix))
   result <- prod(apply(List_matrix[,1:K], 2, function(col){return(setequal(col, c(0,1)))})) > 0
-  result <- result & setequal(unlist(lapply(List_matrix[,1:K], "class")), "numeric)
+  result <- result & setequal(unlist(lapply(List_matrix[,1:K], "class")), "numeric")
   if(result == FALSE){
     print("The matrix is not in the appropriate format. The first K rows are boolean for capture history information.")
   }

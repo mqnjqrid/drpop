@@ -19,7 +19,7 @@ qhat_logit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, 
   # removing redundant columns
   rmcols = names(which(apply(List.train[,-c(1:K)], 2, function(col){length(unique(col)) <= 1})))
   List.train = List.train[, !(names(List.train) %in% rmcols)]
-  
+
   fiti0 = try(glm(formula(paste("L", i, "*(1 - L", j, ") ~.", sep = '')), family = binomial(link = "logit"), data = List.train[,c(i, j, (K + 1):ncol(List.train))]))
   fit0j = try(glm(formula(paste("L", j, "*(1 - L", i, ") ~.", sep = '')), family = binomial(link = "logit"), data = List.train[,c(i, j, (K + 1):ncol(List.train))]))
   fitij = try(glm(formula(paste("L", i, "*L", j, " ~.", sep = '')), family = binomial(link = "logit"), data = List.train[,c(i, j, (K + 1):ncol(List.train))]))
@@ -58,13 +58,18 @@ qhat_gam <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ..
 
   require("gam", quietly = TRUE)
   l = ncol(List.train) - K
+  nnum = intersect(names(which(lapply(List.train[,-c(1:K)], "class") != "factor")),
+                   names(which(lapply(List.train[,-c(1:K)], function(icol){length(unique(icol))}) > 3)))
+  nfac = setdiff(names(List.train[,-c(1:K)]), nnum)
+  formulanum = paste0('s(', nnum, ')', collapse = ' + ')
+  formulafac = paste0(nfac, collapse = ' + ')
   #colnames(List.train) = c(paste("L", 1:K, sep = ''), paste("x", 1:l, sep = ''))
   #colnames(List.test) = c(paste("L", 1:K, sep = ''), paste("x", 1:l, sep = ''))
 
   #sapply((K + 1):ncol(List.train), function(l){ paste(rep(paste('x', l, sep = ' + '), 3), c(' + ', '^2 + ', '^3 + '), sep = '') })
-  fiti = try(gam::gam(formula(paste("L", i, " ~", paste("s(x", 1:l, ")", sep = '', collapse = ' + '), sep = '')), data = List.train, family = binomial("logit")))
-  fitj = try(gam::gam(formula(paste("L", j, " ~", paste("s(x", 1:l, ")", sep = '', collapse = ' + '), sep = '')), data = List.train, family = binomial("logit")))
-  fitij = try(gam::gam(formula(paste("L", i, "*L", j, " ~", paste("s(x", 1:l, ")", sep = '', collapse = ' + '), sep = '')), data = List.train, family = binomial("logit")))
+  fiti = try(gam::gam(formula(paste("L", i, " ~", formulanum, ' + ', formulafac, sep = '')), data = List.train, family = binomial("logit")))
+  fitj = try(gam::gam(formula(paste("L", j, " ~", formulanum, ' + ', formulafac, sep = '')), data = List.train, family = binomial("logit")))
+  fitij = try(gam::gam(formula(paste("L", i, "*L", j, " ~", formulanum, ' + ', formulafac, sep = '')), data = List.train, family = binomial("logit")))
 
   if("try-error" %in% c(class(fiti), class(fitj), class(fitij))){
     Warning("One or more fits with GAM regression failed.")
@@ -206,7 +211,6 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
 }
 
 
-
 #' Estimate marginal and joint distribution of lists i and j using multinomial logistic model.
 #'
 #' @param List.train The training data matrix used to estimate the distibution functions.
@@ -224,50 +228,25 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
 #'
 #' @export
 qhat_mlogit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...){
-  require("mlogit", quietly = TRUE)
-  q1 = NaN
-  q2 = NaN
-  q12 = NaN
-  l = ncol(List.train) - K
-  colnames(List.train) = c(paste("L", 1:K, sep = ''), paste("x", 1:l, sep = ''))
-  colnames(List.test) = c(paste("L", 1:K, sep = ''), paste("x", 1:l, sep = ''))
+  require("nnet", quietly = TRUE)
 
-  Listy = cbind(List.train[,"L1"] + 2*List.train[,"L2"], List.train[,-(1:K)])
-  #Listy[Listy == 0] = 4
-  colnames(Listy) = c("choice", colnames(List.train)[-c(1:K)])
-  Listy = as.data.frame(Listy)
-  mml_train = mlogit.data(Listy, choice = "choice", shape = "wide")#, alt.levels = 0:3)
-  Listy = cbind(List.test[,"L1"] + 2*List.test[,"L2"], List.test[,-(1:K)])
-  #Listy[Listy == 0] = 4
-  colnames(Listy) = c("choice", colnames(List.train)[-c(1:K)])
-  Listy = as.data.frame(Listy)
-  #mml_test = mlogit.data(Listy, choice = "choice", shape = "wide")#, alt.levels = 1:3)
   l = ncol(List.train) - K
-  mfit = try(mlogit(formula = formula(paste("choice ~ 0 |", paste("x", 1:l, sep = '', collapse = ' + '))), data = mml_train, outcome = FALSE))
+
+  eval(parse(text = paste0("List.train$caphist = paste0(List.train$L", i, ", List.train$L", j, ")")))
+  eval(parse(text = paste0("List.test$caphist = paste0(List.test$L", i, ", List.test$L", j, ")")))
+
+  mfit = try(multinom(formula = formula(paste("caphist ~ ", paste("x", 1:l, sep = '', collapse = ' + '))), data = List.train), silent = TRUE)
   if(class(mfit) != "try-error"){
-    coef = matrix(mfit$coefficients, nrow = l + 1, byrow = TRUE)
-    xlist = as.matrix(cbind(1, List.test[,-(1:K)]))
 
-    if ("0" %in% unique(mml_train$alt)){
-      l0 = xlist[,1]
-      l1 = exp(xlist%*%coef[,1])
-      l2 = exp(xlist%*%coef[,2])
-      l3 = exp(xlist%*%coef[,3])
-    } else{
-      l0 = 0
-      l1 = xlist[,1]
-      l2 = exp(xlist%*%coef[,1])
-      l3 = exp(xlist%*%coef[,2])
-    }    ##    pred = predict(mfit, newdata = mml_test)
-    q1 = pmin(pmax((l1 + l3)/(l0 + l1 + l2 + l3), eps), 1)
-    q2 = pmin(pmax((l2 + l3)/(l0 + l1 + l2 + l3), eps), 1)
-    q12 = pmin(pmax(l3/(l0 + l1 + l2 + l3), eps), 1)
-    head(cbind(q1, q2, q12))
-    head(cbind(l0, l1, l2, l3))
-
+    pred = predict(mfit, newdata = List.test, "probs")
+    if(is.null(setdiff(c("10", "11", "01"), colnames(pred)))){
+      Error("Training data is missing one or more of the capture history combinations.")
+    }
+    q12 = pmax(pred[,"11"], eps)
+    q1 = pmax(pred[,"10"] + q12, 1)
+    q2 = pmax(pred[,"01"] + q12, 1)
   }else{
-     Warning("One or more fits with SuperLearner regression failed.")
+    Warning("One or more fits with SuperLearner regression failed.")
   }
-
   return(list(q1 = q1, q2 = q2, q12 = q12))
 }

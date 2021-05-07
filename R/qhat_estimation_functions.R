@@ -56,7 +56,7 @@ qhat_logit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, 
 #' @export
 qhat_gam <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...){
 
-  require("gam")
+  require("gam", quietly = TRUE)
   l = ncol(List.train) - K
   #colnames(List.train) = c(paste("L", 1:K, sep = ''), paste("x", 1:l, sep = ''))
   #colnames(List.test) = c(paste("L", 1:K, sep = ''), paste("x", 1:l, sep = ''))
@@ -95,7 +95,7 @@ qhat_gam <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ..
 #'
 #' @export
 qhat_ranger <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...){
-  require("ranger")
+  require("ranger", quietly = TRUE)
   l = ncol(List.train) - K
   fiti = ranger(formula(paste("factor(L", i, ") ~.", sep = '')), data = List.train[,-c(1:K)[-i]], probability = TRUE, classification = TRUE)
   fitj = ranger(formula(paste("factor(L", j, ") ~.", sep = '')), data = List.train[,-c(1:K)[-j]], probability = TRUE, classification = TRUE)
@@ -136,12 +136,12 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
                      sl.lib = c("SL.glm",# "SL.gam", "SL.glm.interaction",
                        "SL.ranger"), num_cores = NA,...)
 {
-  require("SuperLearner")
-  require("parallel")
-  require("gam")
-  require("xgboost")
-  require("janitor")
-  require("tidyverse")
+  require("SuperLearner", quietly = TRUE)
+  require("parallel", quietly = TRUE)
+  require("gam", quietly = TRUE)
+  require("xgboost", quietly = TRUE)
+  require("janitor", quietly = TRUE)
+  require("tidyverse", quietly = TRUE)
   slib = intersect(sl.lib, c("SL.glm", "SL.gam",
                              "SL.glm.interaction"))
   slib1 = setdiff(sl.lib, slib)
@@ -224,7 +224,7 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
 #'
 #' @export
 qhat_mlogit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...){
-  require("mlogit")
+  require("mlogit", quietly = TRUE)
   q1 = NaN
   q2 = NaN
   q12 = NaN

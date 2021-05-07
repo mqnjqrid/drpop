@@ -35,67 +35,69 @@
 #' data = cbind(data, x)
 #' qhat_estimate = qhateval(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005)
 #' @export
-qhateval <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit"), nfolds = 5, twolist = FALSE, eps = 0.005, iter = 50,
+qhateval <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("logit"), nfolds = 5, twolist = FALSE, eps = 0.005, iter = 50,
                     sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, num_cores = NA){
-  
+
   l = ncol(List_matrix) - K
   n = nrow(List_matrix)
-  
+
   stopifnot(!is.null(dim(List_matrix)))
-  
-  stopifnot(informat(List_matrix = List_matrix, K = K))
-  
+
+  if(!informat(List_matrix = List_matrix, K = K)){
+    List_matrix = reformat(List_matrix = List_matrix, capturelists = 1:K)
+  }
+
   List_matrix = na.omit(List_matrix)
-  
+
   if(filterrows){
     #removing all rows with only 0's
     List_matrix = List_matrix[which(rowSums(List_matrix[,1:K]) > 0),]
   }
-  
+
   List_matrix = as.data.frame(List_matrix)
   #N = number of observed or captured units
   N = nrow(List_matrix)
-  
+
   stopifnot(N > 1)
-  
+
   if (l >= 0 & N < Nmin){
     l = 0
     warning(cat("Insufficient number of observations for doubly-robust estimation."))
   }
-  
+
   conforminglists = apply(List_matrix[,1:K], 2, function(col){return(setequal(col, c(0,1)))})
   if(sum(conforminglists) < 2){
     stop("Data is not in the required format or lists are degenerate.")
     return(NULL)
   }
-  
+
   if(sum(conforminglists) < K){
     Message(cat("Lists ", which(conforminglists == FALSE), " are not in the required format."))
   }
-  
+
   if(l == 0){
     #renaming the columns of List_matrix for ease of use
     print("No covariates or not sufficient data.")
     return(0)
   }else{
-    
+
     #converting factor columns to numeric
     List_matrix = reformat(List_matrix)
     #renaming the columns of List_matrix for ease of use
     colnames(List_matrix) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List_matrix) - K), sep = ''))
-    
+
     if(nfolds > 1 & nfolds > N/50) {
       nfolds = pmax(floor(N/50), 1)
       cat("nfolds is reduced to ", nfolds, " to have sufficient training data.\n")
     }
-    
+
     q1mat = matrix(numeric(0), nrow = N, ncol = length(funcname)*nfolds)
     colnames(q1mat) = paste(rep(funcname, nfolds), rep(1:nfolds, each = length(funcname)), sep = '.')
     q1mat = as.data.frame(q1mat)
     q2mat = q1mat
     q12mat = q1mat
     permutset = sample(1:N, N, replace = FALSE)
-    
+
     for(i in 1:(K - 1)){
       if(!setequal(List_matrix[,i], c(0,1))){
         #     cat("List ", i, " is not in the required format or is degenerate.\n")
@@ -108,26 +110,26 @@ qhateval <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit"
         }
 
         for(folds in 1:nfolds){#print(folds)
-          
+
           sbset = ((folds - 1)*ceiling(N/nfolds) + 1):(folds*ceiling(N/nfolds))
           sbset = sbset[sbset <= N]
           List1 = List_matrix[permutset[-sbset],]
           List2 = List_matrix
-          
+
           yi = List2[,paste("L", i, sep = '')]
           yj = List2[,paste("L", j, sep = '')]
-          
+
           if(mean(List1[,i]*List1[,j]) > eps) {
-            
+
             for (func in funcname){
-              
+
               #colsubset = stringr::str_subset(colnames(psiinv_summary), func)
               qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, i, j, eps, sl.lib = sl.lib, num_cores = num_cores), silent = TRUE)
-              
+
               if ("try-error" %in% class(qhat)) {
                 next
               }
-              
+
               q12mat[,paste0(func, '.', folds)] = qhat$q12
               q1mat[,paste0(func, '.', folds)] = qhat$q1
               q2mat[,paste0(func, '.', folds)] = qhat$q2
@@ -138,7 +140,7 @@ qhateval <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit"
         }
       }
     }
-    
+
     return(list(q1mat = q1mat,
                 q2mat = q2mat,
                 q12mat = q12mat

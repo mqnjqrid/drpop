@@ -30,9 +30,9 @@
 #' plotci(psinhatcond = p)
 #' @export
 plotci <- function(psinhat, psinhatcond, show.plot = TRUE, tsize = 12){
-  require(ggplot2)
-  require(reshape2)
-  require(tidyr)
+  require(ggplot2, quietly = TRUE)
+  require(reshape2, quietly = TRUE)
+  require(tidyr, quietly = TRUE)
   result = NA
   resultcond = NA
   g1 = NA

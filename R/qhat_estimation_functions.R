@@ -16,9 +16,7 @@
 #' @export
 qhat_logit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...){
 
-  # removing redundant columns
-  rmcols = names(which(apply(List.train[,-c(1:K)], 2, function(col){length(unique(col)) <= 1})))
-  List.train = List.train[, !(names(List.train) %in% rmcols)]
+  stopifnot(ncol(List.train) > K)
 
   fiti0 = try(glm(formula(paste("L", i, "*(1 - L", j, ") ~.", sep = '')), family = binomial(link = "logit"), data = List.train[,c(i, j, (K + 1):ncol(List.train))]))
   fit0j = try(glm(formula(paste("L", j, "*(1 - L", i, ") ~.", sep = '')), family = binomial(link = "logit"), data = List.train[,c(i, j, (K + 1):ncol(List.train))]))
@@ -56,20 +54,25 @@ qhat_logit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, 
 #' @export
 qhat_gam <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...){
 
+  stopifnot(ncol(List.train) > K)
+
   require("gam", quietly = TRUE)
   l = ncol(List.train) - K
-  nnum = intersect(names(which(lapply(List.train[,-c(1:K)], "class") != "factor")),
-                   names(which(lapply(List.train[,-c(1:K)], function(icol){length(unique(icol))}) > 3)))
+  nnum = intersect(names(which(lapply(subset(List.train, select = -c(1:K)), "class") != "factor")),
+                 names(which(lapply(subset(List.train, select =  -c(1:K)), function(icol){length(unique(icol))}) > 3)))
   nfac = setdiff(names(List.train[,-c(1:K)]), nnum)
-  formulanum = paste0('s(', nnum, ')', collapse = ' + ')
-  formulafac = paste0(nfac, collapse = ' + ')
-  #colnames(List.train) = c(paste("L", 1:K, sep = ''), paste("x", 1:l, sep = ''))
-  #colnames(List.test) = c(paste("L", 1:K, sep = ''), paste("x", 1:l, sep = ''))
-
-  #sapply((K + 1):ncol(List.train), function(l){ paste(rep(paste('x', l, sep = ' + '), 3), c(' + ', '^2 + ', '^3 + '), sep = '') })
-  fiti = try(gam::gam(formula(paste("L", i, " ~", formulanum, ' + ', formulafac, sep = '')), data = List.train, family = binomial("logit")))
-  fitj = try(gam::gam(formula(paste("L", j, " ~", formulanum, ' + ', formulafac, sep = '')), data = List.train, family = binomial("logit")))
-  fitij = try(gam::gam(formula(paste("L", i, "*L", j, " ~", formulanum, ' + ', formulafac, sep = '')), data = List.train, family = binomial("logit")))
+  if(!length(nnum)){
+    covformula = paste0(nfac, collapse = ' + ')
+  }else if(!length(nfac)){
+    covformula = paste0('s(', nnum, ')', collapse = ' + ')
+  }else{
+    covformula = paste0(paste0('s(', nnum, ')', collapse = ' + '),
+                        '+', paste0('s(', nnum, ')', collapse = ' + '))
+  }
+  
+  fiti = try(gam::gam(formula(paste0("L", i, " ~", covformula)), data = List.train, family = binomial("logit")))
+  fitj = try(gam::gam(formula(paste0("L", j, " ~", covformula)), data = List.train, family = binomial("logit")))
+  fitij = try(gam::gam(formula(paste0("L", i, "*L", j, " ~", covformula)), data = List.train, family = binomial("logit")))
 
   if("try-error" %in% c(class(fiti), class(fitj), class(fitij))){
     Warning("One or more fits with GAM regression failed.")
@@ -141,6 +144,9 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
                      sl.lib = c("SL.glm",# "SL.gam", "SL.glm.interaction",
                        "SL.ranger"), num_cores = NA,...)
 {
+  
+  stopifnot(ncol(List.train) > K)
+
   require("SuperLearner", quietly = TRUE)
   require("parallel", quietly = TRUE)
   require("gam", quietly = TRUE)
@@ -166,7 +172,7 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
   foo <- parallel::clusterEvalQ(cl, library(SuperLearner))
   parallel::clusterExport(cl, foo)
 
-  factor_cols <- List.train[,-c(1:K)] %>% select_if(negate(is.numeric)) %>% names()
+  factor_cols <- subset(List.train, select = -c(1:K)) %>% select_if(negate(is.numeric)) %>% names()
 
   if(length(factor_cols)) {
     List.train = data.frame(List.train[,!(names(List.train) %in% factor_cols)],
@@ -228,6 +234,9 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
 #'
 #' @export
 qhat_mlogit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...){
+  
+  stopifnot(ncol(List.train) > K)
+
   require("nnet", quietly = TRUE)
 
   l = ncol(List.train) - K

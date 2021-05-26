@@ -7,12 +7,7 @@
 #' @param funcname The vector of estimation function names to obtain the population size.
 #' @param condvar The covariate for which conditional estimates are required.
 #' @param nfolds The number of folds to be used for cross fitting.
-#' @param twolist The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
-#' @param iter An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.
-#' @param sl.lib algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".
-#' @param Nmin The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.
-#' @param num_cores The number of cores to be used for paralellization in Super Learner.
 #' @return A list of estimates containing the following components:
 # \item{psiinvmat}{ A dataframe of estimated psi inverse for the folds, list pair, model and method combination.
 #      The \code{listpair} column represents the list pair which is assumed to be independent conditioned on the covariates.
@@ -40,7 +35,7 @@
 #' psin_estimate = psinhatcond(List_matrix = data, funcname = c("logit", "sl"), condvar = 'ss', nfolds = 2, twolist = FALSE, eps = 0.005)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models conditioned on column ss
 #' @export
-psinhatcond <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("logit"), condvar, nfolds = 5, twolist = FALSE, eps = 0.005, iter = 50, sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, num_cores = NA){
+psinhatcond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), condvar, nfolds = 2, eps = 0.005, ...){
 
   l = ncol(List_matrix) - K
   n = nrow(List_matrix)
@@ -81,7 +76,7 @@ psinhatcond <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("log
   for(cvar in condvar_vec){
 
     List_matrixsub = List_matrix[List_matrix[,K + condvar] == cvar, -c(K + condvar)]
-    est = try(psinhat(List_matrix = List_matrixsub, K = K, filterrows = filterrows, funcname = funcname, nfolds = 2, twolist = twolist, eps = eps, iter = iter, sl.lib = sl.lib, Nmin = Nmin, num_cores = num_cores), silent = TRUE)
+    est = try(psinhat(List_matrix = List_matrixsub, K = K, filterrows = filterrows, funcname = funcname, nfolds = nfolds, ...), silent = TRUE)
 
     if("try-error" %in% class(est)){
       next
@@ -99,9 +94,15 @@ psinhatcond <- function(List_matrix, K = 2, filterrows = TRUE, funcname = c("log
     N = rbind(N, data.frame(N = est$N, condvar = cvar), make.row.names = FALSE)
   }
   if(length(psi) > 0){
-    return(list(psi = psi, sigma2 = sigma2, n = n, varn = varn, N = N, cin.l = cin.l, cin.u = cin.u))
+    result <- list(psi = psi, sigma2 = sigma2, n = n, varn = varn, N = N, cin.l = cin.l, cin.u = cin.u)
+    class(result) = "psinhatcond"
+    return(result)
   }else{
     print("Error in estimation for all subsets.")
     return(0)
   }
+}
+
+print.psinhatcond <- function(obj){
+  print(obj[c("psi", "n", "cin.l", "cin.u")])
 }

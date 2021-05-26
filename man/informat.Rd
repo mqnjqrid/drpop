@@ -4,7 +4,7 @@
 \alias{informat}
 \title{A function to check whether a given data table/matrix/data frame is in the appropriate for drpop.}
 \usage{
-informat(List_matrix, K)
+informat(List_matrix, K = 2)
 }
 \arguments{
 \item{List_matrix}{The data table/matrix/data frame which is to be checked.}

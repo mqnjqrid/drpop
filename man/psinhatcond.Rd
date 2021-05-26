@@ -7,16 +7,12 @@
 psinhatcond(
   List_matrix,
   K = 2,
-  filterrows = TRUE,
-  funcname = c("logit"),
+  filterrows = FALSE,
+  funcname = c("rangerlogit"),
   condvar,
-  nfolds = 5,
-  twolist = FALSE,
+  nfolds = 2,
   eps = 0.005,
-  iter = 50,
-  sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"),
-  Nmin = 500,
-  num_cores = NA
+  ...
 )
 }
 \arguments{
@@ -33,17 +29,7 @@ The first K columns are the capture history indicators for the K lists. The rema
 
 \item{nfolds}{The number of folds to be used for cross fitting.}
 
-\item{twolist}{The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.}
-
 \item{eps}{The minimum value the estimates can attain to bound them away from zero.}
-
-\item{iter}{An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.}
-
-\item{sl.lib}{algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
-
-\item{Nmin}{The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.}
-
-\item{num_cores}{The number of cores to be used for paralellization in Super Learner.}
 }
 \value{
 A list of estimates containing the following components:

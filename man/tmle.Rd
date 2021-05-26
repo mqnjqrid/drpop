@@ -4,7 +4,15 @@
 \alias{tmle}
 \title{Returns the targeted maximum likelihood estimates for the nuisance functions}
 \usage{
-tmle(datmat, iter = 100, eps = 0.005, eps_stop = 1e-05, twolist = FALSE, K = 2)
+tmle(
+  datmat,
+  iter = 100,
+  eps = 0.005,
+  eps_stop = 0.01,
+  twolist = FALSE,
+  K = 2,
+  ...
+)
 }
 \arguments{
 \item{datmat}{The data frame containing columns \code{yi}, \code{yj}, \code{yij}, \code{q10}, \code{q02} and \code{q12}.}
@@ -16,6 +24,8 @@ tmle(datmat, iter = 100, eps = 0.005, eps_stop = 1e-05, twolist = FALSE, K = 2)
 \item{eps_stop}{The minimum value the estimates can attain to bound them away from zero.}
 
 \item{twolist}{The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.}
+
+\item{K}{The number of lists in the original data.}
 }
 \value{
 A list of estimates containing the following components:

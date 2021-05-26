@@ -5,6 +5,7 @@
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
 #' @param eps_stop The minimum value the estimates can attain to bound them away from zero.
 #' @param twolist The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.
+#' @param K The number of lists in the original data.
 #' @return A list of estimates containing the following components:
 #' \item{error}{  An indicator of whether the algorithm ran and converged. Returns FALSE, if it ran correctly and FALSE otherwise.}
 #' \item{datmat}{  A data frame returning \code{datmat} with the updated estimates for the nuisance functions \code{q10}, \code{q02} and \code{q12}. This is returned only if \code{error} is FALSE.}
@@ -19,13 +20,17 @@
 #' result = tmle(datmat, eps = 0.005, eps_stop = 0.00001, twolist = TRUE)
 #' @export
 
-tmle <- function(datmat, iter = 100, eps = 0.005, eps_stop = 0.00001, twolist = FALSE, K = 2){
+tmle <- function(datmat, iter = 100, eps = 0.005, eps_stop = 0.01, twolist = FALSE, K = 2,...){
 
   if(!prod(c("yi", "yj", "yij", "q10", "q02", "q12") %in% colnames(datmat))){
     stop("datmat misses one or more of the following columns: \t (yi, yj, yij, q10, q02, q12).")
     return(list(error = TRUE))
   }
 
+ # ifval = (datmat$q10+datmat$q12)*(datmat$q10+datmat$q12)/datmat$q12 *(
+#    datmat$yi/(datmat$q10+datmat$q12) + datmat$yj/(datmat$q02+datmat$q12) - datmat$yij/(datmat$q12) - 1)
+
+#  eps_stop = sqrt(mean((ifval)^2))/max(log(nrow(datmat)), 10)/sqrt(nrow(datmat))
   expit = function(x) {
     exp(x)/(1 + exp(x))
   }
@@ -82,7 +87,13 @@ tmle <- function(datmat, iter = 100, eps = 0.005, eps_stop = 0.00001, twolist = 
 
     datmat$q02 = pmax(pmin(datmat$q02, 1), eps)
 
+    # ifval = (datmat$q10+datmat$q12)*(datmat$q10+datmat$q12)/datmat$q12 *(
+    #   datmat$yi/(datmat$q10+datmat$q12) + datmat$yj/(datmat$q02+datmat$q12) - datmat$yij/(datmat$q12) - 1)
+    # eplison_error = mean(ifval)
     epsilon_error = max(abs(c(mod2$coefficients, mod3$coefficients, mod1$coefficients)))
+    #epsilon_error = max(abs(expit(dat1$logitq12) - datmat$q12),
+    #                    abs(expit(dat2$logitq10) - datmat$q10),
+    #                    abs(expit(dat3$logitq02) - datmat$q02))
   }
-  return(list(error = epsilon_error > 1, datmat = datmat))
+  return(list(error = abs(epsilon_error) > 1, datmat = datmat, iterations = cnt, epsilon_error = epsilon_error))
 }

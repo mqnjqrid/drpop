@@ -18,16 +18,13 @@
 #' informat(List_matrix = data, K = 3)
 #' #this returns FALSE
 #' @export
-informat = function(List_matrix, K){
+informat <- function(List_matrix, K = 2){
 
-  if(missing(K)){
-    K = 2
-  }
   stopifnot(K>1)
   stopifnot(K <= ncol(List_matrix))
   result <- prod(apply(List_matrix[,1:K], 2, function(col){return(setequal(col, c(0,1)))})) > 0
   if(!result){
-    Error("The matrix is not in the appropriate format.")
+    cat("The matrix is not in the appropriate format.\n")
   }
   result <- result & setequal(unlist(lapply(List_matrix[,1:K], "class")), "numeric")
   return(result)

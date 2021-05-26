@@ -6,23 +6,20 @@
 \usage{
 qhateval(
   List_matrix,
+  i = 1,
+  j = 2,
   K = 2,
-  filterrows = TRUE,
-  funcname = c("logit"),
+  filterrows = FALSE,
+  funcname = c("rangerlogit"),
   nfolds = 5,
-  twolist = FALSE,
   eps = 0.005,
-  iter = 50,
-  sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"),
   Nmin = 500,
-  num_cores = NA
+  ...
 )
 }
 \arguments{
-\item{List_matrix}{The data frame in capture-recapture format for which total population is to be estimated.
+\item{List_matrix}{The data frame in capture-recapture format with two lists for which total population is to be estimated.
 The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.}
-
-\item{K}{The number of lists in the data. typically the first \code{K} rows of List_matrix.}
 
 \item{filterrows}{A logical value denoting whether to remove all rows with only zeroes.}
 
@@ -30,42 +27,22 @@ The first K columns are the capture history indicators for the K lists. The rema
 
 \item{nfolds}{The number of folds to be used for cross fitting.}
 
-\item{twolist}{The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.}
-
 \item{eps}{The minimum value the estimates can attain to bound them away from zero.}
 
-\item{iter}{An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.}
-
-\item{sl.lib}{algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
-
 \item{Nmin}{The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.}
-
-\item{num_cores}{The number of cores to be used for paralellization in Super Learner.}
 }
 \value{
 A list of estimates containing the following components:
-\item{psi}{  A dataframe of the estimated capture probability for each list pair, model and method combination. In the absence of covariates, the column represents the standard plug-in estimate.
-The rows represent the list pair which is assumed to be independent conditioned on the covariates.
-The columns represent the model and method combinations (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate)indicated in the columns.}
-\item{sigma2}{  A dataframe of the efficiency bound \code{sigma^2} in the same format as \code{psi}.}
-\item{n}{  A dataframe of the estimated population size n in the same format as \code{psi}.}
-\item{varn}{  A dataframe of the variance for population size estimate in the same format as \code{psi}.}
-\item{N}{  The number of data points used in the estimation after removing rows with missing data.}
-\item{ifvals}{  The estimated influence function values for the observed data. Each column corresponds to an element in funcname.}
-\item{nuis}{  The estimated nuisance functions (q12, q1, q2) for each element in funcname.}
-\item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
-\item{cin.l}{  The estimated lower bound of a 95\% confidence interval of \code{n}.}
-\item{cin.u}{  The estimated upper bound of a 95\% confidence interval of \code{n}.}
+\item{q1mat}{  A matrix of the estimated capture probabilities for list1 for each model.}
+\item{q2mat}{  A matrix of the estimated capture probabilities for list 2.}
+\item{q12mat}{  A matrix of the estimated capture probabilities for list1 and 2 simultaneously.}
 }
 \description{
 Estimate the nuisance functions using user provided set of models.
 }
 \examples{
-data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
-x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
-
-data = cbind(data, x)
-qhat_estimate = qhateval(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005)
+data = simuldata(1000, 1)$List_matrix
+qhat_estimate = qhateval(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
 }
 \references{
 Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.

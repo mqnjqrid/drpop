@@ -12,7 +12,7 @@
 #' @export
 reformat <- function(List_matrix, capturelists){
 
-  require(tidyverse, quietly = TRUE)
+  #require(tidyverse, quietly = TRUE)
 
   List_matrix = as.data.frame(List_matrix)
 

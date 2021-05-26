@@ -45,23 +45,22 @@ datacrc = cbind(y1, y2, exp(x/2))
 
 options(warn = -1)
 estim <- psinhat(List_matrix = datacrc, func = c("logit"), nfolds = 2, K = 2)
-#> Loading required package: tidyverse
-#> -- Attaching packages ---------------------- tidyverse 1.3.0 --
-#> v ggplot2 3.3.2     v purrr   0.3.4
+#> -- Attaching packages ------------------------------------------- tidyverse 1.3.0 --
+#> v ggplot2 3.3.3     v purrr   0.3.4
 #> v tibble  3.0.3     v dplyr   1.0.1
 #> v tidyr   1.1.1     v stringr 1.4.0
 #> v readr   1.3.1     v forcats 0.5.0
-#> -- Conflicts ------------------------- tidyverse_conflicts() --
+#> -- Conflicts ---------------------------------------------- tidyverse_conflicts() --
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 # The population size estimates are obtained by
 estim$n
 #>     logit.PI logit.DR logit.TMLE
-#> 1,2 1006.641   1016.9   1011.161
+#> 1,2 1037.839  1035.85   1720.855
 # The corresponding variances are
 estim$varn
 #>     logit.PI logit.DR logit.TMLE
-#> 1,2 909.0767 924.5733   1135.797
+#> 1,2 1069.351 1067.216   86782.78
 ## basic example code
 ```
 

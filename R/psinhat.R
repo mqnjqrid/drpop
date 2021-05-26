@@ -6,12 +6,10 @@
 #' @param filterrows A logical value denoting whether to remove all rows with only zeroes.
 #' @param funcname The vector of estimation function names to obtain the population size.
 #' @param nfolds The number of folds to be used for cross fitting.
-#' @param twolist The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
-#' @param iter An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.
 #' @param sl.lib algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".
 #' @param Nmin The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.
-#' @param num_cores The number of cores to be used for paralellization in Super Learner.
+#' @param TMLE The logical value to indicate whether TMLE has to be computed.
 #' @return A list of estimates containing the following components:
 #' \item{psi}{  A dataframe of the estimated capture probability for each list pair, model and method combination. In the absence of covariates, the column represents the standard plug-in estimate.
 #' The rows represent the list pair which is assumed to be independent conditioned on the covariates.
@@ -38,9 +36,12 @@
 #' data = cbind(data, x)
 #' psin_estimate = psinhat(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models
+#setClass("psinhat", contains = "list")
+# @exportClass psinhat
+#setMethod("print", "psinhat", print.psinhat)
 #' @export
-psinhat <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("logit"), nfolds = 5, twolist = FALSE, eps = 0.005, iter = 50,
-                    sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, num_cores = NA){
+psinhat <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), nfolds = 5, eps = 0.005,
+                    sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, TMLE = TRUE, ...){
 
   l = ncol(List_matrix) - K
   n = nrow(List_matrix)
@@ -101,20 +102,19 @@ psinhat <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("logit"
         q1 = mean(List_matrix[,i])
         q2 = mean(List_matrix[,j])
         q12 = mean(List_matrix[,i]*List_matrix[,j])
-        psiinv_summary[paste(i, ",", j, sep = ''),] = q1*q2/q12
-        var_summary[paste(i, ",", j, sep = ''),] = q1*q2*(q1*q2 - q12)*(1 - q12)/q12^3/N
+        psiinv_summary[paste0(i, ",", j),] = q1*q2/q12
+        var_summary[paste0(i, ",", j),] = q1*q2*(q1*q2 - q12)*(1 - q12)/q12^3/N
         ifvals = NULL
       }
     }
-    return(list(psi = 1/psiinv_summary, sigma2 = N*var_summary, n = N*psiinv_summary,
+    result <- list(psi = 1/psiinv_summary, sigma2 = N*var_summary, n = round(N*psiinv_summary),
                 varn = N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1), N = N,
-                cin.l = pmax(N*psiinv_summary - 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)), N),
-                cin.u = N*psiinv_summary + 1.96 *sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1))
-    ))
+                cin.l = round(pmax(N*psiinv_summary - 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)), N)),
+                cin.u = round(N*psiinv_summary + 1.96 *sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1))))
+    class(result) = "psinhat"
+    return(result)
   }else{
 
-    #converting factor columns to numeric
-    List_matrix = reformat(List_matrix)
     #renaming the columns of List_matrix for ease of use
     colnames(List_matrix) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List_matrix) - K), sep = ''))
 
@@ -125,7 +125,7 @@ psinhat <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("logit"
     psiinv_summary = matrix(0, nrow = K*(K - 1)/2, ncol = 3*length(funcname))
     rownames(psiinv_summary) = unlist(sapply(1:(K - 1), function(k) {
       sapply((k + 1):K, function(s) {
-        return(paste(k, ",", s, sep = ''))
+        return(paste0(k, ",", s))
       })}))
     colnames(psiinv_summary) = paste(rep(funcname, each = 3), c("PI", "DR", "TMLE"), sep = '.')
     var_summary = psiinv_summary
@@ -180,12 +180,12 @@ psinhat <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("logit"
 
           overlapij = mean(List1[,i]*List1[,j])
           if(overlapij < eps) {
-            warning(cat("Overlap between the lists", i, "and", j, "is less than", eps))
+            warning(cat("Overlap between the lists ", i, " and ", j, " is less than ", eps, '.\n', sep = ''))
           }
           for (func in funcname){
 
-            colsubset = stringr::str_subset(colnames(psiinv_summary), func)
-            qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, i, j, eps = eps, sl.lib = sl.lib, num_cores = num_cores), silent = TRUE)
+            #colsubset = stringr::str_subset(colnames(psiinv_summary), func)
+            qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, i, j, eps = eps, ...), silent = TRUE)
 
             if ("try-error" %in% class(qhat)) {
               next
@@ -207,21 +207,25 @@ psinhat <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("logit"
 
             psiinvhat.dr = max(psiinvhat + Qnphihat, 1)
 
-            psiinvmat[folds, colsubset][1:2] = c(psiinvhat, psiinvhat.dr)
+            psiinvmat[folds, paste(func, c("PI", "DR"), sep = '.')] = c(psiinvhat, psiinvhat.dr)
 
             sigmasq = var(phihat, na.rm = TRUE)
-            varmat[folds, colsubset][1:2] = sigmasq/N
+            varmat[folds, paste(func, c("PI", "DR"), sep = '.')] = sigmasq/N
 
             datmat = as.data.frame(cbind(yi, yj, yi*yj, q1 - q12, q2 - q12, q12))
             datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, eps), 1 - eps))}))
             colnames(datmat) = c("yi", "yj", "yij", "q10", "q02", "q12")
 
-            tmle = tmle(datmat = datmat, iter = iter, eps = eps, eps_stop = 0.00001, twolist = twolist, K = K)
+            if(TMLE) {
+              tmle = tmle(datmat = datmat, eps = eps, K = K, ...)
+            }else{
+              tmle = list(error = TRUE)
+            }
 
             if(tmle$error){
               warning("TMLE did not run or converge.")
-              psiinvmat[folds,colsubset][3] = NA
-              varmat[folds,colsubset][3] = NA
+              psiinvmat[folds, paste(func, "TMLE", sep = '.')] = NA
+              varmat[folds, paste(func, "TMLE", sep = '.')] = NA
             }else{
               datmat = tmle$datmat
               q12 = pmax(datmat$q12, eps)
@@ -237,28 +241,35 @@ psinhat <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("logit"
 
               Qnphihat = mean(phihat, na.rm = TRUE)
 
-              psiinvmat[folds,colsubset][3] = psiinvhat.tmle
+              psiinvmat[folds, paste(func, "TMLE", sep = '.')] = psiinvhat.tmle
               sigmasq = var(phihat, na.rm = TRUE)
-              varmat[folds,colsubset][3] = sigmasq/N
+              varmat[folds, paste(func, "TMLE", sep = '.')] = sigmasq/N
             }
           }
         }
 
-        psiinv_summary[paste(i, ",", j, sep = ''),] = colMeans(psiinvmat, na.rm = TRUE)
-        var_summary[paste(i, ",", j, sep = ''),] = colMeans(varmat, na.rm = TRUE)
+        psiinv_summary[paste0(i, ",", j),] = colMeans(psiinvmat, na.rm = TRUE)
+        var_summary[paste0(i, ",", j),] = colMeans(varmat, na.rm = TRUE)
 
-        ifvals[rownames(ifvals) == paste(i, ",", j, sep = ''),] = ifvalsfold
-        nuis[rownames(nuis) == paste(i, ",", j, sep = ''),] = nuisfold
-        nuistmle[rownames(nuistmle) == paste(i, ",", j, sep = ''),] = nuistmlefold
+        ifvals[rownames(ifvals) == paste0(i, ",", j),] = ifvalsfold
+        nuis[rownames(nuis) == paste0(i, ",", j),] = nuisfold
+        nuistmle[rownames(nuistmle) == paste0(i, ",", j),] = nuistmlefold
       }
     }
 
-    return(list(psi = 1/psiinv_summary, sigma2 = N*var_summary, n = N*psiinv_summary,
+    result <- list(psi = 1/psiinv_summary, sigma2 = N*var_summary, n = round(N*psiinv_summary),
                 varn = N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1), N = N,
                 ifvals = ifvals, nuis = nuis, nuistmle = nuistmle,
-                cin.l = pmax(N*psiinv_summary - 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)), N),
-                cin.u = N*psiinv_summary + 1.96 *sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1))
-    ))
+                cin.l = round(pmax(N*psiinv_summary - 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)), N)),
+                cin.u = round(N*psiinv_summary + 1.96 *sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1))))
+    class(result) = "psinhat"
+    #print.psinhat(result)
+    return(result)
   }
 }
-
+#' @export
+print.psinhat <- function(x){#} = "psinhat"){
+  x$psi = round(x$psi, 3)
+  print(x[c("psi", "n", "cin.l", "cin.u")])
+  invisible(x)
+}

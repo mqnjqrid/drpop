@@ -2,14 +2,12 @@
 % Please edit documentation in R/plotci.R
 \name{plotci}
 \alias{plotci}
-\title{Estimate total population size and capture probability using user provided set of models.}
+\title{Plot estimated confidence interval of total population size.}
 \usage{
-plotci(psinhat, psinhatcond, show.plot = TRUE, tsize = 12)
+plotci(object, show.plot = TRUE, tsize = 12, ...)
 }
 \arguments{
-\item{psinhat}{An object of type psinhat returned value.}
-
-\item{psinhatcond}{An object of type psinhat returned value.}
+\item{object}{An object of class \code{psinhat} or \code{psinhatcond}.}
 
 \item{show.plot}{A logical value indicating whether it will show plots.}
 
@@ -17,13 +15,11 @@ plotci(psinhat, psinhatcond, show.plot = TRUE, tsize = 12)
 }
 \value{
 A list of containing the following components:
-\item{result}{  A dataframe of the values in \code{psinhat} which can be passed to ggplot.}
-\item{sigma2}{  A dataframe of the values in \code{psinhatcond} which can be passed to ggplot.}
-\item{g1}{  A ggplot object with population size estimates and the 95\% confidence interval of the population size \code{n}.}
-\item{g2}{  A ggplot object with population size estimates and the 95\% confidence interval of the population size \code{n} conditional on \code{condvar}.}
+\item{result}{  A dataframe of the values in \code{object} which can be passed to ggplot.}
+\item{fig}{  A ggplot object with population size estimates and the 95\% confidence interval of the population size \code{n}.}
 }
 \description{
-Estimate total population size and capture probability using user provided set of models.
+Plot estimated confidence interval of total population size.
 }
 \examples{
 n = 10000
@@ -35,12 +31,12 @@ y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = 
 y2 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.3*xi), expit(-0.6 + 0.3*xi)))}))
 datacrc = cbind(y1, y2, exp(x/2))
 
-p = psinhat(List_matrix = datacrc, funcname = c("logit", "gam", "sl"))
-plotci(psinhat = p)
+p = psinhat(List_matrix = datacrc, funcname = c("logit", "gam"))
+plotci(p)
 
 ss = sample(c('a','b','c','d','e','f'), nrow(datacrc), replace = TRUE, prob = (1:6)/sum(1:6))
 
 datacrc1 = data.frame(datacrc, ss)
 p = psinhatcond(List_matrix = datacrc1, condvar = 'ss')
-plotci(psinhatcond = p)
+plotci(p)
 }

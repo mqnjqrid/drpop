@@ -6,44 +6,35 @@
 \usage{
 psinhatgivenq(
   List_matrix,
-  K = 2,
-  frows,
-  funcname = c("logit"),
-  nfolds = 5,
-  twolist = FALSE,
+  i = 1,
+  j = 2,
   eps = 0.005,
-  iter = 50,
+  qhateval,
   q1mat,
   q2mat,
   q12mat,
-  sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"),
-  Nmin = 500,
-  num_cores = NA
+  idfold,
+  TMLE = TRUE,
+  ...
 )
 }
 \arguments{
-\item{List_matrix}{The data frame in capture-recapture format for which total population is to be estimated.
+\item{List_matrix}{The data frame in capture-recapture format with two lists for which total population is to be estimated.
 The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.}
-
-\item{K}{The number of lists in the data. typically the first \code{K} rows of List_matrix.}
-
-\item{funcname}{The vector of estimation function names to obtain the population size.}
-
-\item{nfolds}{The number of folds to be used for cross fitting.}
-
-\item{twolist}{The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.}
 
 \item{eps}{The minimum value the estimates can attain to bound them away from zero.}
 
-\item{iter}{An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.}
+\item{qhateval}{A list object of class \code{qhateval} as returned by the \code{qhateval} function.}
 
-\item{sl.lib}{algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
+\item{q1mat}{A dataframe with capture probabilities for the first list.}
 
-\item{Nmin}{The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.}
+\item{q2mat}{A dataframe with capture probabilities for the second list.}
 
-\item{num_cores}{The number of cores to be used for paralellization in Super Learner.}
+\item{q12mat}{A dataframe with capture probabilities for both the lists simultaneously.}
 
-\item{filterrows}{A logical value denoting whether to remove all rows with only zeroes.}
+\item{idfold}{The fold assignment of each row during estimation.}
+
+\item{TMLE}{The logical value to indicate whether TMLE has to be computed.}
 }
 \value{
 A list of estimates containing the following components:
@@ -64,15 +55,9 @@ The columns represent the model and method combinations (PI = plug-in, DR = doub
 Estimate total population size and capture probability using user provided set of models.
 }
 \examples{
-data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
-x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
-
-psin_estimate = psinhat(List_matrix = data)
-#this returns the basic plug-in estimate since covariates are absent.
-
-data = cbind(data, x)
-psin_estimate = psinhat(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005)
-#this returns the plug-in, the bias-corrected and the tmle estimate for the two models
+data = simuldata(1000, 1)$List_matrix
+qhat_estimate = qhateval(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
+psin_estimate = psinhatgivenq(List_matrix = data, qhateval = qhat_estimate)
 }
 \references{
 Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.

@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of drpop is to provide users doubly-robust and efficient estimates of population size and the variances for a capture-recapture problem.
+The goal of drpop is to provide users doubly robust and efficient estimates of population size and the condifence intervals for a capture-recapture problem.
 
 ## Installation
 
@@ -36,7 +36,7 @@ And the development version from [GitHub](https://github.com/) with:
 # install.packages("devtools")
 devtools::install_github("mqnjqrid/drpop")
 ```
-## Example
+## Examples
 
 This is a basic example which shows you how to solve a common problem:
 
@@ -48,16 +48,13 @@ x = matrix(rnorm(n*3, 2, 1), nrow = n)
 expit = function(xi) {
   exp(sum(xi))/(1 + exp(sum(xi)))
 }
-y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.4*xi), expit(-0.6 + 0.4*xi)))}))
-y2 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.3*xi), expit(-0.6 + 0.3*xi)))}))
-datacrc = cbind(y1, y2, exp(x/2))
+y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c(1 - expit(-0.6 + 0.4*xi), expit(-0.6 + 0.4*xi)))}))
+y2 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c(1 - expit(-0.6 + 0.3*xi), expit(-0.6 + 0.3*xi)))}))
+datacrc = cbind(y1, y2, exp(x/2))[y1+y2 > 0, ]
 
-options(warn = -1)
-estim <- psinhat(List_matrix = datacrc, func = c("logit"), nfolds = 2, K = 2)
-# The population size estimates are obtained by
-estim$n
-# The corresponding variances are
-estim$varn
+estim <- psinhat(List_matrix = datacrc, func = c("gam"), nfolds = 2, K = 2)
+# The population size estimates are 'n' and the standard deviations are 'sigman'
+print(estim)
 ## basic example code
 ```
 
@@ -72,13 +69,13 @@ x = matrix(rnorm(n*3, 2,1), nrow = n)
 expit = function(xi) {
   exp(sum(xi))/(1 + exp(sum(xi)))
 }
-y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.4*xi), expit(-0.6 + 0.4*xi)))}))
-y2 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.3*xi), expit(-0.6 + 0.3*xi)))}))
-datacrc = cbind(y1, y2, exp(x/2))
+y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c(1 - expit(-0.6 + 0.4*xi), expit(-0.6 + 0.4*xi)))}))
+y2 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c(1 - expit(-0.6 + 0.3*xi), expit(-0.6 + 0.3*xi)))}))
+datacrc = cbind(y1, y2, exp(x/2))[y1+y2>0,]
 
-estim <- psinhat(List_matrix = datacrc, func = c("logit", "sl"), nfolds = 2, eps = 0.01)
-
-plotci(psinhat = estim)$g1
+estim <- psinhat(List_matrix = datacrc, func = c("gam", "rangerlogit"), nfolds = 2, eps = 0.01)
+print(estim)
+plotci(estim)
 #result = melt(as.data.frame(estim), variable.name = "estimator", value.name = "population_size")
 #ggplot(result, aes(x = population_size - n, fill = estimator, color = estimator)) +
 #  geom_density(alpha = 0.4) +
@@ -94,14 +91,14 @@ x = matrix(rnorm(n*3, 2, 1), nrow = n)
 expit = function(xi) {
   exp(sum(xi))/(1 + exp(sum(xi)))
 }
-ss = sample(c('m','f'), n, replace = TRUE, prob = c(0.45, 0.55))
+catcov = sample(c('m','f'), n, replace = TRUE, prob = c(0.45, 0.55))
 
-y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.4*xi), expit(-0.6 + 0.4*xi)))}))
-y2 = sapply(1:n, function(i) {sample(c(0, 1), 1, replace = TRUE, prob = c( 1 - expit(-0.6 + 0.3*(ss[i] == 'm') + 0.3*x[i,]), expit(-0.6 + 0.3*(ss[i] == 'm') + 0.3*x[i,])))})
-datacrc = cbind.data.frame(y1, y2, exp(x/2), ss)
+y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c(1 - expit(-0.6 + 0.4*xi), expit(-0.6 + 0.4*xi)))}))
+y2 = sapply(1:n, function(i) {sample(c(0, 1), 1, replace = TRUE, prob = c(1 - expit(-0.6 + 0.3*(catcov[i] == 'm') + 0.3*x[i,]), expit(-0.6 + 0.3*(catcov[i] == 'm') + 0.3*x[i,])))})
+datacrc = cbind.data.frame(y1, y2, exp(x/2), catcov)[y1+y2>0,]
 
-p = psinhatcond(List_matrix = datacrc, condvar = 'ss')
-summary = plotci(psinhatcond = p)
-summary$g2 + geom_hline(yintercept = table(ss), color = "brown", linetype = "dashed")
+result = psinhatcond(List_matrix = datacrc, condvar = 'catcov')
+fig = plotci(result)
+fig + geom_hline(yintercept = table(catcov), color = "brown", linetype = "dashed")
 
 ```

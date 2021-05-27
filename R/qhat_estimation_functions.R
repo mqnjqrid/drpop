@@ -152,12 +152,12 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
 
   stopifnot(ncol(List.train) > K)
 
-  require("SuperLearner", quietly = TRUE)
-  require("parallel", quietly = TRUE)
-  require("gam", quietly = TRUE)
-  require("xgboost", quietly = TRUE)
-  require("janitor", quietly = TRUE)
-  require("tidyverse", quietly = TRUE)
+  require("SuperLearner", quietly = TRUE, warn.conflicts = FALSE)
+  require("parallel", quietly = TRUE, warn.conflicts = FALSE)
+  require("gam", quietly = TRUE, warn.conflicts = FALSE)
+  require("xgboost", quietly = TRUE, warn.conflicts = FALSE)
+  require("janitor", quietly = TRUE, warn.conflicts = FALSE)
+  require("tidyverse", quietly = TRUE, warn.conflicts = FALSE)
   slib = intersect(sl.lib, c("SL.glm", "SL.gam",
                              "SL.glm.interaction"))
   slib1 = setdiff(sl.lib, slib)

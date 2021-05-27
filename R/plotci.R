@@ -1,7 +1,6 @@
 #' Plot estimated confidence interval of total population size.
 #'
 #' @param object An object of class \code{psinhat} or \code{psinhatcond}.
-#' @param show.plot A logical value indicating whether it will show plots.
 #' @param tsize The text size for the plots.
 #' @return A ggplot object \code{fig} with population size estimates and the 95% confidence intervals.
 #' @examples
@@ -24,12 +23,9 @@
 #' p = psinhatcond(List_matrix = datacrc1, condvar = 'ss')
 #' plotci(p)
 #' @export
-plotci <- function(object, show.plot = TRUE, tsize = 12, ...){
+plotci <- function(object, tsize = 12, ...){
   stopifnot(!missing(object))
   require(ggplot2, quietly = TRUE)
-  require(reshape2, quietly = TRUE)
-  require(tidyr, quietly = TRUE)
-  result = NA
   fig = NA
   if(class(object) == "psinhat"){
 
@@ -58,10 +54,7 @@ plotci <- function(object, show.plot = TRUE, tsize = 12, ...){
       theme_bw() +
       theme(legend.position = "bottom", text = element_text(size = tsize))
   }else{
-    cat("object not of class psinhat or psinhatcond\n")
+    cat("object is not of class psinhat or psinhatcond.\n")
   }
-  if(show.plot){
-    plot(fig)
-  }
-  return(invisible(fig = fig))
+  return(fig)
 }

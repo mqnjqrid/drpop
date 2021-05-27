@@ -4,12 +4,10 @@
 \alias{plotci}
 \title{Plot estimated confidence interval of total population size.}
 \usage{
-plotci(object, show.plot = TRUE, tsize = 12, ...)
+plotci(object, tsize = 12, ...)
 }
 \arguments{
 \item{object}{An object of class \code{psinhat} or \code{psinhatcond}.}
-
-\item{show.plot}{A logical value indicating whether it will show plots.}
 
 \item{tsize}{The text size for the plots.}
 }

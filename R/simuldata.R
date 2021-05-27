@@ -38,7 +38,7 @@ simuldata = function(n, l, categorical = FALSE, ep = 0, K = 2){
   }
 
   pi2 = function(x, catcov = NA) {
-    if(missing(catcov) | is.na(catcov)){
+    if(sum(is.na(catcov))){
       catadjust = 0
     }else{
       catadjust <- (1 - as.numeric(catcov))*0.8
@@ -51,7 +51,7 @@ simuldata = function(n, l, categorical = FALSE, ep = 0, K = 2){
   }
   if(K > 2){
     pi3 = function(x, catcov = NA) {
-      if(missing(catcov) | is.na(catcov)){
+      if(sum(is.na(catcov))){
         catadjust = 0
       }else{
         catadjust <- (1 - as.numeric(catcov))*0.5
@@ -63,8 +63,8 @@ simuldata = function(n, l, categorical = FALSE, ep = 0, K = 2){
       expit(ep + catadjust + 0.2*x)
     }
   }
-  p1 = pi1(x, catcov)
-  p2 = pi2(x, catcov)
+  p1 = pi1(x = x, catcov = catcov)
+  p2 = pi2(x = x, catcov = catcov)
 
   y1 = sapply(1:n, function(i) {sample(c(0, 1), 1, prob = c(1 - p1[i], p1[i]))})
   y2 = sapply(1:n, function(i) {sample(c(0, 1), 1, prob = c(1 - p2[i], p2[i]))})

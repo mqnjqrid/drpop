@@ -14,6 +14,7 @@ psinhat(
   sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"),
   Nmin = 500,
   TMLE = TRUE,
+  PLUGIN = TRUE,
   ...
 )
 }
@@ -36,6 +37,8 @@ The first K columns are the capture history indicators for the K lists. The rema
 \item{Nmin}{The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.}
 
 \item{TMLE}{The logical value to indicate whether TMLE has to be computed.}
+
+\item{PLUGIN}{The logical value to indicate whether the plug-in estimates is returned.}
 }
 \value{
 A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):

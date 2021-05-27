@@ -60,31 +60,33 @@ tmle <- function(datmat, iter = 250, eps = 0.005, eps_stop = 0.005, twolist = FA
       datmat[,"q12"] = predict(mod1, newdata = dat1, type = "response")
 
     }
+    epsilon_error = abs(mod1$coefficients)
     datmat$q12 = pmax(pmin(datmat$q12, 1), eps)
 
     ########################### model 2 for q1
-    dat2 = cbind(datmat$yi*(1 - datmat$yj), logit(datmat$q10), (datmat$q02 + datmat$q12)/datmat$q12)
-    colnames(dat2) = c("yi0", "logitq10", "ratio")
-    dat2 = as.data.frame(dat2)
-    mod2 = try(glm(yi0 ~ -1 + offset(logitq10) + ratio, family = binomial(link = logit), data = dat2, na.action = na.omit), silent = TRUE)
-    if (!("try-error" %in% class(mod2))){
-      datmat$q10 = predict(mod2, newdata = dat2, type = "response")
+    dat1 = cbind(datmat$yi*(1 - datmat$yj), logit(datmat$q10), (datmat$q02 + datmat$q12)/datmat$q12)
+    colnames(dat1) = c("yi0", "logitq10", "ratio")
+    dat1 = as.data.frame(dat1)
+    mod1 = try(glm(yi0 ~ -1 + offset(logitq10) + ratio, family = binomial(link = logit), data = dat1, na.action = na.omit), silent = TRUE)
+    if (!("try-error" %in% class(mod1))){
+      datmat$q10 = predict(mod1, newdata = dat1, type = "response")
       datmat[,"q10"] = pmin(datmat[,"q10"], 1 - datmat$q12)
     }
     datmat$q10 = pmax(pmin(datmat$q10, 1), eps)
+    epsilon_error = max(abs(mod1$coefficients), epsilon_error)
 
     ########################### model 3 for q2
     if (K > 2 | twolist == FALSE){
-      dat3 = cbind(datmat$yj*(1 - datmat$yi), logit(datmat$q02), (datmat$q10 + datmat$q12)/datmat$q12)
-      colnames(dat3) = c("y0j", "logitq02", "ratio")
-      dat3 = as.data.frame(dat3)
-      mod3 = try(glm(y0j ~ -1 + offset(logitq02) + ratio, family = binomial(link = logit), data = dat3, na.action = na.omit), silent = TRUE)
-      if (!("try-error" %in% class(mod3))){
-        datmat$q02 = predict(mod3, newdata = dat3, type = "response")
+      dat1 = cbind(datmat$yj*(1 - datmat$yi), logit(datmat$q02), (datmat$q10 + datmat$q12)/datmat$q12)
+      colnames(dat1) = c("y0j", "logitq02", "ratio")
+      dat1 = as.data.frame(dat1)
+      mod1 = try(glm(y0j ~ -1 + offset(logitq02) + ratio, family = binomial(link = logit), data = dat1, na.action = na.omit), silent = TRUE)
+      if (!("try-error" %in% class(mod1))){
+        datmat$q02 = predict(mod1, newdata = dat1, type = "response")
         datmat[,"q02"] = pmin(datmat[,"q02"], 1 - datmat$q10 - datmat$q12)
+        epsilon_error = max(abs(mod1$coefficients), epsilon_error)
       }
     }else{
-      mod3 = mod2
       datmat[,"q02"] = pmax(0, 1 - datmat$q10 - datmat$q12)
     }
 
@@ -93,10 +95,11 @@ tmle <- function(datmat, iter = 250, eps = 0.005, eps_stop = 0.005, twolist = FA
     # ifval = (datmat$q10+datmat$q12)*(datmat$q10+datmat$q12)/datmat$q12 *(
     #   datmat$yi/(datmat$q10+datmat$q12) + datmat$yj/(datmat$q02+datmat$q12) - datmat$yij/(datmat$q12) - 1)
     # eplison_error = mean(ifval)
-    epsilon_error = max(abs(c(mod2$coefficients, mod3$coefficients, mod1$coefficients)))
+    if(is.null(epsilon_error))
+       epsilon_error = 2
     #epsilon_error = max(abs(expit(dat1$logitq12) - datmat$q12),
-    #                    abs(expit(dat2$logitq10) - datmat$q10),
-    #                    abs(expit(dat3$logitq02) - datmat$q02))
+    #                    abs(expit(dat1$logitq10) - datmat$q10),
+    #                    abs(expit(dat1$logitq02) - datmat$q02))
   }
   return(list(error = abs(epsilon_error) > 1, datmat = datmat, iterations = cnt, epsilon_error = epsilon_error))
 }

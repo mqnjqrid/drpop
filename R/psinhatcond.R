@@ -9,6 +9,7 @@
 #' @param nfolds The number of folds to be used for cross fitting.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
 #' @param TMLE The logical value to indicate whether TMLE has to be computed.
+#' @param PLUGIN The logical value to indicate whether the plug-in estimates is returned.
 #' @return A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):
 #' \item{result}{  A dataframe of the below estimated quantities.
 #' \itemize{
@@ -34,7 +35,7 @@
 #' psin_estimate = psinhatcond(List_matrix = data, funcname = c("logit", "sl"), condvar = 'ss', nfolds = 2, twolist = FALSE, eps = 0.005)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models conditioned on column ss
 #' @export
-psinhatcond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), condvar, nfolds = 2, eps = 0.005, TMLE = TRUE, ...){
+psinhatcond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), condvar, nfolds = 2, eps = 0.005, TMLE = TRUE, PLUGIN = TRUE, ...){
 
   l = ncol(List_matrix) - K
   n = nrow(List_matrix)
@@ -58,6 +59,7 @@ psinhatcond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("ra
 
   if(!missing(condvar)){
     if(is.character(condvar)){
+      stopifnot(condvar %in% colnames(List_matrix))
       condvar = which(colnames(List_matrix) == condvar) - K
     }
   }
@@ -69,7 +71,7 @@ psinhatcond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("ra
   for(cvar in condvar_vec){
 
     List_matrixsub = List_matrix[List_matrix[,K + condvar] == cvar, -c(K + condvar)]
-    est = try(psinhat(List_matrix = List_matrixsub, K = K, filterrows = filterrows, funcname = funcname, nfolds = nfolds, TMLE = TMLE, ...), silent = TRUE)
+    est = try(psinhat(List_matrix = List_matrixsub, K = K, filterrows = filterrows, funcname = funcname, nfolds = nfolds, ...), silent = TRUE)
 
     if("try-error" %in% class(est)){
       next
@@ -84,6 +86,7 @@ psinhatcond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("ra
     }
   }
   if(!is.null(object)){
+    colnames(object$N)[1] = 'N'
     class(object) = "psinhatcond"
     return(object)
   }else{
@@ -93,6 +96,9 @@ psinhatcond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("ra
 }
 #' @export
 print.psinhatcond <- function(obj){
+  obj$result$psi = round(obj$result$psi, 3)
+  obj$result$sigma = round(obj$result$sigma, 3)
+  obj$result$sigman = round(obj$result$sigman, 3)
   print(obj$result)
   invisible(obj)
 }

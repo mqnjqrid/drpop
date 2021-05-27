@@ -10,6 +10,7 @@
 #' @param sl.lib algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".
 #' @param Nmin The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.
 #' @param TMLE The logical value to indicate whether TMLE has to be computed.
+#' @param PLUGIN The logical value to indicate whether the plug-in estimates is returned.
 #' @return A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):
 #' \item{result}{  A dataframe of the below estimated quantities.
 #' \itemize{
@@ -41,7 +42,7 @@
 #setMethod("print", "psinhat", print.psinhat)
 #' @export
 psinhat <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), nfolds = 5, eps = 0.005,
-                    sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, TMLE = TRUE, ...){
+                    sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, TMLE = TRUE, PLUGIN = TRUE, ...){
 
   require("tidyverse", quietly = TRUE, warn.conflicts = FALSE)
   l = ncol(List_matrix) - K
@@ -141,7 +142,9 @@ psinhat <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("ranger
     nuis = matrix(NA, nrow = N*K*(K-1)/2, ncol = 3*length(funcname) + 1)
     colnames(nuis) = c("listpair", paste(rep(funcname, each = 3), c("q12", "q1", "q2"), sep = '.'))
     nuis[,"listpair"] = ifvals[,"listpair"]
-    nuistmle = nuis
+    if(TMLE){
+      nuistmle = nuis
+    }
 
     permutset = sample(1:N, N, replace = FALSE)
 
@@ -271,14 +274,23 @@ psinhat <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("ranger
     if(!TMLE){
       result = result[result$method != "TMLE",]
     }
-    object = list(result = result, N = N, ifvals = as.data.frame(ifvals), nuis = as.data.frame(nuis), nuistmle = as.data.frame(nuistmle))
+    if(!PLUGIN){
+      result = result[result$method != "PI",]
+    }
+    object = list(result = result, N = N, ifvals = as.data.frame(ifvals), nuis = as.data.frame(nuis))
+    if(TMLE){
+      object$nuistmle = as.data.frame(nuistmle)
+    }
     class(object) = "psinhat"
     #print.psinhat(result)
     return(object)
   }
 }
 #' @export
-print.psinhat <- function(obj){#} = "psinhat"){
+print.psinhat <- function(obj){
+  obj$result$psi = round(obj$result$psi, 3)
+  obj$result$sigma = round(obj$result$sigma, 3)
+  obj$result$sigman = round(obj$result$sigman, 3)
   print(obj$result)
   invisible(obj)
 }

@@ -9,6 +9,7 @@
 #' @param q12mat A dataframe with capture probabilities for both the lists simultaneously.
 #' @param idfold The fold assignment of each row during estimation.
 #' @param TMLE The logical value to indicate whether TMLE has to be computed.
+#' @param PLUGIN The logical value to indicate whether the plug-in estimates is returned.
 #' @return A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):
 #' \item{result}{  A dataframe of the below estimated quantities.
 #' \itemize{
@@ -30,7 +31,7 @@
 #' qhat_estimate = qhateval(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
 #' psin_estimate = psinhatgivenq(List_matrix = data, qhateval = qhat_estimate)
 #' @export
-psinhatgivenq <- function(List_matrix, i = 1, j = 2, eps = 0.005, qhateval, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, ...){
+psinhatgivenq <- function(List_matrix, i = 1, j = 2, eps = 0.005, qhateval, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, PLUGIN = TRUE, ...){
 
   K = 2
   n = nrow(List_matrix)
@@ -86,7 +87,9 @@ psinhatgivenq <- function(List_matrix, i = 1, j = 2, eps = 0.005, qhateval, q1ma
   nuis = matrix(NA, nrow = N*K*(K-1)/2, ncol = 3*length(funcname) + 1)
   colnames(nuis) = c("listpair", paste(rep(funcname, each = 3), c("q12", "q1", "q2"), sep = '.'))
   nuis[,"listpair"] = ifvals[,"listpair"]
-  nuistmle = nuis
+  if(TMLE){
+    nuistmle = nuis
+  }
 
   psiinvmat = matrix(NA, nrow = nfolds, ncol = 3*length(funcname))
   colnames(psiinvmat) = paste(rep(funcname, each = 3), c("PI", "DR", "TMLE"), sep = '.')
@@ -174,14 +177,20 @@ psinhatgivenq <- function(List_matrix, i = 1, j = 2, eps = 0.005, qhateval, q1ma
   if(!TMLE){
     result = result[result$method != "TMLE",]
   }
+  if(!PLUGIN){
+    result = result[result$method != "PI",]
+  }
   ifvals = as.data.frame(ifvals)
   ifvals$listpair = paste0(i, ',', j)
   nuis = as.data.frame(nuis)
   nuis$listpair = paste0(i, ',', j)
-  nuistmle = as.data.frame(nuistmle)
-  nuistmle$listpair = paste0(i, ',', j)
-  object = list(result = result, N = N, ifvals = ifvals, nuis = nuis, nuistmle = nuistmle)
+
+  object = list(result = result, N = N, ifvals = as.data.frame(ifvals), nuis = as.data.frame(nuis))
+  if(TMLE){
+    nuistmle = as.data.frame(nuistmle)
+    nuistmle$listpair = paste0(i, ',', j)
+    object$nuistmle = as.data.frame(nuistmle)
+  }
   class(object) = "psinhat"
-  #print.psinhat(result)
-  return(object)
+  return(invisible(object))
 }

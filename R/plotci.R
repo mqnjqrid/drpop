@@ -49,7 +49,7 @@ plotci <- function(object, tsize = 12, ...){
       geom_point(aes(y = n), position=position_dodge(0.35)) +
       geom_errorbar(aes(ymin = cin.l, ymax = cin.u), width=.2, position=position_dodge(0.35)) +
       facet_grid(listpair~model, labeller = label_both) +
-      scale_x_discrete(name = "conditional variable (number of observations)", breaks = c(N$condvar), labels = paste(N$condvar, " (", N$x, ')', sep = '')) +
+      scale_x_discrete(name = "conditional variable (number of observations)", breaks = c(N$condvar), labels = paste(N$condvar, " (", N$N, ')', sep = '')) +
       scale_color_manual("Estimation method", values = c("PI" = "red", "DR" = "#E69F00", "TMLE" = "#56B4E9")) +
       theme_bw() +
       theme(legend.position = "bottom", text = element_text(size = tsize))

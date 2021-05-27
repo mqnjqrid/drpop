@@ -13,6 +13,7 @@ psinhatcond(
   nfolds = 2,
   eps = 0.005,
   TMLE = TRUE,
+  PLUGIN = TRUE,
   ...
 )
 }
@@ -33,6 +34,8 @@ The first K columns are the capture history indicators for the K lists. The rema
 \item{eps}{The minimum value the estimates can attain to bound them away from zero.}
 
 \item{TMLE}{The logical value to indicate whether TMLE has to be computed.}
+
+\item{PLUGIN}{The logical value to indicate whether the plug-in estimates is returned.}
 }
 \value{
 A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):

@@ -14,9 +14,7 @@ plotci(object, show.plot = TRUE, tsize = 12, ...)
 \item{tsize}{The text size for the plots.}
 }
 \value{
-A list of containing the following components:
-\item{result}{  A dataframe of the values in \code{object} which can be passed to ggplot.}
-\item{fig}{  A ggplot object with population size estimates and the 95\% confidence interval of the population size \code{n}.}
+A ggplot object \code{fig} with population size estimates and the 95\% confidence intervals.
 }
 \description{
 Plot estimated confidence interval of total population size.

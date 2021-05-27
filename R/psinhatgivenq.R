@@ -9,19 +9,19 @@
 #' @param q12mat A dataframe with capture probabilities for both the lists simultaneously.
 #' @param idfold The fold assignment of each row during estimation.
 #' @param TMLE The logical value to indicate whether TMLE has to be computed.
-#' @return A list of estimates containing the following components:
-#' \item{psi}{  A dataframe of the estimated capture probability for each list pair, model and method combination. In the absence of covariates, the column represents the standard plug-in estimate.
-#' The rows represent the list pair which is assumed to be independent conditioned on the covariates.
-#' The columns represent the model and method combinations (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate)indicated in the columns.}
-#' \item{sigma2}{  A dataframe of the efficiency bound \code{sigma^2} in the same format as \code{psi}.}
-#' \item{n}{  A dataframe of the estimated population size n in the same format as \code{psi}.}
-#' \item{varn}{  A dataframe of the variance for population size estimate in the same format as \code{psi}.}
+#' @return A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):
+#' \item{result}{  A dataframe of the below estimated quantities.
+#' \itemize{
+#' \item{psi}{  The estimated capture probability.}
+#' \item{sigma}{  The efficiency bound.}
+#' \item{n}{  The estimated population size n.}
+#' \item{sigman}{  The estimated standard deviation of the population size.}
+#' \item{cin.l}{  The estimated lower bound of a 95% confidence interval of \code{n}.}
+#' \item{cin.u}{  The estimated upper bound of a 95% confidence interval of \code{n}.}}}
 #' \item{N}{  The number of data points used in the estimation after removing rows with missing data.}
-#' \item{ifvals}{  The estimated influence function values for the observed data. Each column corresponds to an element in funcname.}
+#' \item{ifvals}{  The estimated influence function values for the observed data.}
 #' \item{nuis}{  The estimated nuisance functions (q12, q1, q2) for each element in funcname.}
 #' \item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
-#' \item{cin.l}{  The estimated lower bound of a 95% confidence interval of \code{n}.}
-#' \item{cin.u}{  The estimated upper bound of a 95% confidence interval of \code{n}.}
 #'
 #' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
 #' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
@@ -79,13 +79,13 @@ psinhatgivenq <- function(List_matrix, i = 1, j = 2, eps = 0.005, qhateval, q1ma
   colnames(psiinv_summary) = paste(rep(funcname, each = 3), c("PI", "DR", "TMLE"), sep = '.')
   var_summary = psiinv_summary
 
-  ifvals = matrix(NA, nrow = N*K*(K-1)/2, ncol = length(funcname))
-  colnames(ifvals) = funcname
-  rownames(ifvals) = rep(rownames(psiinv_summary), each = N)
+  ifvals = matrix(NA, nrow = N*K*(K-1)/2, ncol = length(funcname) + 1)
+  colnames(ifvals) = c("listpair", funcname)
+  ifvals[,"listpair"] = rep(rownames(psiinv_summary), each = N)
 
-  nuis = matrix(NA, nrow = N*K*(K-1)/2, ncol = 3*length(funcname))
-  colnames(nuis) = paste(rep(funcname, each = 3), c("q12", "q1", "q2"), sep = '.')
-  rownames(nuis) = rownames(ifvals)
+  nuis = matrix(NA, nrow = N*K*(K-1)/2, ncol = 3*length(funcname) + 1)
+  colnames(nuis) = c("listpair", paste(rep(funcname, each = 3), c("q12", "q1", "q2"), sep = '.'))
+  nuis[,"listpair"] = ifvals[,"listpair"]
   nuistmle = nuis
 
   psiinvmat = matrix(NA, nrow = nfolds, ncol = 3*length(funcname))
@@ -163,11 +163,25 @@ psinhatgivenq <- function(List_matrix, i = 1, j = 2, eps = 0.005, qhateval, q1ma
   psiinv_summary[paste0(i, ",", j),] = colMeans(psiinvmat, na.rm = TRUE)
   var_summary[paste0(i, ",", j),] = colMeans(varmat, na.rm = TRUE)
 
-  result <- list(psi = 1/psiinv_summary, sigma2 = N*var_summary, n = round(N*psiinv_summary),
-              varn = N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1), N = N,
-              ifvals = ifvals, nuis = nuis, nuistmle = nuistmle,
-              cin.l = round(pmax(N*psiinv_summary - 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)), N)),
-              cin.u = round(N*psiinv_summary + 1.96 *sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1))))
-  class(result) <- "psinhat"
-  return(result)
+  result <- list(psi = 1/psiinv_summary, sigma = sqrt(N*var_summary), n = round(N*psiinv_summary),
+                 sigman = sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)),
+                 cin.l = round(pmax(N*psiinv_summary - 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)), N)),
+                 cin.u = round(N*psiinv_summary + 1.96 *sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1))))
+  result <- Reduce(function(...) merge(..., by = c("listpair", "Var2")),
+                   lapply(1:length(result), function(i)
+                     reshape2::melt(result[[i]], value.name = names(result)[i], varnames = c("listpair", "Var2"))))
+  result <- separate(data = result, col = "Var2", into = c("model", "method"), sep = '\\.')
+  if(!TMLE){
+    result = result[result$method != "TMLE",]
+  }
+  ifvals = as.data.frame(ifvals)
+  ifvals$listpair = paste0(i, ',', j)
+  nuis = as.data.frame(nuis)
+  nuis$listpair = paste0(i, ',', j)
+  nuistmle = as.data.frame(nuistmle)
+  nuistmle$listpair = paste0(i, ',', j)
+  object = list(result = result, N = N, ifvals = ifvals, nuis = nuis, nuistmle = nuistmle)
+  class(object) = "psinhat"
+  #print.psinhat(result)
+  return(object)
 }

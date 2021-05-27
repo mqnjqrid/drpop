@@ -20,12 +20,15 @@
 #' result = tmle(datmat, eps = 0.005, eps_stop = 0.00001, twolist = TRUE)
 #' @export
 
-tmle <- function(datmat, iter = 100, eps = 0.005, eps_stop = 0.01, twolist = FALSE, K = 2,...){
+tmle <- function(datmat, iter = 250, eps = 0.005, eps_stop = 0.005, twolist = FALSE, K = 2,...){
 
   if(!prod(c("yi", "yj", "yij", "q10", "q02", "q12") %in% colnames(datmat))){
     stop("datmat misses one or more of the following columns: \t (yi, yj, yij, q10, q02, q12).")
     return(list(error = TRUE))
   }
+
+  eps = max(eps, 0.005)
+  datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, eps), 1 - eps))}))
 
  # ifval = (datmat$q10+datmat$q12)*(datmat$q10+datmat$q12)/datmat$q12 *(
 #    datmat$yi/(datmat$q10+datmat$q12) + datmat$yj/(datmat$q02+datmat$q12) - datmat$yij/(datmat$q12) - 1)
@@ -38,7 +41,7 @@ tmle <- function(datmat, iter = 100, eps = 0.005, eps_stop = 0.01, twolist = FAL
     log(x/(1 - x))
   }
 
-  epsilon_error = 1
+  epsilon_error = 1 + eps_stop
   cnt = 0
 
   while (abs(epsilon_error) > eps_stop){

@@ -12,6 +12,7 @@ psinhatcond(
   condvar,
   nfolds = 2,
   eps = 0.005,
+  TMLE = TRUE,
   ...
 )
 }
@@ -30,19 +31,23 @@ The first K columns are the capture history indicators for the K lists. The rema
 \item{nfolds}{The number of folds to be used for cross fitting.}
 
 \item{eps}{The minimum value the estimates can attain to bound them away from zero.}
+
+\item{TMLE}{The logical value to indicate whether TMLE has to be computed.}
 }
 \value{
-A list of estimates containing the following components:
-\item{psi}{  A dataframe of the estimated capture probability for each list pair, model and method combination. In the absence of covariates, the column represents the standard plug-in estimate.
-The \code{listpair} column represents the list pair which is assumed to be independent conditioned on the covariates.
-The \code{condvar} column stores the value of the original \code{condvar} attribute in \code{List_matrix} which is conditioned upon.
-The columns represent the model and method combinations (PI = plug-in, BC = bias-corrected, TMLE = targeted maximum likelihood estimate)indicated in the columns.}
-\item{sigma2}{  A dataframe of the efficiency bound \code{sigma^2} in the same format as \code{psi}.}
-\item{n}{  A dataframe of the estimated population size n in the same format as \code{psi}.}
-\item{varn}{  A dataframe of the variance for population size estimate in the same format as \code{psi}.}
-\item{N}{  The number of data points used in the estimation for each value of \code{condvar}.}
-\item{cin.l}{  The daraframe of estimated lower bound of a 95\% confidence interval of \code{n}.}
-\item{cin.u}{  The dataframe of estimated upper bound of a 95\% confidence interval of \code{n}.}
+A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):
+\item{result}{  A dataframe of the below estimated quantities.
+\itemize{
+\item{psi}{  The estimated capture probability.}
+\item{sigma}{  The efficiency bound.}
+\item{n}{  The estimated population size n.}
+\item{sigman}{  The estimated standard deviation of the population size.}
+\item{cin.l}{  The estimated lower bound of a 95\% confidence interval of \code{n}.}
+\item{cin.u}{  The estimated upper bound of a 95\% confidence interval of \code{n}.}}}
+\item{N}{  The number of data points used in the estimation after removing rows with missing data.}
+\item{ifvals}{  The estimated influence function values for the observed data.}
+\item{nuis}{  The estimated nuisance functions (q12, q1, q2) for each element in funcname.}
+\item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
 }
 \description{
 Estimate total population size and capture probability using user provided set of models conditioned on an attribute.

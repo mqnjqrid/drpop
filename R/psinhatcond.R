@@ -8,21 +8,20 @@
 #' @param condvar The covariate for which conditional estimates are required.
 #' @param nfolds The number of folds to be used for cross fitting.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
-#' @return A list of estimates containing the following components:
-# \item{psiinvmat}{ A dataframe of estimated psi inverse for the folds, list pair, model and method combination.
-#      The \code{listpair} column represents the list pair which is assumed to be independent conditioned on the covariates.
-#      The columns represent the model and method combinations (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate).}
-# \item{varmat}{ A dataframe of estimated sigma^2 in the same format as \code{psimat}.}
-#' \item{psi}{  A dataframe of the estimated capture probability for each list pair, model and method combination. In the absence of covariates, the column represents the standard plug-in estimate.
-#' The \code{listpair} column represents the list pair which is assumed to be independent conditioned on the covariates.
-#' The \code{condvar} column stores the value of the original \code{condvar} attribute in \code{List_matrix} which is conditioned upon.
-#' The columns represent the model and method combinations (PI = plug-in, BC = bias-corrected, TMLE = targeted maximum likelihood estimate)indicated in the columns.}
-#' \item{sigma2}{  A dataframe of the efficiency bound \code{sigma^2} in the same format as \code{psi}.}
-#' \item{n}{  A dataframe of the estimated population size n in the same format as \code{psi}.}
-#' \item{varn}{  A dataframe of the variance for population size estimate in the same format as \code{psi}.}
-#' \item{N}{  The number of data points used in the estimation for each value of \code{condvar}.}
-#' \item{cin.l}{  The daraframe of estimated lower bound of a 95% confidence interval of \code{n}.}
-#' \item{cin.u}{  The dataframe of estimated upper bound of a 95% confidence interval of \code{n}.}
+#' @param TMLE The logical value to indicate whether TMLE has to be computed.
+#' @return A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):
+#' \item{result}{  A dataframe of the below estimated quantities.
+#' \itemize{
+#' \item{psi}{  The estimated capture probability.}
+#' \item{sigma}{  The efficiency bound.}
+#' \item{n}{  The estimated population size n.}
+#' \item{sigman}{  The estimated standard deviation of the population size.}
+#' \item{cin.l}{  The estimated lower bound of a 95% confidence interval of \code{n}.}
+#' \item{cin.u}{  The estimated upper bound of a 95% confidence interval of \code{n}.}}}
+#' \item{N}{  The number of data points used in the estimation after removing rows with missing data.}
+#' \item{ifvals}{  The estimated influence function values for the observed data.}
+#' \item{nuis}{  The estimated nuisance functions (q12, q1, q2) for each element in funcname.}
+#' \item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
 #'
 #' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
 #' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
@@ -35,7 +34,7 @@
 #' psin_estimate = psinhatcond(List_matrix = data, funcname = c("logit", "sl"), condvar = 'ss', nfolds = 2, twolist = FALSE, eps = 0.005)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models conditioned on column ss
 #' @export
-psinhatcond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), condvar, nfolds = 2, eps = 0.005, ...){
+psinhatcond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), condvar, nfolds = 2, eps = 0.005, TMLE = TRUE, ...){
 
   l = ncol(List_matrix) - K
   n = nrow(List_matrix)
@@ -63,46 +62,37 @@ psinhatcond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("ra
     }
   }
 
-  condvar_vec = unique(List_matrix[,condvar + K])
+  condvar_vec = unique(List_matrix[, condvar + K])
 
-  psi = numeric(0)
-  sigma2 = numeric(0)
-  n = numeric(0)
-  varn = numeric(0)
-  N = numeric(0)
-  cin.l = numeric(0)
-  cin.u = numeric(0)
+  object = NULL
 
   for(cvar in condvar_vec){
 
     List_matrixsub = List_matrix[List_matrix[,K + condvar] == cvar, -c(K + condvar)]
-    est = try(psinhat(List_matrix = List_matrixsub, K = K, filterrows = filterrows, funcname = funcname, nfolds = nfolds, ...), silent = TRUE)
+    est = try(psinhat(List_matrix = List_matrixsub, K = K, filterrows = filterrows, funcname = funcname, nfolds = nfolds, TMLE = TMLE, ...), silent = TRUE)
 
     if("try-error" %in% class(est)){
       next
     }
-    if(ncol(est$psi) == 1){
+    if(!('DR' %in% est$result$method)){
       next
-     }
-
-    psi = rbind(psi, data.frame(listpair = rownames(est$psi), est$psi, condvar = cvar), make.row.names = FALSE)
-    sigma2 = rbind(sigma2, data.frame(listpair = rownames(est$psi), est$sigma2, condvar = cvar), make.row.names = FALSE)
-    n = rbind(n, data.frame(listpair = rownames(est$psi), est$n, condvar = cvar), make.row.names = FALSE)
-    varn = rbind(varn, data.frame(listpair = rownames(est$psi), est$varn, condvar = cvar), make.row.names = FALSE)
-    cin.l = rbind(cin.l, data.frame(listpair = rownames(est$psi), est$cin.l, condvar = cvar), make.row.names = FALSE)
-    cin.u = rbind(cin.u, data.frame(listpair = rownames(est$psi), est$cin.u, condvar = cvar), make.row.names = FALSE)
-    N = rbind(N, data.frame(N = est$N, condvar = cvar), make.row.names = FALSE)
+    }
+    if(is.null(object)){
+      object = lapply(est, function(x) cbind.data.frame(x, condvar = cvar))
+    }else{
+      object = Map("rbind", object, lapply(est, function(x) cbind.data.frame(x, condvar = cvar)))
+    }
   }
-  if(length(psi) > 0){
-    result <- list(psi = psi, sigma2 = sigma2, n = n, varn = varn, N = N, cin.l = cin.l, cin.u = cin.u)
-    class(result) = "psinhatcond"
-    return(result)
+  if(!is.null(object)){
+    class(object) = "psinhatcond"
+    return(object)
   }else{
     print("Error in estimation for all subsets.")
     return(0)
   }
 }
-
+#' @export
 print.psinhatcond <- function(obj){
-  print(obj[c("psi", "n", "cin.l", "cin.u")])
+  print(obj$result)
+  invisible(obj)
 }

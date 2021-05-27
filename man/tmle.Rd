@@ -6,9 +6,9 @@
 \usage{
 tmle(
   datmat,
-  iter = 100,
+  iter = 250,
   eps = 0.005,
-  eps_stop = 0.01,
+  eps_stop = 0.005,
   twolist = FALSE,
   K = 2,
   ...

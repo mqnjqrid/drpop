@@ -1,4 +1,4 @@
-ld = simuldata2(n = 3000, l = 3, ep = -4)
+ld = simuldata(n = 3000, l = 3, ep = -4)
 List_matrix = ld$List_matrix
 p1 = apply(as.matrix(List_matrix[,-c(1:2)]), 1, ld$pi1)
 p2 = apply(as.matrix(List_matrix[,-c(1:2)]), 1, ld$pi2)
@@ -6,7 +6,6 @@ gam = 1 - (1 - p1)*(1 - p2)
 q10 = p1/gam
 q20 = p2/gam
 q120 = p1*p2/gam
-
 
 K = 2
 l = ncol(List_matrix) - K

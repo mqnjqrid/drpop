@@ -3,7 +3,7 @@
 #' @param List_matrix The data frame in capture-recapture format with two lists for which total population is to be estimated.
 #'                    The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
-#' @param qhateval A list object of class \code{qhateval} as returned by the \code{qhateval} function.
+#' @param getnuis A list object of class \code{getnuis} as returned by the \code{getnuis} function.
 #' @param q1mat A dataframe with capture probabilities for the first list.
 #' @param q2mat A dataframe with capture probabilities for the second list.
 #' @param q12mat A dataframe with capture probabilities for both the lists simultaneously.
@@ -16,7 +16,7 @@
 #' \item{psi}{  The estimated capture probability.}
 #' \item{sigma}{  The efficiency bound.}
 #' \item{n}{  The estimated population size n.}
-#' \item{sigman}{  The estimated standard deviation of the population size.}
+#' \item{sdn}{  The estimated standard deviation of the population size.}
 #' \item{cin.l}{  The estimated lower bound of a 95% confidence interval of \code{n}.}
 #' \item{cin.u}{  The estimated upper bound of a 95% confidence interval of \code{n}.}}}
 #' \item{N}{  The number of data points used in the estimation after removing rows with missing data.}
@@ -28,10 +28,10 @@
 #' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
 #' @examples
 #' data = simuldata(1000, 1)$List_matrix
-#' qhat_estimate = qhateval(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
-#' psin_estimate = psinhatgivenq(List_matrix = data, qhateval = qhat_estimate)
+#' qhat_estimate = getnuis(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
+#' psin_estimate = popsizenuis(List_matrix = data, getnuis = qhat_estimate)
 #' @export
-psinhatgivenq <- function(List_matrix, i = 1, j = 2, eps = 0.005, qhateval, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, PLUGIN = TRUE, ...){
+popsizenuis <- function(List_matrix, i = 1, j = 2, eps = 0.005, getnuis, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, PLUGIN = TRUE, ...){
 
   K = 2
   n = nrow(List_matrix)
@@ -43,13 +43,13 @@ psinhatgivenq <- function(List_matrix, i = 1, j = 2, eps = 0.005, qhateval, q1ma
     j = 2
   }
 
-  stopifnot(!(missing(qhateval) & missing(q1mat) & missing(q2mat) & missing(q12mat)))
+  stopifnot(!(missing(getnuis) & missing(q1mat) & missing(q2mat) & missing(q12mat)))
 
-  if(!missing(qhateval)){
-    q1mat = qhateval$q1mat
-    q2mat = qhateval$q2mat
-    q12mat = qhateval$q12mat
-    idfold = qhateval$idfold
+  if(!missing(getnuis)){
+    q1mat = getnuis$q1mat
+    q2mat = getnuis$q2mat
+    q12mat = getnuis$q12mat
+    idfold = getnuis$idfold
   }
 
   stopifnot(!is.null(q1mat) & !is.null(q2mat) & !is.null(q12mat))
@@ -167,7 +167,7 @@ psinhatgivenq <- function(List_matrix, i = 1, j = 2, eps = 0.005, qhateval, q1ma
   var_summary[paste0(i, ",", j),] = colMeans(varmat, na.rm = TRUE)
 
   result <- list(psi = 1/psiinv_summary, sigma = sqrt(N*var_summary), n = round(N*psiinv_summary),
-                 sigman = sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)),
+                 sdn = sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)),
                  cin.l = round(pmax(N*psiinv_summary - 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)), N)),
                  cin.u = round(N*psiinv_summary + 1.96 *sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1))))
   result <- Reduce(function(...) merge(..., by = c("listpair", "Var2")),
@@ -179,6 +179,8 @@ psinhatgivenq <- function(List_matrix, i = 1, j = 2, eps = 0.005, qhateval, q1ma
   }
   if(!PLUGIN){
     result = result[result$method != "PI",]
+  }else{
+    warning("Plug-in variance is not well-defined. Returning variance evaluated using DR estimator formula")
   }
   ifvals = as.data.frame(ifvals)
   ifvals$listpair = paste0(i, ',', j)
@@ -191,6 +193,6 @@ psinhatgivenq <- function(List_matrix, i = 1, j = 2, eps = 0.005, qhateval, q1ma
     nuistmle$listpair = paste0(i, ',', j)
     object$nuistmle = as.data.frame(nuistmle)
   }
-  class(object) = "psinhat"
+  class(object) = "popsize"
   return(invisible(object))
 }

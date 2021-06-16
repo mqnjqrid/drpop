@@ -77,7 +77,7 @@ tmle <- function(datmat, iter = 100, eps = 0.005, eps_stop = 0.01, twolist = FAL
   return(list(error = abs(epsilon_error) > 1, datmat = datmat, iterations = cnt, epsilon_error = epsilon_error))
 }
 
-psinhatgivenq2 <- function(List_matrix, i = 1, j = 2, eps = 0.005, qhateval, q1mat, q2mat, q12mat, idfold, ...){
+popsizenuis2 <- function(List_matrix, i = 1, j = 2, eps = 0.005, getnuis, q1mat, q2mat, q12mat, idfold, ...){
 
   K = 2
   n = nrow(List_matrix)
@@ -89,13 +89,13 @@ psinhatgivenq2 <- function(List_matrix, i = 1, j = 2, eps = 0.005, qhateval, q1m
     j = 2
   }
 
-  stopifnot(!(missing(qhateval) & missing(q1mat) & missing(q2mat) & missing(q12mat)))
+  stopifnot(!(missing(getnuis) & missing(q1mat) & missing(q2mat) & missing(q12mat)))
 
-  if(!missing(qhateval)){
-    q1mat = qhateval$q1mat
-    q2mat = qhateval$q2mat
-    q12mat = qhateval$q12mat
-    idfold = qhateval$idfold
+  if(!missing(getnuis)){
+    q1mat = getnuis$q1mat
+    q2mat = getnuis$q2mat
+    q12mat = getnuis$q12mat
+    idfold = getnuis$idfold
   }
 
   stopifnot(!is.null(q1mat) & !is.null(q2mat) & !is.null(q12mat))
@@ -211,6 +211,6 @@ psinhatgivenq2 <- function(List_matrix, i = 1, j = 2, eps = 0.005, qhateval, q1m
                  ifvals = ifvals, nuis = nuis, nuistmle = nuistmle,
                  cin.l = round(pmax(N*psiinv_summary - 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)), N)),
                  cin.u = round(N*psiinv_summary + 1.96 *sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1))))
-  class(result) <- "psinhat"
+  class(result) <- "popsize"
   return(result)
 }

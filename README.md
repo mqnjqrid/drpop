@@ -43,7 +43,7 @@ y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = 
 y2 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c(1 - expit(-0.6 + 0.3*xi), expit(-0.6 + 0.3*xi)))}))
 datacrc = cbind(y1, y2, exp(x/2))[y1+y2 > 0, ]
 
-estim <- psinhat(List_matrix = datacrc, func = c("gam"), nfolds = 2, K = 2)
+estim <- popsize(List_matrix = datacrc, func = c("gam"), nfolds = 2, K = 2)
 #> Warning: package 'tidyverse' was built under R version 4.0.3
 #> -- Attaching packages ---------------
 #> v ggplot2 3.3.3     v purrr   0.3.4
@@ -85,7 +85,7 @@ y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = 
 y2 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = c(1 - expit(-0.6 + 0.3*xi), expit(-0.6 + 0.3*xi)))}))
 datacrc = cbind(y1, y2, exp(x/2))[y1+y2>0,]
 
-estim <- psinhat(List_matrix = datacrc, func = c("gam", "rangerlogit"), nfolds = 2, eps = 0.01)
+estim <- popsize(List_matrix = datacrc, func = c("gam", "rangerlogit"), nfolds = 2, eps = 0.01)
 print(estim)
 #>   listpair       model method   psi sigma    n sigman cin.l cin.u
 #> 1      1,2         gam     DR 0.815 0.866 2938 49.622  2841  3035
@@ -122,7 +122,7 @@ y1 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = 
 y2 = sapply(1:n, function(i) {sample(c(0, 1), 1, replace = TRUE, prob = c(1 - expit(-0.6 + 0.3*(catcov[i] == 'm') + 0.3*x[i,]), expit(-0.6 + 0.3*(catcov[i] == 'm') + 0.3*x[i,])))})
 datacrc = cbind.data.frame(y1, y2, exp(x/2), catcov)[y1+y2>0,]
 
-result = psinhatcond(List_matrix = datacrc, condvar = 'catcov')
+result = popsize_cond(List_matrix = datacrc, condvar = 'catcov')
 fig = plotci(result)
 fig + geom_hline(yintercept = table(catcov), color = "brown", linetype = "dashed")
 ```

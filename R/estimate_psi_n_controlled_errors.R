@@ -25,14 +25,14 @@
 #' data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
 #' x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
 #'
-#' psin_estimate = psinhat_simul(List_matrix = data, alpha = 0.25, omega = 1)
+#' psin_estimate = popsize_simul(List_matrix = data, alpha = 0.25, omega = 1)
 #' #this returns the basic plug-in estimate since covariates are absent.
 #'
 #' data = cbind(data, x)
-#' psin_estimate = psinhat_simul(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005, alpha = 0.25, omega = 1)
+#' psin_estimate = popsize_simul(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005, alpha = 0.25, omega = 1)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models
 #' @export
-psinhat_simul = function(List_matrix, n, K, nfolds = 5, omega, alpha, eps = 0.005, iter = 100, twolist = TRUE){
+popsize_simul = function(List_matrix, n, K, nfolds = 5, omega, alpha, eps = 0.005, iter = 100, twolist = TRUE){
 
   if(missing(n)){
     n = nrow(List_matrix)

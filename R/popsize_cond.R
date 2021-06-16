@@ -16,7 +16,7 @@
 #' \item{psi}{  The estimated capture probability.}
 #' \item{sigma}{  The efficiency bound.}
 #' \item{n}{  The estimated population size n.}
-#' \item{sigman}{  The estimated standard deviation of the population size.}
+#' \item{sdn}{  The estimated standard deviation of the population size.}
 #' \item{cin.l}{  The estimated lower bound of a 95% confidence interval of \code{n}.}
 #' \item{cin.u}{  The estimated upper bound of a 95% confidence interval of \code{n}.}}}
 #' \item{N}{  The number of data points used in the estimation after removing rows with missing data.}
@@ -32,10 +32,10 @@
 #' ss = sample(1:6, nrow(data), replace = TRUE)
 #'
 #' data = cbind(data, x, ss)
-#' psin_estimate = psinhatcond(List_matrix = data, funcname = c("logit", "sl"), condvar = 'ss', nfolds = 2, twolist = FALSE, eps = 0.005)
+#' psin_estimate = popsize_cond(List_matrix = data, funcname = c("logit", "sl"), condvar = 'ss', nfolds = 2, twolist = FALSE, eps = 0.005)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models conditioned on column ss
 #' @export
-psinhatcond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), condvar, nfolds = 2, eps = 0.005, TMLE = TRUE, PLUGIN = TRUE, ...){
+popsize_cond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), condvar, nfolds = 2, eps = 0.005, TMLE = TRUE, PLUGIN = TRUE, ...){
 
   l = ncol(List_matrix) - K
   n = nrow(List_matrix)
@@ -71,7 +71,7 @@ psinhatcond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("ra
   for(cvar in condvar_vec){
 
     List_matrixsub = List_matrix[List_matrix[,K + condvar] == cvar, -c(K + condvar)]
-    est = try(psinhat(List_matrix = List_matrixsub, K = K, filterrows = filterrows, funcname = funcname, nfolds = nfolds, ...), silent = TRUE)
+    est = try(popsize(List_matrix = List_matrixsub, K = K, filterrows = filterrows, funcname = funcname, nfolds = nfolds, ...), silent = TRUE)
 
     if("try-error" %in% class(est)){
       next
@@ -87,7 +87,7 @@ psinhatcond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("ra
   }
   if(!is.null(object)){
     colnames(object$N)[1] = 'N'
-    class(object) = "psinhatcond"
+    class(object) = "popsize_cond"
     return(object)
   }else{
     print("Error in estimation for all subsets.")
@@ -95,10 +95,10 @@ psinhatcond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("ra
   }
 }
 #' @export
-print.psinhatcond <- function(obj){
+print.popsize_cond <- function(obj){
   obj$result$psi = round(obj$result$psi, 3)
   obj$result$sigma = round(obj$result$sigma, 3)
-  obj$result$sigman = round(obj$result$sigman, 3)
+  obj$result$sdn = round(obj$result$sdn, 3)
   print(obj$result)
   invisible(obj)
 }

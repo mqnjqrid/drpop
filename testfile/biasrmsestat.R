@@ -7,8 +7,8 @@ for(s in 1:30){
   ld = simuldata2(n = n, l = 6, ep = -6)
   listdata = ld$List_matrix
   listdata2 = ld$List_matrix_xstar
-  p1 = psinhat(listdata, funcname = funcname, nfolds = 2)
-  p2 = psinhat(listdata2, funcname = funcname, nfolds = 2)
+  p1 = popsize(listdata, funcname = funcname, nfolds = 2)
+  p2 = popsize(listdata2, funcname = funcname, nfolds = 2)
   result = rbind(result, cbind(t(p1$n), t(p1$varn), "x"),
                  cbind(t(p1$n), t(p1$varn), "x*"))
 }

@@ -17,7 +17,7 @@
 #' \item{psi}{  The estimated capture probability.}
 #' \item{sigma}{  The efficiency bound.}
 #' \item{n}{  The estimated population size n.}
-#' \item{sigman}{  The estimated standard deviation of the population size.}
+#' \item{sdn}{  The estimated standard deviation of the population size.}
 #' \item{cin.l}{  The estimated lower bound of a 95% confidence interval of \code{n}.}
 #' \item{cin.u}{  The estimated upper bound of a 95% confidence interval of \code{n}.}}}
 #' \item{N}{  The number of data points used in the estimation after removing rows with missing data.}
@@ -31,17 +31,17 @@
 #' data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
 #' x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
 #'
-#' psin_estimate = psinhat(List_matrix = data)
+#' psin_estimate = popsize(List_matrix = data)
 #' #this returns the basic plug-in estimate since covariates are absent.
 #'
 #' data = cbind(data, x)
-#' psin_estimate = psinhat(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005)
+#' psin_estimate = popsize(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models
-#setClass("psinhat", contains = "list")
-# @exportClass psinhat
-#setMethod("print", "psinhat", print.psinhat)
+#setClass("popsize", contains = "list")
+# @exportClass popsize
+#setMethod("print", "popsize", print.popsize)
 #' @export
-psinhat <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), nfolds = 5, eps = 0.005,
+popsize <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), nfolds = 5, eps = 0.005,
                     sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, TMLE = TRUE, PLUGIN = TRUE, ...){
 
   require("tidyverse", quietly = TRUE, warn.conflicts = FALSE)
@@ -111,12 +111,12 @@ psinhat <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("ranger
     }
 
     result <- psiinv %>% mutate(psi = 1/psiin, sigma = sqrt(N)*sigma, n = round(N*psiin),
-                sigman = sqrt(N^2*sigma^2 + N*psiin*(psiin - 1)),
+                sdn = sqrt(N^2*sigma^2 + N*psiin*(psiin - 1)),
                 cin.l = round(pmax(N*psiin - 1.96*sqrt(N^2*sigma^2 + N*psiin*(psiin - 1)), N)),
                 cin.u = round(N*psiin + 1.96 *sqrt(N^2*sigma^2 + N*psiin*(psiin - 1)))) %>% as.data.frame()
     result = subset(result, select = -c("psiin"))
     object = list(result = result, N = N)
-    class(object) = "psinhat"
+    class(object) = "popsize"
     return(object)
   }else{
 
@@ -225,7 +225,7 @@ psinhat <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("ranger
             if(TMLE) {
               tmle = tmle(datmat = datmat, eps = eps, K = K, ...)
             }else{
-              tmle = list(error = TRUE)
+              next
             }
 
             if(tmle$error){
@@ -259,12 +259,14 @@ psinhat <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("ranger
 
         ifvals[ifvals[,"listpair"] == paste0(i, ",", j), colnames(ifvals) != "listpair"] = ifvalsfold
         nuis[nuis[, "listpair"] == paste0(i, ",", j), colnames(nuis) != "listpair"] = nuisfold
-        nuistmle[nuistmle[, "listpair"] == paste0(i, ",", j), colnames(nuistmle) != "listpair"] = nuistmlefold
+        if(TMLE){
+          nuistmle[nuistmle[, "listpair"] == paste0(i, ",", j), colnames(nuistmle) != "listpair"] = nuistmlefold
+        }
       }
     }
 
     result <- list(psi = 1/psiinv_summary, sigma = sqrt(N*var_summary), n = round(N*psiinv_summary),
-                sigman = sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)),
+                sdn = sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)),
                 cin.l = round(pmax(N*psiinv_summary - 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)), N)),
                 cin.u = round(N*psiinv_summary + 1.96 *sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1))))
     result <- Reduce(function(...) merge(..., by = c("listpair", "Var2")),
@@ -276,21 +278,23 @@ psinhat <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("ranger
     }
     if(!PLUGIN){
       result = result[result$method != "PI",]
+    }else{
+      warning("Plug-in variance is not well-defined. Returning variance evaluated using DR estimator formula")
     }
     object = list(result = result, N = N, ifvals = as.data.frame(ifvals), nuis = as.data.frame(nuis))
     if(TMLE){
       object$nuistmle = as.data.frame(nuistmle)
     }
-    class(object) = "psinhat"
-    #print.psinhat(result)
+    class(object) = "popsize"
+    #print.popsize(result)
     return(object)
   }
 }
 #' @export
-print.psinhat <- function(obj){
+print.popsize <- function(obj){
   obj$result$psi = round(obj$result$psi, 3)
   obj$result$sigma = round(obj$result$sigma, 3)
-  obj$result$sigman = round(obj$result$sigman, 3)
+  obj$result$sdn = round(obj$result$sdn, 3)
   print(obj$result)
   invisible(obj)
 }

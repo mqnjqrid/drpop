@@ -72,7 +72,7 @@ yj = List2[,paste("L", j, sep = '')]
 
 qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, i, j, eps = eps), silent = TRUE)
 
-qhat = qhateval(List_matrix, funcname = c("logit", "ranger", "rangerlogit"), eps = 0)
+qhat = getnuis(List_matrix, funcname = c("logit", "ranger", "rangerlogit"), eps = 0)
 class(qhat)
 summary(qhat$q12mat)
 

@@ -15,9 +15,9 @@
 #' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
 #' @examples
 #' data = simuldata(1000, 1)$List_matrix
-#' qhat_estimate = qhateval(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
+#' qhat_estimate = getnuis(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
 #' @export
-qhateval <- function(List_matrix, i = 1, j = 2, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), nfolds = 5, eps = 0.005, Nmin = 500, ...){
+getnuis <- function(List_matrix, i = 1, j = 2, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), nfolds = 5, eps = 0.005, Nmin = 500, ...){
 
   l = ncol(List_matrix) - K
   n = nrow(List_matrix)
@@ -127,7 +127,7 @@ qhateval <- function(List_matrix, i = 1, j = 2, K = 2, filterrows = FALSE, funcn
     }
     result <- list(q1mat = q1mat, q2mat = q2mat,
                 q12mat = q12mat, idfold = idfold)
-    class(result) = "qhateval"
+    class(result) = "getnuis"
     return(result)
   }
 }

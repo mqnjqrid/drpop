@@ -2,43 +2,44 @@
 % Please edit documentation in R/popsize.R
 \name{popsize}
 \alias{popsize}
-\title{Estimate total population size and capture probability using user provided set of models.}
+\title{Estimate total population size and capture probability using user provided set of models or user provided nuisance estimates.}
 \usage{
 popsize(
   List_matrix,
-  K = 2,
-  filterrows = FALSE,
-  funcname = c("rangerlogit"),
-  nfolds = 5,
+  i = 1,
+  j = 2,
   eps = 0.005,
-  sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"),
-  Nmin = 500,
+  getnuis,
+  q1mat,
+  q2mat,
+  q12mat,
+  idfold,
   TMLE = TRUE,
   PLUGIN = TRUE,
   ...
 )
 }
 \arguments{
-\item{List_matrix}{The data frame in capture-recapture format for which total population is to be estimated.
-The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.}
-
-\item{K}{The number of lists in the data. typically the first \code{K} rows of List_matrix.}
-
-\item{filterrows}{A logical value denoting whether to remove all rows with only zeroes.}
-
-\item{funcname}{The vector of estimation function names to obtain the population size.}
-
-\item{nfolds}{The number of folds to be used for cross fitting.}
+\item{List_matrix}{The data frame in capture-recapture format with \code{K} lists for which total population is to be estimated.
+The first K columns are the capture history indicators for the \code{K} lists. The remaining columns are covariates in numeric format.}
 
 \item{eps}{The minimum value the estimates can attain to bound them away from zero.}
 
-\item{sl.lib}{algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
+\item{getnuis}{A list object of class \code{getnuis} as returned by the \code{getnuis} function.}
 
-\item{Nmin}{The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.}
+\item{q1mat}{A dataframe with capture probabilities for the first list.}
+
+\item{q2mat}{A dataframe with capture probabilities for the second list.}
+
+\item{q12mat}{A dataframe with capture probabilities for both the lists simultaneously.}
+
+\item{idfold}{The fold assignment of each row during estimation.}
 
 \item{TMLE}{The logical value to indicate whether TMLE has to be computed.}
 
 \item{PLUGIN}{The logical value to indicate whether the plug-in estimates is returned.}
+
+\item{funcname}{The vector of estimation function names to obtain the population size.}
 }
 \value{
 A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):
@@ -56,18 +57,12 @@ A list of estimates containing the following components for each list-pair, mode
 \item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
 }
 \description{
-Estimate total population size and capture probability using user provided set of models.
+Estimate total population size and capture probability using user provided set of models or user provided nuisance estimates.
 }
 \examples{
-data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
-x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
-
-psin_estimate = popsize(List_matrix = data)
-#this returns the basic plug-in estimate since covariates are absent.
-
-data = cbind(data, x)
-psin_estimate = popsize(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005)
-#this returns the plug-in, the bias-corrected and the tmle estimate for the two models
+data = simuldata(1000, 1)$List_matrix
+qhat_estimate = getnuis(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
+psin_estimate = popsize(List_matrix = data, getnuis = qhat_estimate)
 }
 \references{
 Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.

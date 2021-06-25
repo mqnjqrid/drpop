@@ -71,7 +71,7 @@ popsize_cond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
   for(cvar in condvar_vec){
 
     List_matrixsub = List_matrix[List_matrix[,K + condvar] == cvar, -c(K + condvar)]
-    est = try(popsize(List_matrix = List_matrixsub, K = K, filterrows = filterrows, funcname = funcname, nfolds = nfolds, ...), silent = TRUE)
+    est = try(popsize_base(List_matrix = List_matrixsub, K = K, filterrows = filterrows, funcname = funcname, nfolds = nfolds, ...), silent = TRUE)
 
     if("try-error" %in% class(est)){
       next

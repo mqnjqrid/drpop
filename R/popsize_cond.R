@@ -16,7 +16,7 @@
 #' \item{psi}{  The estimated capture probability.}
 #' \item{sigma}{  The efficiency bound.}
 #' \item{n}{  The estimated population size n.}
-#' \item{sdn}{  The estimated standard deviation of the population size.}
+#' \item{sigman}{  The estimated standard deviation of the population size.}
 #' \item{cin.l}{  The estimated lower bound of a 95% confidence interval of \code{n}.}
 #' \item{cin.u}{  The estimated upper bound of a 95% confidence interval of \code{n}.}}}
 #' \item{N}{  The number of data points used in the estimation after removing rows with missing data.}
@@ -98,7 +98,7 @@ popsize_cond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
 print.popsize_cond <- function(obj){
   obj$result$psi = round(obj$result$psi, 3)
   obj$result$sigma = round(obj$result$sigma, 3)
-  obj$result$sdn = round(obj$result$sdn, 3)
+  obj$result$sigman = round(obj$result$sigman, 3)
   print(obj$result)
   invisible(obj)
 }

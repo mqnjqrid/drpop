@@ -14,16 +14,22 @@ simuldata(n, l, categorical = FALSE, ep = 0, K = 2)
 \item{categorical}{A logical value of whether to include a categorical column.}
 
 \item{ep}{A numeric value to change the list probabilities.}
+
+\item{K}{The number of lists. Default value is 2. Maximum value is 3.}
 }
 \value{
 A list of estimates containing the following components:
-\item{List_matrix}{  A dataframe in with two list capture histories and covariates from a population if true size \code{n}.}
-\item{psi}{  The empirical capture probability for the set-up used.}
+\item{List_matrix}{  A dataframe in with \code{K} list capture histories and covariates from a population if true size \code{n} with only observed rows.}
+\item{List_matrix_xstar}{  A dataframe in with two list capture histories and transformed covariates from a population if true size \code{n} with only observed rows.}
+\item{psi0}{  The empirical capture probability for the set-up used.}
+\item{pi1}{  The conditional capture probabilities for list 1.}
+\item{pi2}{  The conditional capture probabilities for list 2.}
+\item{pi3}{  The conditional capture probabilities for list 3 when \code{K = 3}.}
 }
 \description{
 A function to reorder the columns of a data table/matrix/data frame and to change factor variables to numeric.
 }
 \examples{
 data = simuldata(n = 1000, l = 2)$List_matrix
-psi = simuldata(n = 10000, l = 2)$psi
+psi0 = simuldata(n = 10000, l = 2)$psi0
 }

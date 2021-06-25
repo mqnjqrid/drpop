@@ -4,13 +4,18 @@
 #' @param l The number of continuous covariates.
 #' @param categorical A logical value of whether to include a categorical column.
 #' @param ep A numeric value to change the list probabilities.
+#' @param K The number of lists. Default value is 2. Maximum value is 3.
 #' @return A list of estimates containing the following components:
-#' \item{List_matrix}{  A dataframe in with two list capture histories and covariates from a population if true size \code{n}.}
-#' \item{psi}{  The empirical capture probability for the set-up used.}
+#' \item{List_matrix}{  A dataframe in with \code{K} list capture histories and covariates from a population if true size \code{n} with only observed rows.}
+#' \item{List_matrix_xstar}{  A dataframe in with two list capture histories and transformed covariates from a population if true size \code{n} with only observed rows.}
+#' \item{psi0}{  The empirical capture probability for the set-up used.}
+#' \item{pi1}{  The conditional capture probabilities for list 1.}
+#' \item{pi2}{  The conditional capture probabilities for list 2.}
+#' \item{pi3}{  The conditional capture probabilities for list 3 when \code{K = 3}.}
 #'
 #' @examples
 #' data = simuldata(n = 1000, l = 2)$List_matrix
-#' psi = simuldata(n = 10000, l = 2)$psi
+#' psi0 = simuldata(n = 10000, l = 2)$psi0
 #' @export
 simuldata = function(n, l, categorical = FALSE, ep = 0, K = 2){
   expit = function(x) {

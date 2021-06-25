@@ -17,7 +17,7 @@
 #' \item{psi}{  The estimated capture probability.}
 #' \item{sigma}{  The efficiency bound.}
 #' \item{n}{  The estimated population size n.}
-#' \item{sdn}{  The estimated standard deviation of the population size.}
+#' \item{sigman}{  The estimated standard deviation of the population size.}
 #' \item{cin.l}{  The estimated lower bound of a 95% confidence interval of \code{n}.}
 #' \item{cin.u}{  The estimated upper bound of a 95% confidence interval of \code{n}.}}}
 #' \item{N}{  The number of data points used in the estimation after removing rows with missing data.}
@@ -111,7 +111,7 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
     }
 
     result <- psiinv %>% mutate(psi = 1/psiin, sigma = sqrt(N)*sigma, n = round(N*psiin),
-                sdn = sqrt(N^2*sigma^2 + N*psiin*(psiin - 1)),
+                sigman = sqrt(N^2*sigma^2 + N*psiin*(psiin - 1)),
                 cin.l = round(pmax(N*psiin - 1.96*sqrt(N^2*sigma^2 + N*psiin*(psiin - 1)), N)),
                 cin.u = round(N*psiin + 1.96 *sqrt(N^2*sigma^2 + N*psiin*(psiin - 1)))) %>% as.data.frame()
     result = subset(result, select = -c("psiin"))
@@ -266,7 +266,7 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
     }
 
     result <- list(psi = 1/psiinv_summary, sigma = sqrt(N*var_summary), n = round(N*psiinv_summary),
-                sdn = sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)),
+                sigman = sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)),
                 cin.l = round(pmax(N*psiinv_summary - 1.96*sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)), N)),
                 cin.u = round(N*psiinv_summary + 1.96 *sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1))))
     result <- Reduce(function(...) merge(..., by = c("listpair", "Var2")),
@@ -294,7 +294,7 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
 print.popsize <- function(obj){
   obj$result$psi = round(obj$result$psi, 3)
   obj$result$sigma = round(obj$result$sigma, 3)
-  obj$result$sdn = round(obj$result$sdn, 3)
+  obj$result$sigman = round(obj$result$sigman, 3)
   print(obj$result)
   invisible(obj)
 }

@@ -113,8 +113,8 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
     result <- psiinv %>% mutate(psi = 1/psiin, sigma = sqrt(N)*sigma, n = round(N*psiin),
                 sigman = sqrt(N^2*sigma^2 + N*psiin*(psiin - 1)),
                 cin.l = round(pmax(N*psiin - 1.96*sqrt(N^2*sigma^2 + N*psiin*(psiin - 1)), N)),
-                cin.u = round(N*psiin + 1.96 *sqrt(N^2*sigma^2 + N*psiin*(psiin - 1)))) %>% as.data.frame()
-    result = subset(result, select = -c("psiin"))
+                cin.u = round(N*psiin + 1.96 *sqrt(N^2*sigma^2 + N*psiin*(psiin - 1)))) %>% subset(select = -c(psiin)) %>% as.data.frame()
+    
     object = list(result = result, N = N)
     class(object) = "popsize"
     return(object)

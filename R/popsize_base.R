@@ -24,6 +24,7 @@
 #' \item{ifvals}{  The estimated influence function values for the observed data.}
 #' \item{nuis}{  The estimated nuisance functions (q12, q1, q2) for each element in funcname.}
 #' \item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
+#' \item{idfold}{  The division of the rows into sets (folds) for cross-fitting.}
 #'
 #' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
 #' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
@@ -94,27 +95,32 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
     psiinv$psiin = NA
     psiinv$sigma = NA
 
-    for(i in 1:(K - 1)){
-      if(!setequal(List_matrix[,i], c(0,1))){
+    for(j in 1:(K - 1)){
+      if(!setequal(List_matrix[,j], c(0,1))){
         next
       }
-      for(j in (i + 1):K){
-        if(!setequal(List_matrix[,j], c(0,1))){
+      for(k in (j + 1):K){
+        if(!setequal(List_matrix[,k], c(0,1))){
           next
         }
-        q1 = mean(List_matrix[,i])
-        q2 = mean(List_matrix[,j])
-        q12 = mean(List_matrix[,i]*List_matrix[,j])
-        psiinv[psiinv$listpair == paste0(i, ",", j),]$psiin = q1*q2/q12
-        psiinv[psiinv$listpair == paste0(i, ",", j),]$sigma = sqrt(q1*q2*(q1*q2 - q12)*(1 - q12)/q12^3/N)
+        q1 = mean(List_matrix[,j])
+        q2 = mean(List_matrix[,k])
+        q12 = mean(List_matrix[,j]*List_matrix[,k])
+        psiinv[psiinv$listpair == paste0(j, ",", k),]$psiin = q1*q2/q12
+        psiinv[psiinv$listpair == paste0(j, ",", k),]$sigma = sqrt(q1*q2*(q1*q2 - q12)*(1 - q12)/q12^3/N)
       }
     }
 
     result <- psiinv %>% mutate(psi = 1/psiin, sigma = sqrt(N)*sigma, n = round(N*psiin),
                 sigman = sqrt(N^2*sigma^2 + N*psiin*(psiin - 1)),
                 cin.l = round(pmax(N*psiin - 1.96*sqrt(N^2*sigma^2 + N*psiin*(psiin - 1)), N)),
+<<<<<<< HEAD
+                cin.u = round(N*psiin + 1.96 *sqrt(N^2*sigma^2 + N*psiin*(psiin - 1)))) %>% as.data.frame()
+    result = subset(result, select = -c(psiin))
+=======
                 cin.u = round(N*psiin + 1.96 *sqrt(N^2*sigma^2 + N*psiin*(psiin - 1)))) %>% subset(select = -c(psiin)) %>% as.data.frame()
     
+>>>>>>> ab0e50c2e76f1e312a9352d84e75cdde747243d7
     object = list(result = result, N = N)
     class(object) = "popsize"
     return(object)
@@ -128,9 +134,9 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
       cat("nfolds is reduced to ", nfolds, " to have sufficient test data.\n")
     }
     psiinv_summary = matrix(0, nrow = K*(K - 1)/2, ncol = 3*length(funcname))
-    rownames(psiinv_summary) = unlist(sapply(1:(K - 1), function(k) {
-      sapply((k + 1):K, function(s) {
-        return(paste0(k, ",", s))
+    rownames(psiinv_summary) = unlist(sapply(1:(K - 1), function(r) {
+      sapply((r + 1):K, function(s) {
+        return(paste0(r, ",", s))
       })}))
     colnames(psiinv_summary) = paste(rep(funcname, each = 3), c("PI", "DR", "TMLE"), sep = '.')
     var_summary = psiinv_summary
@@ -141,21 +147,24 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
 
     nuis = matrix(NA, nrow = N*K*(K-1)/2, ncol = 3*length(funcname) + 1)
     colnames(nuis) = c("listpair", paste(rep(funcname, each = 3), c("q12", "q1", "q2"), sep = '.'))
+    nuis = as.data.frame(nuis)
+    sapply(nuis, "class")
     nuis[,"listpair"] = ifvals[,"listpair"]
+
     if(TMLE){
       nuistmle = nuis
     }
 
     permutset = sample(1:N, N, replace = FALSE)
 
-    for(i in 1:(K - 1)){
-      if(!setequal(List_matrix[,i], c(0,1))){
-        #     cat("List ", i, " is not in the required format or is degenerate.\n")
+    for(j in 1:(K - 1)){
+      if(!setequal(List_matrix[,j], c(0,1))){
+        #     cat("List ", j, " is not in the required format or is degenerate.\n")
         next
       }
-      for(j in (i + 1):K){
-        if(!setequal(List_matrix[,j], c(0,1))){
-          #       cat("List ", j, " is not in the required format or is degenerate.\n")
+      for(k in (j + 1):K){
+        if(!setequal(List_matrix[,k], c(0,1))){
+          #       cat("List ", k, " is not in the required format or is degenerate.\n")
           next
         }
         psiinvmat = matrix(numeric(0), nrow = nfolds, ncol = 3*length(funcname))
@@ -169,6 +178,8 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
         colnames(nuisfold) = paste(rep(funcname, each = 3), c("q12", "q1", "q2"), sep = '.')
         nuistmlefold = nuisfold
 
+        idfold = rep(1, N)
+
         for(folds in 1:nfolds){#print(folds)
 
           if(nfolds == 1){
@@ -180,19 +191,20 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
             sbset = sbset[sbset <= N]
             List1 = List_matrix[permutset[-sbset],]
             List2 = List_matrix[permutset[sbset],]
+            idfold[permutset[sbset]] = folds
           }
 
-          yi = List2[,paste("L", i, sep = '')]
           yj = List2[,paste("L", j, sep = '')]
+          yk = List2[,paste("L", k, sep = '')]
 
-          overlapjk = mean(List1[,i]*List1[,j])
+          overlapjk = mean(List1[,j]*List1[,k])
           if(overlapjk < eps) {
-            warning(cat("Overlap between the lists ", i, " and ", j, " is less than ", eps, '.\n', sep = ''))
+            warning(cat("Overlap between the lists ", j, " and ", k, " is less than ", eps, '.\n', sep = ''))
           }
           for (func in funcname){
 
             #colsubset = stringr::str_subset(colnames(psiinv_summary), func)
-            qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, i, j, eps = eps, ...), silent = TRUE)
+            qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, j, k, eps = eps, ...), silent = TRUE)
 
             if ("try-error" %in% class(qhat)) {
               next
@@ -202,13 +214,13 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
             q1 = pmin(pmax(q12, qhat$q1), 1)
             q2 = pmax(q12/q1, pmin(qhat$q2, 1 + q12 - q1, 1))
 
-            nuisfold[sbset, paste(func, c("q12", "q1", "q2"), sep = '.')] = cbind(q12, q1, q2)
+            nuisfold[permutset[sbset], paste(func, c("q12", "q1", "q2"), sep = '.')] = cbind(q12, q1, q2)
 
             gammainvhat = q1*q2/q12
             psiinvhat = mean(gammainvhat, na.rm = TRUE)
 
-            phihat = gammainvhat*(yj/q2 + yi/q1 - yi*yj/q12) - psiinvhat
-            ifvalsfold[sbset, func] = phihat
+            phihat = gammainvhat*(yk/q2 + yj/q1 - yj*yk/q12) - psiinvhat
+            ifvalsfold[permutset[sbset], func] = phihat
 
             Qnphihat = mean(phihat, na.rm = TRUE)
 
@@ -219,8 +231,8 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
             sigmasq = var(phihat, na.rm = TRUE)
             varmat[folds, paste(func, c("PI", "DR"), sep = '.')] = sigmasq/N
 
-            datmat = as.data.frame(cbind(yi, yj, yi*yj, q1 - q12, q2 - q12, q12))
-            colnames(datmat) = c("yi", "yj", "yij", "q10", "q02", "q12")
+            datmat = as.data.frame(cbind(yj, yk, yj*yk, q1 - q12, q2 - q12, q12))
+            colnames(datmat) = c("yj", "yk", "yjk", "q10", "q02", "q12")
 
             if(TMLE) {
               tmle = tmle(datmat = datmat, eps = eps, K = K, ...)
@@ -238,12 +250,12 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
               q1 = pmin(datmat$q12 + datmat$q10, 1)
               q2 = pmax(pmin(datmat$q12 + datmat$q02, 1 + q12 - q1, 1), q12/q1)
 
-              nuistmlefold[sbset, paste(func, c("q12", "q1", "q2"), sep = '.')] = cbind(q12, q1, q2)
+              nuistmlefold[permutset[sbset], paste(func, c("q12", "q1", "q2"), sep = '.')] = cbind(q12, q1, q2)
 
               gammainvhat = q1*q2/q12
               psiinvhat.tmle = mean(gammainvhat, na.rm = TRUE)
 
-              phihat = gammainvhat*(yi/q1 + yj/q2 - yi*yj/q12) - psiinvhat.tmle
+              phihat = gammainvhat*(yj/q1 + yk/q2 - yj*yk/q12) - psiinvhat.tmle
 
               Qnphihat = mean(phihat, na.rm = TRUE)
 
@@ -254,13 +266,13 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
           }
         }
 
-        psiinv_summary[paste0(i, ",", j),] = colMeans(psiinvmat, na.rm = TRUE)
-        var_summary[paste0(i, ",", j),] = colMeans(varmat, na.rm = TRUE)
+        psiinv_summary[paste0(j, ",", k),] = colMeans(psiinvmat, na.rm = TRUE)
+        var_summary[paste0(j, ",", k),] = colMeans(varmat, na.rm = TRUE)
 
-        ifvals[ifvals[,"listpair"] == paste0(i, ",", j), colnames(ifvals) != "listpair"] = ifvalsfold
-        nuis[nuis[, "listpair"] == paste0(i, ",", j), colnames(nuis) != "listpair"] = nuisfold
+        ifvals[ifvals[,"listpair"] == paste0(j, ",", k), colnames(ifvals) != "listpair"] = ifvalsfold
+        nuis[nuis[, "listpair"] == paste0(j, ",", k), colnames(nuis) != "listpair"] = nuisfold
         if(TMLE){
-          nuistmle[nuistmle[, "listpair"] == paste0(i, ",", j), colnames(nuistmle) != "listpair"] = nuistmlefold
+          nuistmle[nuistmle[, "listpair"] == paste0(j, ",", k), colnames(nuistmle) != "listpair"] = nuistmlefold
         }
       }
     }
@@ -281,7 +293,7 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
     }else{
       warning("Plug-in variance is not well-defined. Returning variance evaluated using DR estimator formula")
     }
-    object = list(result = result, N = N, ifvals = as.data.frame(ifvals), nuis = as.data.frame(nuis))
+    object = list(result = result, N = N, ifvals = as.data.frame(ifvals), nuis = as.data.frame(nuis), idfold = idfold)
     if(TMLE){
       object$nuistmle = as.data.frame(nuistmle)
     }

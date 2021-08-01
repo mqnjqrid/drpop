@@ -185,8 +185,8 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
           yi = List2[,paste("L", i, sep = '')]
           yj = List2[,paste("L", j, sep = '')]
 
-          overlapij = mean(List1[,i]*List1[,j])
-          if(overlapij < eps) {
+          overlapjk = mean(List1[,i]*List1[,j])
+          if(overlapjk < eps) {
             warning(cat("Overlap between the lists ", i, " and ", j, " is less than ", eps, '.\n', sep = ''))
           }
           for (func in funcname){

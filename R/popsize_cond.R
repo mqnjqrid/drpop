@@ -23,6 +23,7 @@
 #' \item{ifvals}{  The estimated influence function values for the observed data.}
 #' \item{nuis}{  The estimated nuisance functions (q12, q1, q2) for each element in funcname.}
 #' \item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
+#' \item{idfold}{  The division of the rows into sets (folds) for cross-fitting.}
 #'
 #' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
 #' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.

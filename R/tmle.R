@@ -1,6 +1,6 @@
 #' Returns the targeted maximum likelihood estimates for the nuisance functions
 #'
-#' @param datmat The data frame containing columns \code{yi}, \code{yj}, \code{yij}, \code{q10}, \code{q02} and \code{q12}.
+#' @param datmat The data frame containing columns \code{yj}, \code{yk}, \code{yjk}, \code{q10}, \code{q02} and \code{q12}.
 #' @param iter An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method. Default value is 100.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
 #' @param eps_stop The minimum value the estimates can attain to bound them away from zero.
@@ -15,15 +15,15 @@
 #' data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
 #' xqmat = matrix(runif(nrow(data)*3, 0, 1), nrow = nrow(data))
 #' datmat = cbind(data, data[,1]*data[,2], xmat)
-#' colnames(datmat) = c("yi", "yj", "yij", "q10", "q02", "q12")
+#' colnames(datmat) = c("yj", "yk", "yjk", "q10", "q02", "q12")
 #' datmat = as.data.frame(datmat)
 #' result = tmle(datmat, eps = 0.005, eps_stop = 0.00001, twolist = TRUE)
 #' @export
 
 tmle <- function(datmat, iter = 250, eps = 0.005, eps_stop = 0.005, twolist = FALSE, K = 2,...){
 
-  if(!prod(c("yi", "yj", "yij", "q10", "q02", "q12") %in% colnames(datmat))){
-    stop("datmat misses one or more of the following columns: \t (yi, yj, yij, q10, q02, q12).")
+  if(!prod(c("yj", "yk", "yjk", "q10", "q02", "q12") %in% colnames(datmat))){
+    stop("datmat misses one or more of the following columns: \t (yj, yk, yjk, q10, q02, q12).")
     return(list(error = TRUE))
   }
 
@@ -31,7 +31,7 @@ tmle <- function(datmat, iter = 250, eps = 0.005, eps_stop = 0.005, twolist = FA
   datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, eps), 1 - eps))}))
 
  # ifval = (datmat$q10+datmat$q12)*(datmat$q10+datmat$q12)/datmat$q12 *(
-#    datmat$yi/(datmat$q10+datmat$q12) + datmat$yj/(datmat$q02+datmat$q12) - datmat$yij/(datmat$q12) - 1)
+#    datmat$yj/(datmat$q10+datmat$q12) + datmat$yk/(datmat$q02+datmat$q12) - datmat$yjk/(datmat$q12) - 1)
 
 #  eps_stop = sqrt(mean((ifval)^2))/max(log(nrow(datmat)), 10)/sqrt(nrow(datmat))
   expit = function(x) {
@@ -49,12 +49,12 @@ tmle <- function(datmat, iter = 250, eps = 0.005, eps_stop = 0.005, twolist = FA
     if (cnt > iter){break}
 
     ########################### model 1 for q12
-    dat1 = cbind(datmat$yij, logit(datmat$q12), (datmat$q10 + datmat$q12)/datmat$q12
+    dat1 = cbind(datmat$yjk, logit(datmat$q12), (datmat$q10 + datmat$q12)/datmat$q12
                  + (datmat$q02 + datmat$q12)/datmat$q12
                  - (datmat$q10 + datmat$q12)*(datmat$q02 + datmat$q12)/datmat$q12^2 )
-    colnames(dat1) = c("yij", "logitq12", "ratio")
+    colnames(dat1) = c("yjk", "logitq12", "ratio")
     dat1 = as.data.frame(dat1)
-    mod1 = try(glm(yij ~ -1 + offset(logitq12) + ratio
+    mod1 = try(glm(yjk ~ -1 + offset(logitq12) + ratio
                    , family = binomial(link = logit), data = dat1, na.action = na.omit), silent = TRUE)
     if (!("try-error" %in% class(mod1))){
       datmat[,"q12"] = predict(mod1, newdata = dat1, type = "response")
@@ -64,10 +64,10 @@ tmle <- function(datmat, iter = 250, eps = 0.005, eps_stop = 0.005, twolist = FA
     datmat$q12 = pmax(pmin(datmat$q12, 1), eps)
 
     ########################### model 2 for q1
-    dat1 = cbind(datmat$yi*(1 - datmat$yj), logit(datmat$q10), (datmat$q02 + datmat$q12)/datmat$q12)
-    colnames(dat1) = c("yi0", "logitq10", "ratio")
+    dat1 = cbind(datmat$yj*(1 - datmat$yk), logit(datmat$q10), (datmat$q02 + datmat$q12)/datmat$q12)
+    colnames(dat1) = c("yj0", "logitq10", "ratio")
     dat1 = as.data.frame(dat1)
-    mod1 = try(glm(yi0 ~ -1 + offset(logitq10) + ratio, family = binomial(link = logit), data = dat1, na.action = na.omit), silent = TRUE)
+    mod1 = try(glm(yj0 ~ -1 + offset(logitq10) + ratio, family = binomial(link = logit), data = dat1, na.action = na.omit), silent = TRUE)
     if (!("try-error" %in% class(mod1))){
       datmat$q10 = predict(mod1, newdata = dat1, type = "response")
       datmat[,"q10"] = pmin(datmat[,"q10"], 1 - datmat$q12)
@@ -77,10 +77,10 @@ tmle <- function(datmat, iter = 250, eps = 0.005, eps_stop = 0.005, twolist = FA
 
     ########################### model 3 for q2
     if (K > 2 | twolist == FALSE){
-      dat1 = cbind(datmat$yj*(1 - datmat$yi), logit(datmat$q02), (datmat$q10 + datmat$q12)/datmat$q12)
-      colnames(dat1) = c("y0j", "logitq02", "ratio")
+      dat1 = cbind(datmat$yk*(1 - datmat$yj), logit(datmat$q02), (datmat$q10 + datmat$q12)/datmat$q12)
+      colnames(dat1) = c("y0k", "logitq02", "ratio")
       dat1 = as.data.frame(dat1)
-      mod1 = try(glm(y0j ~ -1 + offset(logitq02) + ratio, family = binomial(link = logit), data = dat1, na.action = na.omit), silent = TRUE)
+      mod1 = try(glm(y0k ~ -1 + offset(logitq02) + ratio, family = binomial(link = logit), data = dat1, na.action = na.omit), silent = TRUE)
       if (!("try-error" %in% class(mod1))){
         datmat$q02 = predict(mod1, newdata = dat1, type = "response")
         datmat[,"q02"] = pmin(datmat[,"q02"], 1 - datmat$q10 - datmat$q12)
@@ -93,7 +93,7 @@ tmle <- function(datmat, iter = 250, eps = 0.005, eps_stop = 0.005, twolist = FA
     datmat$q02 = pmax(pmin(datmat$q02, 1), eps)
 
     # ifval = (datmat$q10+datmat$q12)*(datmat$q10+datmat$q12)/datmat$q12 *(
-    #   datmat$yi/(datmat$q10+datmat$q12) + datmat$yj/(datmat$q02+datmat$q12) - datmat$yij/(datmat$q12) - 1)
+    #   datmat$yj/(datmat$q10+datmat$q12) + datmat$yk/(datmat$q02+datmat$q12) - datmat$yjk/(datmat$q12) - 1)
     # eplison_error = mean(ifval)
     if(is.null(epsilon_error))
        epsilon_error = 2

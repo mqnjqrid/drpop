@@ -15,7 +15,7 @@ tmle(
 )
 }
 \arguments{
-\item{datmat}{The data frame containing columns \code{yi}, \code{yj}, \code{yij}, \code{q10}, \code{q02} and \code{q12}.}
+\item{datmat}{The data frame containing columns \code{yj}, \code{yk}, \code{yjk}, \code{q10}, \code{q02} and \code{q12}.}
 
 \item{iter}{An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method. Default value is 100.}
 
@@ -39,7 +39,7 @@ Returns the targeted maximum likelihood estimates for the nuisance functions
 data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
 xqmat = matrix(runif(nrow(data)*3, 0, 1), nrow = nrow(data))
 datmat = cbind(data, data[,1]*data[,2], xmat)
-colnames(datmat) = c("yi", "yj", "yij", "q10", "q02", "q12")
+colnames(datmat) = c("yj", "yk", "yjk", "q10", "q02", "q12")
 datmat = as.data.frame(datmat)
 result = tmle(datmat, eps = 0.005, eps_stop = 0.00001, twolist = TRUE)
 }

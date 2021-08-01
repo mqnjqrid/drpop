@@ -51,6 +51,7 @@ A list of estimates containing the following components for each list-pair, mode
 \item{ifvals}{  The estimated influence function values for the observed data.}
 \item{nuis}{  The estimated nuisance functions (q12, q1, q2) for each element in funcname.}
 \item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
+\item{idfold}{  The division of the rows into sets (folds) for cross-fitting.}
 }
 \description{
 Estimate total population size and capture probability using user provided set of models conditioned on an attribute.

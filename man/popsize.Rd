@@ -6,8 +6,8 @@
 \usage{
 popsize(
   List_matrix,
-  i = 1,
-  j = 2,
+  j = 1,
+  k = 2,
   eps = 0.005,
   getnuis,
   q1mat,
@@ -25,7 +25,7 @@ The first K columns are the capture history indicators for the \code{K} lists. T
 
 \item{eps}{The minimum value the estimates can attain to bound them away from zero.}
 
-\item{getnuis}{A list object of class \code{getnuis} as returned by the \code{getnuis} function.}
+\item{getnuis}{A list object with the nuisance function estimates and the fold assignment of the rows for cross-fitting.}
 
 \item{q1mat}{A dataframe with capture probabilities for the first list.}
 
@@ -55,6 +55,7 @@ A list of estimates containing the following components for each list-pair, mode
 \item{ifvals}{  The estimated influence function values for the observed data.}
 \item{nuis}{  The estimated nuisance functions (q12, q1, q2) for each element in funcname.}
 \item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
+\item{idfold}{  The division of the rows into sets (folds) for cross-fitting.}
 }
 \description{
 Estimate total population size and capture probability using user provided set of models or user provided nuisance estimates.

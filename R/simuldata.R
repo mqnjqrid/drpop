@@ -94,8 +94,8 @@ simuldata = function(n, l, categorical = FALSE, ep = 0, K = 2){
   List_matrix_xstar = cbind.data.frame(y1, y2, xp)
   psi0 = 1 -  mean((1 - p1)*(1 - p2))
   if(K > 2){
-    List_matrix$y3 = y3
-    List_matrix_xstar$y3 = y3
+    List_matrix = cbind.data.frame(y1, y2, y3, x)
+    List_matrix_xstar = cbind.data.frame(y1, y2, y3, xp)
     psi0 = 1 -  mean((1 - p1)*(1 - p2)*(1 - p3))
   }
   if(categorical){

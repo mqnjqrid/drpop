@@ -46,23 +46,23 @@ popsize_simul = function(List_matrix, n, K, nfolds = 5, omega, alpha, eps = 0.00
   colnames(List_matrix) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List_matrix) - K), sep = ''))
 
   psiinv_summary = matrix(0, nrow = K*(K - 1)/2, ncol = 3)
-  rownames(psiinv_summary) = unlist(sapply(1:(K - 1), function(k) {
-    sapply((k + 1):K, function(s) {
-      return(paste(k, ", ", s, sep = ''))
+  rownames(psiinv_summary) = unlist(sapply(1:(K - 1), function(r) {
+    sapply((r + 1):K, function(s) {
+      return(paste(r, ", ", s, sep = ''))
     })}))
 colnames(psiinv_summary) = c("PI", "DR", "TMLE")
   var_summary = psiinv_summary
 
   permutset = sample(1:N, N, replace = FALSE)
 
-  for(i in 1:(K - 1)){
-    if(!setequal(List_matrix[,i], c(0,1))){
-      #     cat("List ", i, " is not in the required format or is degenerate.\n")
+  for(j in 1:(K - 1)){
+    if(!setequal(List_matrix[,j], c(0,1))){
+      #     cat("List ", j, " is not in the required format or is degenerate.\n")
       next
     }
-    for(j in (i + 1):K){
-      if(!setequal(List_matrix[,j], c(0,1))){
-        #       cat("List ", j, " is not in the required format or is degenerate.\n")
+    for(k in (j + 1):K){
+      if(!setequal(List_matrix[,k], c(0,1))){
+        #       cat("List ", k, " is not in the required format or is degenerate.\n")
         next
       }
       psiinvmat = matrix(NA, nrow = nfolds, ncol = 3)
@@ -87,8 +87,8 @@ colnames(psiinv_summary) = c("PI", "DR", "TMLE")
         q02_0 = p2*(1 - p1)/(1 - (1-p1)*(1-p2))
         q12_0 = p2*p1/(1 - (1-p1)*(1-p2))
 
-        yi = List2[,paste("L", i, sep = '')]
         yj = List2[,paste("L", j, sep = '')]
+        yk = List2[,paste("L", k, sep = '')]
 
         epsiln = matrix(rnorm(3*nrow(xmat), 1/eta, omega/eta), ncol = 3)
         q12 = expit(logit(q12_0) + epsiln[,3])
@@ -100,7 +100,7 @@ colnames(psiinv_summary) = c("PI", "DR", "TMLE")
         gammainvhat = q1*q2/q12
         psiinvhat = mean(gammainvhat, na.rm = TRUE)
 
-        phihat = gammainvhat*(yj/q2 + yi/q1 - yi*yj/q12) - psiinvhat
+        phihat = gammainvhat*(yk/q2 + yj/q1 - yj*yk/q12) - psiinvhat
 
         Qnphihat = mean(phihat, na.rm = TRUE)
 
@@ -111,9 +111,9 @@ colnames(psiinv_summary) = c("PI", "DR", "TMLE")
         sigmasq = var(phihat, na.rm = TRUE)
         varmat[folds, 1:2] = sigmasq/N
 
-        datmat = as.data.frame(cbind(yi, yj, yi*yj, q1 - q12, q2 - q12, q12))
+        datmat = as.data.frame(cbind(yj, yk, yj*yk, q1 - q12, q2 - q12, q12))
         datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, eps), 1 - eps))}))
-        colnames(datmat) = c("yi", "yj", "yij", "q10", "q02", "q12")
+        colnames(datmat) = c("yj", "yk", "yjj", "q10", "q02", "q12")
 
         tmle = tmle(datmat = datmat, iter = iter, eps = eps, eps_stop = 0.00001, twolist = twolist)
 
@@ -130,7 +130,7 @@ colnames(psiinv_summary) = c("PI", "DR", "TMLE")
           gammainvhat = q1*q2/q12
           psiinvhat.dr = mean(gammainvhat, na.rm = TRUE)
 
-          phihat = gammainvhat*(yi/q1 + yj/q2 - yi*yj/q12) - psiinvhat.dr
+          phihat = gammainvhat*(yj/q1 + yk/q2 - yj*yk/q12) - psiinvhat.dr
 
           Qnphihat = mean(phihat, na.rm = TRUE)
 
@@ -139,8 +139,8 @@ colnames(psiinv_summary) = c("PI", "DR", "TMLE")
           varmat[folds, 3] = sigmasq/N
         }
       }
-      psiinv_summary[paste(i, ", ", j, sep = ''),] = colMeans(psiinvmat, na.rm = TRUE)
-      var_summary[paste(i, ", ", j, sep = ''),] = colMeans(varmat, na.rm = TRUE)
+      psiinv_summary[paste(j, ", ", k, sep = ''),] = colMeans(psiinvmat, na.rm = TRUE)
+      var_summary[paste(j, ", ", k, sep = ''),] = colMeans(varmat, na.rm = TRUE)
     }
   }
 

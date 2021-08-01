@@ -3,7 +3,7 @@
 #' @param List_matrix The data frame in capture-recapture format with \code{K} lists for which total population is to be estimated.
 #'                    The first K columns are the capture history indicators for the \code{K} lists. The remaining columns are covariates in numeric format.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
-#' @param getnuis A list object of class \code{getnuis} as returned by the \code{getnuis} function.
+#' @param getnuis A list object with the nuisance function estimates and the fold assignment of the rows for cross-fitting.
 #' @param q1mat A dataframe with capture probabilities for the first list.
 #' @param q2mat A dataframe with capture probabilities for the second list.
 #' @param q12mat A dataframe with capture probabilities for both the lists simultaneously.
@@ -24,6 +24,7 @@
 #' \item{ifvals}{  The estimated influence function values for the observed data.}
 #' \item{nuis}{  The estimated nuisance functions (q12, q1, q2) for each element in funcname.}
 #' \item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
+#' \item{idfold}{  The division of the rows into sets (folds) for cross-fitting.}
 #'
 #' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
 #' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
@@ -32,7 +33,7 @@
 #' qhat_estimate = getnuis(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
 #' psin_estimate = popsize(List_matrix = data, getnuis = qhat_estimate)
 #' @export
-popsize <- function(List_matrix, i = 1, j = 2, eps = 0.005, getnuis, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, PLUGIN = TRUE, ...){
+popsize <- function(List_matrix, j = 1, k = 2, eps = 0.005, getnuis, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, PLUGIN = TRUE, ...){
 
   if(missing(getnuis) & missing(q1mat) & missing(q2mat) & missing(q12mat)){
     return(popsize_base(List_matrix, eps = eps, TMLE = TMLE, PLUGIN = PLUGIN, ...))
@@ -41,11 +42,11 @@ popsize <- function(List_matrix, i = 1, j = 2, eps = 0.005, getnuis, q1mat, q2ma
   K = 2
   n = nrow(List_matrix)
 
-  if(missing(i)){
-    i = 1
-  }
   if(missing(j)){
-    j = 2
+    j = 1
+  }
+  if(missing(k)){
+    k = 2
   }
 
   if(!missing(getnuis)){
@@ -79,7 +80,7 @@ popsize <- function(List_matrix, i = 1, j = 2, eps = 0.005, getnuis, q1mat, q2ma
   colnames(List_matrix) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List_matrix) - K), sep = ''))
 
   psiinv_summary = matrix(0, nrow = K*(K - 1)/2, ncol = 3*length(funcname))
-  rownames(psiinv_summary) = paste0(i, ",", j)
+  rownames(psiinv_summary) = paste0(j, ",", k)
   colnames(psiinv_summary) = paste(rep(funcname, each = 3), c("PI", "DR", "TMLE"), sep = '.')
   var_summary = psiinv_summary
 
@@ -89,6 +90,8 @@ popsize <- function(List_matrix, i = 1, j = 2, eps = 0.005, getnuis, q1mat, q2ma
 
   nuis = matrix(NA, nrow = N*K*(K-1)/2, ncol = 3*length(funcname) + 1)
   colnames(nuis) = c("listpair", paste(rep(funcname, each = 3), c("q12", "q1", "q2"), sep = '.'))
+  nuis = as.data.frame(nuis)
+  sapply(nuis, "class")
   nuis[,"listpair"] = ifvals[,"listpair"]
   if(TMLE){
     nuistmle = nuis
@@ -102,8 +105,8 @@ popsize <- function(List_matrix, i = 1, j = 2, eps = 0.005, getnuis, q1mat, q2ma
 
     List2 = List_matrix[idfold == folds,]
 
-    yi = List2[,paste("L", i, sep = '')]
     yj = List2[,paste("L", j, sep = '')]
+    yk = List2[,paste("L", k, sep = '')]
 
     for (func in funcname){
 
@@ -118,7 +121,7 @@ popsize <- function(List_matrix, i = 1, j = 2, eps = 0.005, getnuis, q1mat, q2ma
       gammainvhat = q1*q2/q12
       psiinvhat = mean(gammainvhat, na.rm = TRUE)
 
-      phihat = gammainvhat*(yj/q2 + yi/q1 - yi*yj/q12) - psiinvhat
+      phihat = gammainvhat*(yk/q2 + yj/q1 - yj*yk/q12) - psiinvhat
       ifvals[idfold == folds, func] = phihat
 
       Qnphihat = mean(phihat, na.rm = TRUE)
@@ -130,9 +133,9 @@ popsize <- function(List_matrix, i = 1, j = 2, eps = 0.005, getnuis, q1mat, q2ma
       sigmasq = var(phihat, na.rm = TRUE)
       varmat[folds, paste(func, c("PI", "DR"), sep = '.')] = sigmasq/N
 
-      datmat = as.data.frame(cbind(yi, yj, yi*yj, q1 - q12, q2 - q12, q12))
+      datmat = as.data.frame(cbind(yj, yk, yj*yk, q1 - q12, q2 - q12, q12))
       datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, eps), 1 - eps))}))
-      colnames(datmat) = c("yi", "yj", "yij", "q10", "q02", "q12")
+      colnames(datmat) = c("yj", "yk", "yjk", "q10", "q02", "q12")
 
       if(TMLE){
         tmle = tmle(datmat = datmat, eps = eps, K = 2, ...)
@@ -155,7 +158,7 @@ popsize <- function(List_matrix, i = 1, j = 2, eps = 0.005, getnuis, q1mat, q2ma
         gammainvhat = q1*q2/q12
         psiinvhat.tmle = mean(gammainvhat, na.rm = TRUE)
 
-        phihat = gammainvhat*(yi/q1 + yj/q2 - yi*yj/q12) - psiinvhat.tmle
+        phihat = gammainvhat*(yj/q1 + yk/q2 - yj*yk/q12) - psiinvhat.tmle
 
         Qnphihat = mean(phihat, na.rm = TRUE)
 
@@ -166,8 +169,8 @@ popsize <- function(List_matrix, i = 1, j = 2, eps = 0.005, getnuis, q1mat, q2ma
     }
   }
 
-  psiinv_summary[paste0(i, ",", j),] = colMeans(psiinvmat, na.rm = TRUE)
-  var_summary[paste0(i, ",", j),] = colMeans(varmat, na.rm = TRUE)
+  psiinv_summary[paste0(j, ",", k),] = colMeans(psiinvmat, na.rm = TRUE)
+  var_summary[paste0(j, ",", k),] = colMeans(varmat, na.rm = TRUE)
 
   result <- list(psi = 1/psiinv_summary, sigma = sqrt(N*var_summary), n = round(N*psiinv_summary),
                  sigman = sqrt(N^2*var_summary + N*psiinv_summary*(psiinv_summary - 1)),
@@ -186,14 +189,14 @@ popsize <- function(List_matrix, i = 1, j = 2, eps = 0.005, getnuis, q1mat, q2ma
     warning("Plug-in variance is not well-defined. Returning variance evaluated using DR estimator formula")
   }
   ifvals = as.data.frame(ifvals)
-  ifvals$listpair = paste0(i, ',', j)
+  ifvals$listpair = paste0(j, ',', k)
   nuis = as.data.frame(nuis)
-  nuis$listpair = paste0(i, ',', j)
+  nuis$listpair = paste0(j, ',', k)
 
-  object = list(result = result, N = N, ifvals = as.data.frame(ifvals), nuis = as.data.frame(nuis))
+  object = list(result = result, N = N, ifvals = as.data.frame(ifvals), nuis = as.data.frame(nuis), idfold = idfold)
   if(TMLE){
     nuistmle = as.data.frame(nuistmle)
-    nuistmle$listpair = paste0(i, ',', j)
+    nuistmle$listpair = paste0(j, ',', k)
     object$nuistmle = as.data.frame(nuistmle)
   }
   class(object) = "popsize"

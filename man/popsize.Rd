@@ -6,9 +6,11 @@
 \usage{
 popsize(
   List_matrix,
+  K = K,
   j = 1,
   k = 2,
   eps = 0.005,
+  funcname = c("rangerlogit"),
   getnuis,
   q1mat,
   q2mat,
@@ -23,9 +25,13 @@ popsize(
 \item{List_matrix}{The data frame in capture-recapture format with \code{K} lists for which total population is to be estimated.
 The first K columns are the capture history indicators for the \code{K} lists. The remaining columns are covariates in numeric format.}
 
+\item{K}{The number of lists that are present in the data.}
+
 \item{eps}{The minimum value the estimates can attain to bound them away from zero.}
 
-\item{getnuis}{A list object with the nuisance function estimates and the fold assignment of the rows for cross-fitting.}
+\item{funcname}{The vector of estimation function names to obtain the population size.}
+
+\item{getnuis}{A list object with the nuisance function estimates and the fold assignment of the rows for cross-fitting or a data.frame with the nuisance estimates.}
 
 \item{q1mat}{A dataframe with capture probabilities for the first list.}
 
@@ -38,8 +44,6 @@ The first K columns are the capture history indicators for the \code{K} lists. T
 \item{TMLE}{The logical value to indicate whether TMLE has to be computed.}
 
 \item{PLUGIN}{The logical value to indicate whether the plug-in estimates is returned.}
-
-\item{funcname}{The vector of estimation function names to obtain the population size.}
 }
 \value{
 A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):

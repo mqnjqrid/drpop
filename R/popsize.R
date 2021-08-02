@@ -2,8 +2,9 @@
 #'
 #' @param List_matrix The data frame in capture-recapture format with \code{K} lists for which total population is to be estimated.
 #'                    The first K columns are the capture history indicators for the \code{K} lists. The remaining columns are covariates in numeric format.
+#' @param K The number of lists that are present in the data.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
-#' @param getnuis A list object with the nuisance function estimates and the fold assignment of the rows for cross-fitting.
+#' @param getnuis A list object with the nuisance function estimates and the fold assignment of the rows for cross-fitting or a data.frame with the nuisance estimates.
 #' @param q1mat A dataframe with capture probabilities for the first list.
 #' @param q2mat A dataframe with capture probabilities for the second list.
 #' @param q12mat A dataframe with capture probabilities for both the lists simultaneously.
@@ -33,10 +34,10 @@
 #' qhat_estimate = getnuis(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
 #' psin_estimate = popsize(List_matrix = data, getnuis = qhat_estimate)
 #' @export
-popsize <- function(List_matrix, j = 1, k = 2, eps = 0.005, getnuis, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, PLUGIN = TRUE, ...){
+popsize <- function(List_matrix, K = K, j = 1, k = 2, eps = 0.005, funcname = c("rangerlogit"), getnuis, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, PLUGIN = TRUE, ...){
 
   if(missing(getnuis) & missing(q1mat) & missing(q2mat) & missing(q12mat)){
-    return(popsize_base(List_matrix, eps = eps, TMLE = TMLE, PLUGIN = PLUGIN, ...))
+    return(popsize_base(List_matrix, K = K, funcname = funcname, eps = eps, TMLE = TMLE, PLUGIN = PLUGIN, ...))
   }
 
   K = 2
@@ -50,10 +51,19 @@ popsize <- function(List_matrix, j = 1, k = 2, eps = 0.005, getnuis, q1mat, q2ma
   }
 
   if(!missing(getnuis)){
-    q1mat = getnuis$q1mat
-    q2mat = getnuis$q2mat
-    q12mat = getnuis$q12mat
-    idfold = getnuis$idfold
+    if(class(getnuis) == "data.frame"){
+      q1mat = subset(getnuis, select = grep(colnames(getnuis), pattern = 'q1$'))
+      colnames(q1mat) = stringr::str_remove_all(colnames(q1mat), '\\.q1')
+      q2mat = subset(getnuis, select = grep(colnames(getnuis), pattern = 'q2$'))
+      colnames(q2mat) = stringr::str_remove_all(colnames(q1mat), '\\.q2')
+      q12mat = subset(getnuis, select = grep(colnames(getnuis), pattern = 'q12$'))
+      colnames(q12mat) = stringr::str_remove_all(colnames(q1mat), '\\.q12')
+    }else{
+      q1mat = getnuis$q1mat
+      q2mat = getnuis$q2mat
+      q12mat = getnuis$q12mat
+      idfold = getnuis$idfold
+    }
   }
 
   stopifnot(!is.null(q1mat) & !is.null(q2mat) & !is.null(q12mat))

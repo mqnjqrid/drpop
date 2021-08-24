@@ -14,6 +14,7 @@ popsize_cond(
   eps = 0.005,
   TMLE = TRUE,
   PLUGIN = TRUE,
+  Nmin = 100,
   ...
 )
 }
@@ -36,6 +37,10 @@ The first K columns are the capture history indicators for the K lists. The rema
 \item{TMLE}{The logical value to indicate whether TMLE has to be computed.}
 
 \item{PLUGIN}{The logical value to indicate whether the plug-in estimates is returned.}
+
+\item{Nmin}{The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.}
+
+\item{sl.lib}{algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
 }
 \value{
 A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):

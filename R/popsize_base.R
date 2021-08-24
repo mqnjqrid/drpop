@@ -43,7 +43,7 @@
 #setMethod("print", "popsize", print.popsize)
 #' @export
 popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), nfolds = 5, eps = 0.005,
-                    sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, TMLE = TRUE, PLUGIN = TRUE, ...){
+                         sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, TMLE = TRUE, PLUGIN = TRUE,...){
 
   require("tidyverse", quietly = TRUE, warn.conflicts = FALSE)
   l = ncol(List_matrix) - K

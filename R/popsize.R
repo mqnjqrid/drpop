@@ -8,7 +8,11 @@
 #' @param q1mat A dataframe with capture probabilities for the first list.
 #' @param q2mat A dataframe with capture probabilities for the second list.
 #' @param q12mat A dataframe with capture probabilities for both the lists simultaneously.
+#' @param filterrows A logical value denoting whether to remove all rows with only zeroes.
 #' @param funcname The vector of estimation function names to obtain the population size.
+#' @param nfolds The number of folds to be used for cross fitting.
+#' @param sl.lib algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".
+#' @param Nmin The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.
 #' @param idfold The fold assignment of each row during estimation.
 #' @param TMLE The logical value to indicate whether TMLE has to be computed.
 #' @param PLUGIN The logical value to indicate whether the plug-in estimates is returned.
@@ -34,10 +38,11 @@
 #' qhat_estimate = getnuis(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
 #' psin_estimate = popsize(List_matrix = data, getnuis = qhat_estimate)
 #' @export
-popsize <- function(List_matrix, K = K, j = 1, k = 2, eps = 0.005, funcname = c("rangerlogit"), getnuis, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, PLUGIN = TRUE, ...){
+popsize <- function(List_matrix, K = 2, j = 1, k = 2, eps = 0.005, filterrows = FALSE, nfolds = 5, funcname = c("rangerlogit"), getnuis, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, PLUGIN = TRUE, Nmin = 100, ...){
 
   if(missing(getnuis) & missing(q1mat) & missing(q2mat) & missing(q12mat)){
-    return(popsize_base(List_matrix, K = K, funcname = funcname, eps = eps, TMLE = TMLE, PLUGIN = PLUGIN, ...))
+    return(popsize_base(List_matrix, K = K, filterrows = filterrows, funcname = funcname, nfolds = nfolds, eps = eps,
+                        sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
   }
 
   K = 2

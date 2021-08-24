@@ -6,10 +6,12 @@
 \usage{
 popsize(
   List_matrix,
-  K = K,
+  K = 2,
   j = 1,
   k = 2,
   eps = 0.005,
+  filterrows = FALSE,
+  nfolds = 5,
   funcname = c("rangerlogit"),
   getnuis,
   q1mat,
@@ -18,6 +20,7 @@ popsize(
   idfold,
   TMLE = TRUE,
   PLUGIN = TRUE,
+  Nmin = 100,
   ...
 )
 }
@@ -28,6 +31,10 @@ The first K columns are the capture history indicators for the \code{K} lists. T
 \item{K}{The number of lists that are present in the data.}
 
 \item{eps}{The minimum value the estimates can attain to bound them away from zero.}
+
+\item{filterrows}{A logical value denoting whether to remove all rows with only zeroes.}
+
+\item{nfolds}{The number of folds to be used for cross fitting.}
 
 \item{funcname}{The vector of estimation function names to obtain the population size.}
 
@@ -44,6 +51,10 @@ The first K columns are the capture history indicators for the \code{K} lists. T
 \item{TMLE}{The logical value to indicate whether TMLE has to be computed.}
 
 \item{PLUGIN}{The logical value to indicate whether the plug-in estimates is returned.}
+
+\item{Nmin}{The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.}
+
+\item{sl.lib}{algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
 }
 \value{
 A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):

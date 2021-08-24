@@ -8,6 +8,8 @@
 #' @param condvar The covariate for which conditional estimates are required.
 #' @param nfolds The number of folds to be used for cross fitting.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
+#' @param sl.lib algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".
+#' @param Nmin The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.
 #' @param TMLE The logical value to indicate whether TMLE has to be computed.
 #' @param PLUGIN The logical value to indicate whether the plug-in estimates is returned.
 #' @return A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):
@@ -36,7 +38,7 @@
 #' psin_estimate = popsize_cond(List_matrix = data, funcname = c("logit", "sl"), condvar = 'ss', nfolds = 2, twolist = FALSE, eps = 0.005)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models conditioned on column ss
 #' @export
-popsize_cond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), condvar, nfolds = 2, eps = 0.005, TMLE = TRUE, PLUGIN = TRUE, ...){
+popsize_cond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), condvar, nfolds = 2, eps = 0.005, TMLE = TRUE, PLUGIN = TRUE, Nmin = 100,...){
 
   l = ncol(List_matrix) - K
   n = nrow(List_matrix)
@@ -72,7 +74,8 @@ popsize_cond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
   for(cvar in condvar_vec){
 
     List_matrixsub = List_matrix[List_matrix[,K + condvar] == cvar, -c(K + condvar)]
-    est = try(popsize_base(List_matrix = List_matrixsub, K = K, filterrows = filterrows, funcname = funcname, nfolds = nfolds, ...), silent = TRUE)
+    est = try(popsize_base(List_matrix = List_matrixsub, K = K, filterrows = filterrows, funcname = funcname, nfolds = nfolds, eps = eps,
+                           sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...), silent = TRUE)
 
     if("try-error" %in% class(est)){
       next

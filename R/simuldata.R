@@ -90,6 +90,7 @@ simuldata = function(n, l, categorical = FALSE, ep = 0, K = 2){
                                    return((x[,li -2] + x[,li] + 20)^2)
                                  }
                                }))
+  colnames(xp) = colnames(x)
   List_matrix = cbind.data.frame(y1, y2, x)
   List_matrix_xstar = cbind.data.frame(y1, y2, xp)
   psi0 = 1 -  mean((1 - p1)*(1 - p2))

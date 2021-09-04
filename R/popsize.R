@@ -3,6 +3,8 @@
 #' @param List_matrix The data frame in capture-recapture format with \code{K} lists for which total population is to be estimated.
 #'                    The first K columns are the capture history indicators for the \code{K} lists. The remaining columns are covariates in numeric format.
 #' @param K The number of lists that are present in the data.
+#' @param j The first list to be used for estimation.
+#' @param k The secod list to be used in the estimation.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
 #' @param getnuis A list object with the nuisance function estimates and the fold assignment of the rows for cross-fitting or a data.frame with the nuisance estimates.
 #' @param q1mat A dataframe with capture probabilities for the first list.
@@ -38,10 +40,19 @@
 #' qhat_estimate = getnuis(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
 #' psin_estimate = popsize(List_matrix = data, getnuis = qhat_estimate)
 #' @export
-popsize <- function(List_matrix, K = 2, j = 1, k = 2, eps = 0.005, filterrows = FALSE, nfolds = 5, funcname = c("rangerlogit"), getnuis, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, PLUGIN = TRUE, Nmin = 100, ...){
+popsize <- function(List_matrix, K = 2, j, k, eps = 0.005, filterrows = FALSE, nfolds = 5, funcname = c("rangerlogit"), getnuis, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, PLUGIN = TRUE, Nmin = 100, ...){
 
+  if(!missing(j) & !missing(k)){
+    if(j == k) {
+      k = j %% K + 1
+      warning(paste0("Selected lists are identical. Using k = ", k, "."))
+    }
+    j0 = min(j, k)
+    k = max(j, k)
+    j = j0
+  }
   if(missing(getnuis) & missing(q1mat) & missing(q2mat) & missing(q12mat)){
-    return(popsize_base(List_matrix, K = K, filterrows = filterrows, funcname = funcname, nfolds = nfolds, eps = eps,
+    return(popsize_base(List_matrix, K = K, j0 = j, k0 = k, filterrows = filterrows, funcname = funcname, nfolds = nfolds, eps = eps,
                         sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
   }
 

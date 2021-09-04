@@ -3,6 +3,8 @@
 #' @param List_matrix The data frame in capture-recapture format for which total population is to be estimated.
 #'                    The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.
 #' @param K The number of lists in the data. typically the first \code{K} rows of List_matrix.
+#' @param j0 The first list to be used for estimation.
+#' @param k0 The secod list to be used in the estimation.
 #' @param filterrows A logical value denoting whether to remove all rows with only zeroes.
 #' @param funcname The vector of estimation function names to obtain the population size.
 #' @param nfolds The number of folds to be used for cross fitting.
@@ -42,7 +44,7 @@
 # @exportClass popsize
 #setMethod("print", "popsize", print.popsize)
 #' @export
-popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), nfolds = 5, eps = 0.005,
+popsize_base <- function(List_matrix, K = 2, j0, k0, filterrows = FALSE, funcname = c("rangerlogit"), nfolds = 5, eps = 0.005,
                          sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, TMLE = TRUE, PLUGIN = TRUE,...){
 
   require("tidyverse", quietly = TRUE, warn.conflicts = FALSE)
@@ -83,23 +85,33 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
     Message(cat("Lists ", which(conforminglists == FALSE), " are not in the required format."))
   }
 
+  if(!missing(j0))
+    list1_vec = j0
+  else
+    list1_vec = c(1:(K-1))
+
+  if(!missing(k0))
+    list2_vec = k0
+  else
+    list2_vec = c(2:K)
+
   if(l == 0){
     #renaming the columns of List_matrix for ease of use
     colnames(List_matrix) = c(paste("L", 1:K, sep = ''))
 
-    listpair = unlist(sapply(1:(K - 1), function(k) {
-      sapply((k + 1):K, function(s) {
-        return(paste(k, ",", s, sep = ''))
+    listpair = unlist(sapply(list1_vec, function(j1) {
+      sapply(list2_vec[list2_vec > j1], function(k1) {
+        return(paste(j1, ",", k1, sep = ''))
       })}))
     psiinv = data.frame(listpair = listpair)
     psiinv$psiin = NA
     psiinv$sigma = NA
 
-    for(j in 1:(K - 1)){
+    for(j in list1_vec){
       if(!setequal(List_matrix[,j], c(0,1))){
         next
       }
-      for(k in (j + 1):K){
+      for(k in list2_vec[list2_vec > j]){
         if(!setequal(List_matrix[,k], c(0,1))){
           next
         }
@@ -130,19 +142,21 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
       nfolds = pmax(floor(N/50), 1)
       cat("nfolds is reduced to ", nfolds, " to have sufficient test data.\n")
     }
-    psiinv_summary = matrix(0, nrow = K*(K - 1)/2, ncol = 3*length(funcname))
-    rownames(psiinv_summary) = unlist(sapply(1:(K - 1), function(r) {
-      sapply((r + 1):K, function(s) {
-        return(paste0(r, ",", s))
+
+    listpair = unlist(sapply(list1_vec, function(j1) {
+      sapply(list2_vec[list2_vec > j1], function(k1) {
+        return(paste(j1, ",", k1, sep = ''))
       })}))
+    psiinv_summary = matrix(0, nrow = length(listpair), ncol = 3*length(funcname))
+    rownames(psiinv_summary) = listpair
     colnames(psiinv_summary) = paste(rep(funcname, each = 3), c("PI", "DR", "TMLE"), sep = '.')
     var_summary = psiinv_summary
 
-    ifvals = matrix(NA, nrow = N*K*(K-1)/2, ncol = length(funcname) + 1)
+    ifvals = matrix(NA, nrow = N*length(listpair), ncol = length(funcname) + 1)
     colnames(ifvals) = c("listpair", funcname)
     ifvals[,"listpair"] = rep(rownames(psiinv_summary), each = N)
 
-    nuis = matrix(NA, nrow = N*K*(K-1)/2, ncol = 3*length(funcname) + 1)
+    nuis = matrix(NA, nrow = N*length(listpair), ncol = 3*length(funcname) + 1)
     colnames(nuis) = c("listpair", paste(rep(funcname, each = 3), c("q12", "q1", "q2"), sep = '.'))
     nuis = as.data.frame(nuis)
     sapply(nuis, "class")
@@ -154,12 +168,12 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
 
     permutset = sample(1:N, N, replace = FALSE)
 
-    for(j in 1:(K - 1)){
+    for(j in list1_vec){
       if(!setequal(List_matrix[,j], c(0,1))){
         #     cat("List ", j, " is not in the required format or is degenerate.\n")
         next
       }
-      for(k in (j + 1):K){
+      for(k in list2_vec[list2_vec > j]){
         if(!setequal(List_matrix[,k], c(0,1))){
           #       cat("List ", k, " is not in the required format or is degenerate.\n")
           next
@@ -201,7 +215,7 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
           for (func in funcname){
 
             #colsubset = stringr::str_subset(colnames(psiinv_summary), func)
-            qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, j, k, eps = eps, ...), silent = TRUE)
+            qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, j, k, eps = eps,...), silent = TRUE)
 
             if ("try-error" %in% class(qhat)) {
               next
@@ -232,7 +246,7 @@ popsize_base <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
             colnames(datmat) = c("yj", "yk", "yjk", "q10", "q02", "q12")
 
             if(TMLE) {
-              tmle = tmle(datmat = datmat, eps = eps, K = K, ...)
+              tmle = tmle(datmat = datmat, eps = eps, K = K,...)
             }else{
               next
             }

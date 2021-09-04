@@ -7,8 +7,8 @@
 popsize(
   List_matrix,
   K = 2,
-  j = 1,
-  k = 2,
+  j,
+  k,
   eps = 0.005,
   filterrows = FALSE,
   nfolds = 5,
@@ -29,6 +29,10 @@ popsize(
 The first K columns are the capture history indicators for the \code{K} lists. The remaining columns are covariates in numeric format.}
 
 \item{K}{The number of lists that are present in the data.}
+
+\item{j}{The first list to be used for estimation.}
+
+\item{k}{The secod list to be used in the estimation.}
 
 \item{eps}{The minimum value the estimates can attain to bound them away from zero.}
 

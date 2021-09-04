@@ -7,6 +7,8 @@
 popsize_base(
   List_matrix,
   K = 2,
+  j0,
+  k0,
   filterrows = FALSE,
   funcname = c("rangerlogit"),
   nfolds = 5,
@@ -23,6 +25,10 @@ popsize_base(
 The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.}
 
 \item{K}{The number of lists in the data. typically the first \code{K} rows of List_matrix.}
+
+\item{j0}{The first list to be used for estimation.}
+
+\item{k0}{The secod list to be used in the estimation.}
 
 \item{filterrows}{A logical value denoting whether to remove all rows with only zeroes.}
 

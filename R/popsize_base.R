@@ -93,33 +93,39 @@ popsize_base <- function(List_matrix, K = 2, j0, k0, filterrows = FALSE, funcnam
   if(!missing(k0))
     list2_vec = k0
   else
-    list2_vec = c(2:K)
+    list2_vec = c(1:K)
 
   if(l == 0){
     #renaming the columns of List_matrix for ease of use
     colnames(List_matrix) = c(paste("L", 1:K, sep = ''))
 
     listpair = unlist(sapply(list1_vec, function(j1) {
-      sapply(list2_vec[list2_vec > j1], function(k1) {
-        return(paste(j1, ",", k1, sep = ''))
+      sapply(setdiff(list2_vec, list1_vec[list1_vec <= j1]), function(k1) {
+        return(paste(min(j1, k1), ",", max(j1, k1), sep = ''))
       })}))
     psiinv = data.frame(listpair = listpair)
     psiinv$psiin = NA
     psiinv$sigma = NA
 
     for(j in list1_vec){
+      j0 = j
       if(!setequal(List_matrix[,j], c(0,1))){
         next
       }
-      for(k in list2_vec[list2_vec > j]){
+      for(k in setdiff(list2_vec, list1_vec[list1_vec <= j0])){
         if(!setequal(List_matrix[,k], c(0,1))){
           next
         }
+        if(j0 > k) {
+          j = k
+          k = j0
+        }else
+          j = j0
         q1 = mean(List_matrix[,j])
         q2 = mean(List_matrix[,k])
         q12 = mean(List_matrix[,j]*List_matrix[,k])
-        psiinv[psiinv$listpair == paste0(j, ",", k),]$psiin = q1*q2/q12
-        psiinv[psiinv$listpair == paste0(j, ",", k),]$sigma = sqrt(q1*q2*(q1*q2 - q12)*(1 - q12)/q12^3/N)
+        psiinv[psiinv$listpair == paste0(j, ",", k),]$psiin = pmax(q1*q2/q12, 1)
+        psiinv[psiinv$listpair == paste0(j, ",", k),]$sigma = sqrt(q1*q2*pmax(q1*q2 - q12, 0)*(1 - q12)/q12^3/N)
       }
     }
 
@@ -144,8 +150,8 @@ popsize_base <- function(List_matrix, K = 2, j0, k0, filterrows = FALSE, funcnam
     }
 
     listpair = unlist(sapply(list1_vec, function(j1) {
-      sapply(list2_vec[list2_vec > j1], function(k1) {
-        return(paste(j1, ",", k1, sep = ''))
+      sapply(setdiff(list2_vec, list1_vec[list1_vec <= j1]), function(k1) {
+        return(paste(min(j1, k1), ",", max(j1, k1), sep = ''))
       })}))
     psiinv_summary = matrix(0, nrow = length(listpair), ncol = 3*length(funcname))
     rownames(psiinv_summary) = listpair
@@ -169,15 +175,21 @@ popsize_base <- function(List_matrix, K = 2, j0, k0, filterrows = FALSE, funcnam
     permutset = sample(1:N, N, replace = FALSE)
 
     for(j in list1_vec){
+      j0 = j
       if(!setequal(List_matrix[,j], c(0,1))){
         #     cat("List ", j, " is not in the required format or is degenerate.\n")
         next
       }
-      for(k in list2_vec[list2_vec > j]){
+      for(k in setdiff(list2_vec, list1_vec[list1_vec <= j0])){
         if(!setequal(List_matrix[,k], c(0,1))){
           #       cat("List ", k, " is not in the required format or is degenerate.\n")
           next
         }
+        if(j0 > k){
+          j = k
+          k = j0
+        }else
+          j = j0
         psiinvmat = matrix(numeric(0), nrow = nfolds, ncol = 3*length(funcname))
         colnames(psiinvmat) = paste(rep(funcname, each = 3), c("PI", "DR", "TMLE"), sep = '.')
         varmat = psiinvmat

@@ -51,8 +51,25 @@ popsize <- function(List_matrix, K = 2, j, k, eps = 0.005, filterrows = FALSE, n
     k = max(j, k)
     j = j0
   }
+
   if(missing(getnuis) & missing(q1mat) & missing(q2mat) & missing(q12mat)){
-    return(popsize_base(List_matrix, K = K, j0 = j, k0 = k, filterrows = filterrows, funcname = funcname, nfolds = nfolds, eps = eps,
+    if(!missing(j) & missing(k)){
+      print(j)
+      if(j == K)
+        return(popsize_base(List_matrix, K = K, k0 = j, filterrows = filterrows, funcname = funcname, nfolds = nfolds, eps = eps,
+                          sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
+      else
+        return(popsize_base(List_matrix, K = K, j0 = j, filterrows = filterrows, funcname = funcname, nfolds = nfolds, eps = eps,
+                            sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
+    }else if(missing(j) & !missing(k)){
+      if(k < K)
+        return(popsize_base(List_matrix, K = K, j0 = k, filterrows = filterrows, funcname = funcname, nfolds = nfolds, eps = eps,
+                            sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
+      else
+        return(popsize_base(List_matrix, K = K, k0 = k, filterrows = filterrows, funcname = funcname, nfolds = nfolds, eps = eps,
+                            sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
+    }else
+      return(popsize_base(List_matrix, K = K, j0 = j, k0 = k, filterrows = filterrows, funcname = funcname, nfolds = nfolds, eps = eps,
                         sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
   }
 

@@ -6,6 +6,7 @@
 #' @param eps_stop The minimum value the estimates can attain to bound them away from zero.
 #' @param twolist The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.
 #' @param K The number of lists in the original data.
+#' @param ... Any extra arguments passed into the function.
 #' @return A list of estimates containing the following components:
 #' \item{error}{  An indicator of whether the algorithm ran and converged. Returns FALSE, if it ran correctly and FALSE otherwise.}
 #' \item{datmat}{  A data frame returning \code{datmat} with the updated estimates for the nuisance functions \code{q10}, \code{q02} and \code{q12}. This is returned only if \code{error} is FALSE.}
@@ -13,7 +14,7 @@
 #' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
 #' @examples
 #' data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
-#' xqmat = matrix(runif(nrow(data)*3, 0, 1), nrow = nrow(data))
+#' xmat = matrix(runif(nrow(data)*3, 0, 1), nrow = nrow(data))
 #' datmat = cbind(data, data[,1]*data[,2], xmat)
 #' colnames(datmat) = c("yj", "yk", "yjk", "q10", "q02", "q12")
 #' datmat = as.data.frame(datmat)

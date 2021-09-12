@@ -18,6 +18,8 @@ qhat_rangerlogit(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...)
 \item{j}{The second list that is conditionally independent.}
 
 \item{eps}{The minimum value the estimates can attain to bound them away from zero.}
+
+\item{...}{Any extra arguments passed into the function.}
 }
 \value{
 A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
@@ -26,9 +28,10 @@ A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
 Estimate marginal and joint distribution of lists i and j using ensemble of ranger and logit.
 }
 \examples{
+\dontrun{
 qhat = qhat_ranger(List.train = List.train, List.test = List.test, K = 3, i = 1, j = 2, eps = 0.005)
 q1 = qhat$q1
 q2 = qhat$q2
 q12 = qhat$q12
-
+}
 }

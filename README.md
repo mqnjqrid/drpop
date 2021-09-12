@@ -4,7 +4,6 @@
 # drpop
 
 <!-- badges: start -->
-
 <!-- badges: end -->
 
 The goal of drpop is to provide users doubly robust and efficient
@@ -33,6 +32,10 @@ This is a basic example which shows you how to solve a common problem:
 
 ``` r
 library(drpop)
+#> Registered S3 methods overwritten by 'tibble':
+#>   method     from  
+#>   format.tbl pillar
+#>   print.tbl  pillar
 
 n = 1000
 x = matrix(rnorm(n*3, 2, 1), nrow = n)
@@ -44,31 +47,18 @@ y2 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = 
 datacrc = cbind(y1, y2, exp(x/2))[y1+y2 > 0, ]
 
 estim <- popsize(List_matrix = datacrc, func = c("gam"), nfolds = 2, K = 2)
-#> Warning: package 'tidyverse' was built under R version 4.0.3
-#> -- Attaching packages ---------------------- tidyverse 1.3.0 --
-#> v ggplot2 3.3.3     v purrr   0.3.4
-#> v tibble  3.0.3     v dplyr   1.0.1
-#> v tidyr   1.1.1     v stringr 1.4.0
-#> v readr   1.3.1     v forcats 0.5.0
-#> Warning: package 'ggplot2' was built under R version 4.0.4
-#> -- Conflicts ------------------------- tidyverse_conflicts() --
-#> x dplyr::filter() masks stats::filter()
-#> x dplyr::lag()    masks stats::lag()
-#> 
-#> Attaching package: 'foreach'
-#> The following objects are masked from 'package:purrr':
-#> 
-#>     accumulate, when
+#> Warning: package 'dplyr' was built under R version 4.0.5
+#> Loading required package: tidyr
 #> Loaded gam 1.20
-#> Warning in popsize(List_matrix = datacrc, func = c("gam"), nfolds = 2, K = 2):
-#> Plug-in variance is not well-defined. Returning variance evaluated using DR
-#> estimator formula
+#> Warning in popsize_base(List_matrix, K = K, j0 = j, k0 = k, filterrows =
+#> filterrows, : Plug-in variance is not well-defined. Returning variance evaluated
+#> using DR estimator formula
 # The population size estimates are 'n' and the standard deviations are 'sigman'
 print(estim)
-#>   listpair model method   psi sigma    n    sdn cin.l cin.u
-#> 1      1,2   gam     DR 0.774 1.467 1020 44.694   933  1108
-#> 2      1,2   gam     PI 0.784 1.467 1007 44.464   920  1094
-#> 3      1,2   gam   TMLE 0.774 1.436 1021 43.902   935  1107
+#>   listpair model method   psi sigma    n sigman cin.l cin.u
+#> 1      1,2   gam     DR 0.797 1.282  973 39.008   896  1049
+#> 2      1,2   gam     PI 0.793 1.282  978 39.112   901  1055
+#> 3      1,2   gam   TMLE 0.760 2.082 1020 60.687   901  1139
 ## basic example code
 ```
 
@@ -89,18 +79,19 @@ y2 = unlist(apply(x, 1, function(xi) {sample(c(0, 1), 1, replace = TRUE, prob = 
 datacrc = cbind(y1, y2, exp(x/2))[y1+y2>0,]
 
 estim <- popsize(List_matrix = datacrc, func = c("gam", "rangerlogit"), nfolds = 2, eps = 0.01)
-#> Warning in popsize(List_matrix = datacrc, func = c("gam", "rangerlogit"), :
-#> Plug-in variance is not well-defined. Returning variance evaluated using DR
-#> estimator formula
+#> Warning in popsize_base(List_matrix, K = K, j0 = j, k0 = k, filterrows =
+#> filterrows, : Plug-in variance is not well-defined. Returning variance evaluated
+#> using DR estimator formula
 print(estim)
-#>   listpair       model method   psi sigma    n    sdn cin.l cin.u
-#> 1      1,2         gam     DR 0.792 1.117 3024 61.486  2903  3144
-#> 2      1,2         gam     PI 0.796 1.117 3007 61.281  2887  3127
-#> 3      1,2         gam   TMLE 0.793 1.146 3021 62.716  2898  3144
-#> 4      1,2 rangerlogit     DR 0.803 0.689 2983 43.230  2899  3068
-#> 5      1,2 rangerlogit     PI 0.836 0.689 2866 41.218  2785  2946
-#> 6      1,2 rangerlogit   TMLE 0.822 0.852 2913 48.649  2817  3008
+#>   listpair       model method   psi sigma    n sigman cin.l cin.u
+#> 1      1,2         gam     DR 0.793 0.989 3034 56.096  2924  3144
+#> 2      1,2         gam     PI 0.801 0.989 3004 55.693  2895  3113
+#> 3      1,2         gam   TMLE 0.801 0.957 3001 54.295  2894  3107
+#> 4      1,2 rangerlogit     DR 0.800 0.742 3008 45.574  2918  3097
+#> 5      1,2 rangerlogit     PI 0.824 0.742 2919 44.126  2832  3005
+#> 6      1,2 rangerlogit   TMLE 0.810 0.915 2970 52.048  2868  3072
 plotci(estim)
+#> Warning: package 'ggplot2' was built under R version 4.0.4
 ```
 
 <img src="man/figures/README-plot1-1.png" width="100%" />
@@ -129,11 +120,11 @@ y2 = sapply(1:n, function(i) {sample(c(0, 1), 1, replace = TRUE, prob = c(1 - ex
 datacrc = cbind.data.frame(y1, y2, exp(x/2), catcov)[y1+y2>0,]
 
 result = popsize_cond(List_matrix = datacrc, condvar = 'catcov')
-#> Warning in popsize(List_matrix = List_matrixsub, K = K, filterrows =
+#> Warning in popsize_base(List_matrix = List_matrixsub, K = K, filterrows =
 #> filterrows, : Plug-in variance is not well-defined. Returning variance evaluated
 #> using DR estimator formula
 
-#> Warning in popsize(List_matrix = List_matrixsub, K = K, filterrows =
+#> Warning in popsize_base(List_matrix = List_matrixsub, K = K, filterrows =
 #> filterrows, : Plug-in variance is not well-defined. Returning variance evaluated
 #> using DR estimator formula
 fig = plotci(result)

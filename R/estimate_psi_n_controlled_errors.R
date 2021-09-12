@@ -7,6 +7,8 @@
 #' @param omega The standard deviation from zero of the added error.
 #' @param alpha The rate of convergence. Takes values in (0, 1].
 #' @param nfolds The number of folds to be used for cross fitting.
+#' @param pi1 The function to calculate the conditional capture probabilities of list 1 using covariates.
+#' @param pi2 The function to calculate the conditional capture probabilities of list 2 using covariates.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
 #' @param iter An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.
 #' @param twolist The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.
@@ -22,20 +24,23 @@
 #' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
 #' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
 #' @examples
-#' data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
-#' x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
+#' simulresult = simuldata(n = 2000, l = 2)
+#' data = simulresult$List_matrix
 #'
-#' psin_estimate = popsize_simul(List_matrix = data, alpha = 0.25, omega = 1)
-#' #this returns the basic plug-in estimate since covariates are absent.
-#'
-#' data = cbind(data, x)
-#' psin_estimate = popsize_simul(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005, alpha = 0.25, omega = 1)
-#' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models
+#' psin_estimate = popsize_simul(List_matrix = data,
+#'       pi1 = simulresult$pi1, pi2 = simulresult$pi2,
+#'       alpha = 0.25, omega = 1)
 #' @export
-popsize_simul = function(List_matrix, n, K, nfolds = 5, omega, alpha, eps = 0.005, iter = 100, twolist = TRUE){
+popsize_simul = function(List_matrix, n, K = 2, nfolds = 5, pi1, pi2, omega, alpha, eps = 0.005, iter = 100, twolist = TRUE){
 
   if(missing(n)){
     n = nrow(List_matrix)
+  }
+  expit = function(x) {
+    exp(x)/(1 + exp(x))
+  }
+  logit = function(x) {
+    log(x/(1 - x))
   }
   eta = n^alpha
   delta = 0
@@ -50,7 +55,7 @@ popsize_simul = function(List_matrix, n, K, nfolds = 5, omega, alpha, eps = 0.00
     sapply((r + 1):K, function(s) {
       return(paste(r, ", ", s, sep = ''))
     })}))
-colnames(psiinv_summary) = c("PI", "DR", "TMLE")
+  colnames(psiinv_summary) = c("PI", "DR", "TMLE")
   var_summary = psiinv_summary
 
   permutset = sample(1:N, N, replace = FALSE)
@@ -80,8 +85,8 @@ colnames(psiinv_summary) = c("PI", "DR", "TMLE")
         }
 
         xmat = as.matrix(List2[,-c(1:K)])
-        p1 = unlist(apply(xmat, 1, pi1))
-        p2 = unlist(apply(xmat, 1, pi2))
+        p1 = unlist(sapply(rowSums(xmat), pi1))
+        p2 = unlist(sapply(rowSums(xmat), pi2))
 
         q10_0 = p1*(1 - p2)/(1 - (1-p1)*(1-p2))
         q02_0 = p2*(1 - p1)/(1 - (1-p1)*(1-p2))
@@ -113,7 +118,7 @@ colnames(psiinv_summary) = c("PI", "DR", "TMLE")
 
         datmat = as.data.frame(cbind(yj, yk, yj*yk, q1 - q12, q2 - q12, q12))
         datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, eps), 1 - eps))}))
-        colnames(datmat) = c("yj", "yk", "yjj", "q10", "q02", "q12")
+        colnames(datmat) = c("yj", "yk", "yjk", "q10", "q02", "q12")
 
         tmle = tmle(datmat = datmat, iter = iter, eps = eps, eps_stop = 0.00001, twolist = twolist)
 

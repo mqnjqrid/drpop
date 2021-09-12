@@ -14,10 +14,12 @@
 #' @param funcname The vector of estimation function names to obtain the population size.
 #' @param nfolds The number of folds to be used for cross fitting.
 #' @param sl.lib algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".
+# (See \code{\link[pkg:SuperLearner]{listWrappers}})
 #' @param Nmin The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.
 #' @param idfold The fold assignment of each row during estimation.
 #' @param TMLE The logical value to indicate whether TMLE has to be computed.
 #' @param PLUGIN The logical value to indicate whether the plug-in estimates is returned.
+#' @param ... Any extra arguments passed into the function.
 #' @return A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):
 #' \item{result}{  A dataframe of the below estimated quantities.
 #' \itemize{
@@ -36,20 +38,24 @@
 #' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
 #' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
 #' @examples
-#' data = simuldata(1000, 1)$List_matrix
-#' qhat_estimate = getnuis(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
-#' psin_estimate = popsize(List_matrix = data, getnuis = qhat_estimate)
+#' data = simuldata(1000, l = 3)$List_matrix
+#' qhat = popsize(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
+#' psin_estimate = popsize(List_matrix = data, getnuis = qhat$nuis, idfold = qhat$idfold)
 #' @export
-popsize <- function(List_matrix, K = 2, j, k, eps = 0.005, filterrows = FALSE, nfolds = 5, funcname = c("rangerlogit"), getnuis, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, PLUGIN = TRUE, Nmin = 100, ...){
+popsize <- function(List_matrix, K = 2, j, k, eps = 0.005, filterrows = FALSE, nfolds = 5, funcname = c("rangerlogit"),
+                     sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), getnuis, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, PLUGIN = TRUE, Nmin = 100,...){
 
   if(!missing(j) & !missing(k)){
     if(j == k) {
       k = j %% K + 1
       warning(paste0("Selected lists are identical. Using k = ", k, "."))
     }
-    j0 = min(j, k)
-    k = max(j, k)
-    j = j0
+    if(j > k){
+      j = j + k
+      k = j - k
+      j = j - k
+      warning("Switching j and k to ensure j < k.")
+    }
   }
 
   if(missing(getnuis) & missing(q1mat) & missing(q2mat) & missing(q12mat)){

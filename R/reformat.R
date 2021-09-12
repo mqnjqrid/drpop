@@ -18,10 +18,11 @@ reformat <- function(List_matrix, capturelists){
 
   if(!missing(capturelists)){
     stopifnot(length(capturelists) > 1)
-    stopifnot(class(capturelists) %in% c("character", "integer"))
+    stopifnot(class(capturelists) %in% c("character", "numeric"))
     stopifnot(length(capturelists) <= ncol(List_matrix))
 
-    if(class(capturelists) == "integer"){
+    if(class(capturelists) == "numeric"){
+      capturelists = round(capturelists)
       List_matrix = List_matrix[,c(capturelists, setdiff(1:ncol(List_matrix), capturelists))]
     }else{
       List_matrix = List_matrix[,c(capturelists, setdiff(colnames(List_matrix), capturelists))]

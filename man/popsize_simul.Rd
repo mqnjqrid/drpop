@@ -7,8 +7,10 @@
 popsize_simul(
   List_matrix,
   n,
-  K,
+  K = 2,
   nfolds = 5,
+  pi1,
+  pi2,
   omega,
   alpha,
   eps = 0.005,
@@ -25,6 +27,10 @@ The first K columns are the capture history indicators for the K lists. The rema
 \item{K}{The number of lists in the data. typically the first \code{K} rows of List_matrix.}
 
 \item{nfolds}{The number of folds to be used for cross fitting.}
+
+\item{pi1}{The function to calculate the conditional capture probabilities of list 1 using covariates.}
+
+\item{pi2}{The function to calculate the conditional capture probabilities of list 2 using covariates.}
 
 \item{omega}{The standard deviation from zero of the added error.}
 
@@ -50,15 +56,12 @@ The columns represent the model and method combinations (PI = plug-in, DR = bias
 Estimate the total population size and capture probabilities using perturbed true nuisance functions.
 }
 \examples{
-data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
-x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
+simulresult = simuldata(n = 2000, l = 2)
+data = simulresult$List_matrix
 
-psin_estimate = popsize_simul(List_matrix = data, alpha = 0.25, omega = 1)
-#this returns the basic plug-in estimate since covariates are absent.
-
-data = cbind(data, x)
-psin_estimate = popsize_simul(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005, alpha = 0.25, omega = 1)
-#this returns the plug-in, the bias-corrected and the tmle estimate for the two models
+psin_estimate = popsize_simul(List_matrix = data,
+      pi1 = simulresult$pi1, pi2 = simulresult$pi2,
+      alpha = 0.25, omega = 1)
 }
 \references{
 Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.

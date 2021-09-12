@@ -45,6 +45,8 @@ The first K columns are the capture history indicators for the K lists. The rema
 \item{TMLE}{The logical value to indicate whether TMLE has to be computed.}
 
 \item{PLUGIN}{The logical value to indicate whether the plug-in estimates is returned.}
+
+\item{...}{Any extra arguments passed into the function.}
 }
 \value{
 A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):
@@ -66,14 +68,11 @@ A list of estimates containing the following components for each list-pair, mode
 Estimate total population size and capture probability using user provided set of models.
 }
 \examples{
-data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
-x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
-
-psin_estimate = popsize_base(List_matrix = data)
+data = simuldata(n = 6000, l = 3)$List_matrix
+psin_estimate = popsize_base(List_matrix = data[,1:2])
 #this returns the basic plug-in estimate since covariates are absent.
 
-data = cbind(data, x)
-psin_estimate = popsize_base(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005)
+psin_estimate = popsize_base(List_matrix = data, funcname = c("gam", "rangerlogit"))
 #this returns the plug-in, the bias-corrected and the tmle estimate for the two models
 }
 \references{

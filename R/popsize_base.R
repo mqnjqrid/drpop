@@ -13,6 +13,7 @@
 #' @param Nmin The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.
 #' @param TMLE The logical value to indicate whether TMLE has to be computed.
 #' @param PLUGIN The logical value to indicate whether the plug-in estimates is returned.
+#' @param ... Any extra arguments passed into the function.
 #' @return A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):
 #' \item{result}{  A dataframe of the below estimated quantities.
 #' \itemize{
@@ -31,23 +32,22 @@
 #' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
 #' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
 #' @examples
-#' data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
-#' x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
-#'
-#' psin_estimate = popsize_base(List_matrix = data)
+#' data = simuldata(n = 6000, l = 3)$List_matrix
+#' psin_estimate = popsize_base(List_matrix = data[,1:2])
 #' #this returns the basic plug-in estimate since covariates are absent.
 #'
-#' data = cbind(data, x)
-#' psin_estimate = popsize_base(List_matrix = data, funcname = c("logit", "sl"), nfolds = 2, twolist = FALSE, eps = 0.005)
+#' psin_estimate = popsize_base(List_matrix = data, funcname = c("gam", "rangerlogit"))
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models
 #setClass("popsize", contains = "list")
 # @exportClass popsize
 #setMethod("print", "popsize", print.popsize)
 #' @export
+#' @importFrom dplyr "%>%"
 popsize_base <- function(List_matrix, K = 2, j0, k0, filterrows = FALSE, funcname = c("rangerlogit"), nfolds = 5, eps = 0.005,
-                         sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, TMLE = TRUE, PLUGIN = TRUE,...){
+                          sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, TMLE = TRUE, PLUGIN = TRUE,...){
 
-  require("tidyverse", quietly = TRUE, warn.conflicts = FALSE)
+  require("dplyr", quietly = TRUE, warn.conflicts = FALSE)
+  require("tidyr")
   l = ncol(List_matrix) - K
   n = nrow(List_matrix)
 

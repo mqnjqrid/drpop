@@ -6,13 +6,16 @@
 #' @param i The first list that is conditionally independent.
 #' @param j The second list that is conditionally independent.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
+#' @param ... Any extra arguments passed into the function.
 #' @return A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
 #' @examples
+#' \dontrun{
 #' qhat = qhat_logit(List.train = List.train, List.test = List.test, K = 3, i = 1, j = 2, eps = 0.005)
 #' q1 = qhat$q1
 #' q2 = qhat$q2
 #' q12 = qhat$q12
-#'
+#' }
+#' @importFrom stats binomial formula glm model.matrix na.omit predict rnorm sigma var
 #' @export
 qhat_logit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...){
 
@@ -26,7 +29,7 @@ qhat_logit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, 
   fitij = try(glm(formula(paste("L", i, "*L", j, " ~.", sep = '')), family = binomial(link = "logit"), data = List.train[,c(i, j, (K + 1):ncol(List.train))]))
 
   if("try-error" %in% c(class(fiti0), class(fit0j), class(fitij))){
-    Warning("One or more fits with logistic regression failed.")
+    warning("One or more fits with logistic regression failed.")
     return(NULL)
   }else{
     q12 = pmax(predict(fitij, newdata = List.test, type = "response"), eps)
@@ -44,13 +47,16 @@ qhat_logit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, 
 #' @param i The first list that is conditionally independent.
 #' @param j The second list that is conditionally independent.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
+#' @param ... Any extra arguments passed into the function.
 #' @return A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
 #' @examples
+#' \dontrun{
 #' qhat = qhat_gam(List.train = List.train, List.test = List.test, K = 3, i = 1, j = 2, eps = 0.005)
 #' q1 = qhat$q1
 #' q2 = qhat$q2
 #' q12 = qhat$q12
-#'
+#' }
+#' @import gam
 #' @export
 qhat_gam <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...){
 
@@ -78,7 +84,7 @@ qhat_gam <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ..
   fitij = try(gam::gam(formula(paste0("L", i, "*L", j, " ~", covformula)), data = List.train, family = binomial("logit")))
 
   if("try-error" %in% c(class(fiti), class(fitj), class(fitij))){
-    Warning("One or more fits with GAM regression failed.")
+    warning("One or more fits with GAM regression failed.")
     return(NULL)
   }else{
     q12 = pmax(predict(fitij, newdata = List.test, type = "response"), eps)
@@ -96,13 +102,16 @@ qhat_gam <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ..
 #' @param i The first list that is conditionally independent.
 #' @param j The second list that is conditionally independent.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
+#' @param ... Any extra arguments passed into the function.
 #' @return A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
 #' @examples
+#' \dontrun{
 #' qhat = qhat_ranger(List.train = List.train, List.test = List.test, K = 3, i = 1, j = 2, eps = 0.005)
 #' q1 = qhat$q1
 #' q2 = qhat$q2
 #' q12 = qhat$q12
-#'
+#' }
+#' @import ranger
 #' @export
 qhat_ranger <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...){
   require("ranger", quietly = TRUE)
@@ -118,7 +127,7 @@ qhat_ranger <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
   fitij = ranger(formula(paste("factor(L", i, "*L", j, ") ~.", sep = '')), data = List.train[,c(i, j, K + 1:l)], probability = TRUE, classification = TRUE)
 
   if("try-error" %in% c(class(fiti), class(fitj), class(fitij))){
-    Warning("One or more fits with GAM regression failed.")
+    warning("One or more fits with GAM regression failed.")
     return(NULL)
   }else{
     q12 = pmax(predict(fitij, data = List.test, type = "response")$predictions[,'1'], eps)
@@ -137,14 +146,17 @@ qhat_ranger <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
 #' @param j The second list that is conditionally independent.
 #' @param sl.lib The functions from the SuperLearner library to be used for model fitting.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
+#' @param ... Any extra arguments passed into the function.
 #' @param num_cores The number of cores to be used for paralellization in Super Learner.
 #' @return A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
 #' @examples
+#' \dontrun{
 #' qhat = qhat_sl(List.train = List.train, List.test = List.test, K = 3, i = 1, j = 2, eps = 0.005)
 #' q1 = qhat$q1
 #' q2 = qhat$q2
 #' q12 = qhat$q12
-#'
+#' }
+#' @import SuperLearner
 #' @export
 qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
                      sl.lib = c("SL.glm", "SL.gam", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), num_cores = NA,...)
@@ -155,9 +167,10 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
   require("SuperLearner", quietly = TRUE, warn.conflicts = FALSE)
   require("parallel", quietly = TRUE, warn.conflicts = FALSE)
   require("gam", quietly = TRUE, warn.conflicts = FALSE)
-  require("xgboost", quietly = TRUE, warn.conflicts = FALSE)
+  require("dplyr")
+  #require("xgboost", quietly = TRUE, warn.conflicts = FALSE)
   require("janitor", quietly = TRUE, warn.conflicts = FALSE)
-  require("tidyverse", quietly = TRUE, warn.conflicts = FALSE)
+  require("tidyr", quietly = TRUE, warn.conflicts = FALSE)
   slib = intersect(sl.lib, c("SL.glm", "SL.gam",
                              "SL.glm.interaction"))
   slib1 = setdiff(sl.lib, slib)
@@ -170,7 +183,7 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
   }
   num_cores = min(num_cores, parallel::detectCores() - 1, na.rm = TRUE)
 
-  factor_cols <- subset(List.train, select = -c(1:K)) %>% select_if(negate(is.numeric)) %>% names()
+  factor_cols <- subset(List.train, select = -c(1:K)) %>% select_if(Negate(is.numeric)) %>% names()
 
   if(length(factor_cols)) {
     List.train = data.frame(List.train[,!(names(List.train) %in% factor_cols)],
@@ -221,7 +234,7 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
     parallel::stopCluster(cl)
   }
   if ("try-error" %in% c(class(fiti), class(fitj), class(fitij))) {
-    Warning("One or more fits with SuperLearner regression failed.")
+    warning("One or more fits with SuperLearner regression failed.")
     return(NULL)
   }
   else {
@@ -242,13 +255,16 @@ qhat_sl <- function (List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
 #' @param i The first list that is conditionally independent.
 #' @param j The second list that is conditionally independent.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
+#' @param ... Any extra arguments passed into the function.
 #' @return A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
 #' @examples
+#' \dontrun{
 #' qhat = qhat_mlogit(List.train = List.train, List.test = List.test, K = 3, i = 1, j = 2, eps = 0.005)
 #' q1 = qhat$q1
 #' q2 = qhat$q2
 #' q12 = qhat$q12
-#'
+#' }
+#' @importFrom nnet "multinom"
 #' @export
 qhat_mlogit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...){
 
@@ -271,13 +287,13 @@ qhat_mlogit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
 
     pred = predict(mfit, newdata = List.test, "probs")
     if(is.null(setdiff(c("10", "11", "01"), colnames(pred)))){
-      Error("Training data is missing one or more of the capture history combinations.")
+      error("Training data is missing one or more of the capture history combinations.")
     }
     q12 = pmax(pred[,"11"], eps)
     q1 = pmin(pred[,"10"] + q12, 1)
     q2 = pmin(pred[,"01"] + q12, 1)
   }else{
-    Warning("One or more fits with SuperLearner regression failed.")
+    warning("One or more fits with SuperLearner regression failed.")
   }
   return(list(q1 = q1, q2 = q2, q12 = q12))
 }
@@ -289,13 +305,16 @@ qhat_mlogit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005,
 #' @param i The first list that is conditionally independent.
 #' @param j The second list that is conditionally independent.
 #' @param eps The minimum value the estimates can attain to bound them away from zero.
+#' @param ... Any extra arguments passed into the function.
 #' @return A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
 #' @examples
+#' \dontrun{
 #' qhat = qhat_ranger(List.train = List.train, List.test = List.test, K = 3, i = 1, j = 2, eps = 0.005)
 #' q1 = qhat$q1
 #' q2 = qhat$q2
 #' q12 = qhat$q12
-#'
+#' }
+#' @import ranger
 #' @export
 qhat_rangerlogit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...){
   require("ranger", quietly = TRUE)
@@ -311,7 +330,7 @@ qhat_rangerlogit <- function(List.train, List.test, K = 2, i = 1, j = 2, eps = 0
   fitij = ranger(formula(paste("factor(L", i, "*L", j, ") ~.", sep = '')), data = List.train[,c(i, j, K + 1:l)], probability = TRUE, classification = TRUE)
 
   if("try-error" %in% c(class(fiti), class(fitj), class(fitij))){
-    Warning("One or more fits with GAM regression failed.")
+    warning("One or more fits with GAM regression failed.")
     return(NULL)
   }else{
     q12.r = pmax(predict(fitij, data = List.test, type = "response")$predictions[,'1'], eps)

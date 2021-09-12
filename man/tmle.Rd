@@ -26,6 +26,8 @@ tmle(
 \item{twolist}{The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.}
 
 \item{K}{The number of lists in the original data.}
+
+\item{...}{Any extra arguments passed into the function.}
 }
 \value{
 A list of estimates containing the following components:
@@ -37,7 +39,7 @@ Returns the targeted maximum likelihood estimates for the nuisance functions
 }
 \examples{
 data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
-xqmat = matrix(runif(nrow(data)*3, 0, 1), nrow = nrow(data))
+xmat = matrix(runif(nrow(data)*3, 0, 1), nrow = nrow(data))
 datmat = cbind(data, data[,1]*data[,2], xmat)
 colnames(datmat) = c("yj", "yk", "yjk", "q10", "q02", "q12")
 datmat = as.data.frame(datmat)

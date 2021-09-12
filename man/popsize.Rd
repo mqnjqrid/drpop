@@ -13,6 +13,7 @@ popsize(
   filterrows = FALSE,
   nfolds = 5,
   funcname = c("rangerlogit"),
+  sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"),
   getnuis,
   q1mat,
   q2mat,
@@ -42,6 +43,8 @@ The first K columns are the capture history indicators for the \code{K} lists. T
 
 \item{funcname}{The vector of estimation function names to obtain the population size.}
 
+\item{sl.lib}{algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
+
 \item{getnuis}{A list object with the nuisance function estimates and the fold assignment of the rows for cross-fitting or a data.frame with the nuisance estimates.}
 
 \item{q1mat}{A dataframe with capture probabilities for the first list.}
@@ -58,7 +61,7 @@ The first K columns are the capture history indicators for the \code{K} lists. T
 
 \item{Nmin}{The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.}
 
-\item{sl.lib}{algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
+\item{...}{Any extra arguments passed into the function.}
 }
 \value{
 A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):
@@ -80,9 +83,9 @@ A list of estimates containing the following components for each list-pair, mode
 Estimate total population size and capture probability using user provided set of models or user provided nuisance estimates.
 }
 \examples{
-data = simuldata(1000, 1)$List_matrix
-qhat_estimate = getnuis(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
-psin_estimate = popsize(List_matrix = data, getnuis = qhat_estimate)
+data = simuldata(1000, l = 3)$List_matrix
+qhat = popsize(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
+psin_estimate = popsize(List_matrix = data, getnuis = qhat$nuis, idfold = qhat$idfold)
 }
 \references{
 Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.

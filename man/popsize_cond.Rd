@@ -12,6 +12,7 @@ popsize_cond(
   condvar,
   nfolds = 2,
   eps = 0.005,
+  sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"),
   TMLE = TRUE,
   PLUGIN = TRUE,
   Nmin = 100,
@@ -34,13 +35,15 @@ The first K columns are the capture history indicators for the K lists. The rema
 
 \item{eps}{The minimum value the estimates can attain to bound them away from zero.}
 
+\item{sl.lib}{algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
+
 \item{TMLE}{The logical value to indicate whether TMLE has to be computed.}
 
 \item{PLUGIN}{The logical value to indicate whether the plug-in estimates is returned.}
 
 \item{Nmin}{The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.}
 
-\item{sl.lib}{algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
+\item{...}{Any extra arguments passed into the function.}
 }
 \value{
 A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):
@@ -62,13 +65,12 @@ A list of estimates containing the following components for each list-pair, mode
 Estimate total population size and capture probability using user provided set of models conditioned on an attribute.
 }
 \examples{
-data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
-x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
-ss = sample(1:6, nrow(data), replace = TRUE)
+data = simuldata(n = 10000, l = 2, categorical = TRUE)$List_matrix
 
-data = cbind(data, x, ss)
-psin_estimate = popsize_cond(List_matrix = data, funcname = c("logit", "sl"), condvar = 'ss', nfolds = 2, twolist = FALSE, eps = 0.005)
-#this returns the plug-in, the bias-corrected and the tmle estimate for the two models conditioned on column ss
+psin_estimate = popsize_cond(List_matrix = data, funcname = c("logit", "gam"),
+     condvar = 'catcov', PLUGIN = TRUE, TMLE = TRUE)
+#this returns the plug-in, the bias-corrected and the tmle estimate for the
+#two models conditioned on column catcov
 }
 \references{
 Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.

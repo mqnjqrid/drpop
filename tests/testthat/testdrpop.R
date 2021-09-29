@@ -1,8 +1,7 @@
-library(testthat)
 
-devtools::load_all("C:/Users/manja/OneDrive/Documents/drpop")
 test_that("Runs for single covariate", {
-  ps = try(popsize(List_matrix = simuldata(n = 1000, l = 1)$List_matrix, funcname = c("logit", "gam", "mlogit")), silent = TRUE)
+  ps = try(drpop::popsize(List_matrix = simuldata(n = 1000, l = 1)$List_matrix, funcname = c("logit", "gam", "mlogit")), silent = TRUE)
+  print(ps)
   expect_equal(class(ps) == "try-error", FALSE)
   expect_equal(sum(sapply(ps, anyNA)), 0)
 })

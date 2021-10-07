@@ -86,6 +86,12 @@ Estimate total population size and capture probability using user provided set o
 data = simuldata(1000, l = 3)$data
 qhat = popsize(data = data, funcname = c("logit", "gam"), nfolds = 2, margin = 0.005)
 psin_estimate = popsize(data = data, getnuis = qhat$nuis, idfold = qhat$idfold)
+
+data = simuldata(n = 6000, l = 3)$data
+psin_estimate = popsize(data = data[,1:2])
+#this returns the basic plug-in estimate since covariates are absent.
+
+psin_estimate = popsize(data = data, funcname = c("gam", "rangerlogit"))
 }
 \references{
 Das, M., & Kennedy, E. H. (2021). Doubly robust capture-recapture methods for estimating population size. arXiv preprint arXiv:2104.14091.

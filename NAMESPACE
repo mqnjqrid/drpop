@@ -2,8 +2,8 @@
 
 S3method(print,popsize)
 S3method(print,popsize_cond)
+export()
 export(informat)
-export(plotci)
 export(popsize)
 export(popsize_base)
 export(popsize_cond)

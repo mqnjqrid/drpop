@@ -15,13 +15,11 @@ Authors@R:
 Description: Estimates the total population size from capture-recapture data. User can choose estimation models.
 Depends: stats
 Imports: gam, janitor, reshape2, stringr, tidyr, dplyr, SuperLearner, ggplot2, nnet, nnls, parallel, ranger, tidyverse, xgboost
-License: `use_mit_license()`
-    pick a license
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Author: Manjari Das [aut, cre],
-  Edward H. Kennedy [aut],
-  Nicholas P. Jewell [aut]
+  Edward H. Kennedy [aut]
 Maintainer: Manjari Das <manjari8d@gmail.com>
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1

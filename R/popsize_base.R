@@ -48,8 +48,8 @@
 popsize_base <- function(data, K = 2, j0, k0, filterrows = FALSE, funcname = c("rangerlogit"), nfolds = 5, margin = 0.005,
                           sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, TMLE = TRUE, PLUGIN = TRUE,...){
 
-  require("dplyr", quietly = TRUE, warn.conflicts = FALSE)
-  require("tidyr")
+  requireNamespace("dplyr", quietly = TRUE, warn.conflicts = FALSE)
+  requireNamespace("tidyr")
   l = ncol(data) - K
   n = nrow(data)
 
@@ -84,7 +84,7 @@ popsize_base <- function(data, K = 2, j0, k0, filterrows = FALSE, funcname = c("
   }
 
   if(sum(conforminglists) < K){
-    Message(cat("Lists ", which(conforminglists == FALSE), " are not in the required format."))
+    message(cat("Lists ", which(conforminglists == FALSE), " are not in the required format."))
   }
 
   if(!missing(j0))
@@ -328,10 +328,10 @@ popsize_base <- function(data, K = 2, j0, k0, filterrows = FALSE, funcname = c("
   }
 }
 #' @export
-print.popsize <- function(obj){
-  obj$result$psi = round(obj$result$psi, 3)
-  obj$result$sigma = round(obj$result$sigma, 3)
-  obj$result$sigman = round(obj$result$sigman, 3)
-  print(obj$result)
-  invisible(obj)
+print.popsize <- function(x, ...){
+  x$result$psi = round(x$result$psi, 3)
+  x$result$sigma = round(x$result$sigma, 3)
+  x$result$sigman = round(x$result$sigman, 3)
+  print(x$result)
+  invisible(x)
 }

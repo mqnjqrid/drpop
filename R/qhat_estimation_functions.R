@@ -70,7 +70,7 @@ qhat_gam <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005,
   colnames(List.train) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List.train) - K), sep = ''))
   colnames(List.test) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List.train) - K), sep = ''))
 
-  require("gam", quietly = TRUE)
+  requireNamespace("gam", quietly = TRUE)
   l = ncol(List.train) - K
   nnum = intersect(names(which(lapply(subset(List.train, select = -c(1:K)), "class") != "factor")),
                  names(which(lapply(subset(List.train, select =  -c(1:K)), function(icol){length(unique(icol))}) > 3)))
@@ -120,7 +120,7 @@ qhat_gam <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005,
 #' @references Marvin N. Wright, Andreas Ziegler (2017). ranger: A Fast Implementation of Random Forests for High Dimensional Data in C++ and R. Journal of Statistical Software, 77(1), 1-17. doi:10.18637/jss.v077.i01
 #' @export
 qhat_ranger <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005, ...){
-  require("ranger", quietly = TRUE)
+  requireNamespace("ranger", quietly = TRUE)
   l = ncol(List.train) - K
 
   stopifnot(l>0)
@@ -179,13 +179,13 @@ qhat_sl <- function (List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005,
     List.test = List.train
   }
 
-  require("SuperLearner", quietly = TRUE, warn.conflicts = FALSE)
-  require("parallel", quietly = TRUE, warn.conflicts = FALSE)
-  require("gam", quietly = TRUE, warn.conflicts = FALSE)
-  require("dplyr")
-  #require("xgboost", quietly = TRUE, warn.conflicts = FALSE)
-  require("janitor", quietly = TRUE, warn.conflicts = FALSE)
-  require("tidyr", quietly = TRUE, warn.conflicts = FALSE)
+  requireNamespace("SuperLearner", quietly = TRUE, warn.conflicts = FALSE)
+  requireNamespace("parallel", quietly = TRUE, warn.conflicts = FALSE)
+  requireNamespace("gam", quietly = TRUE, warn.conflicts = FALSE)
+  requireNamespace("dplyr")
+  #requireNamespace("xgboost", quietly = TRUE, warn.conflicts = FALSE)
+  requireNamespace("janitor", quietly = TRUE, warn.conflicts = FALSE)
+  requireNamespace("tidyr", quietly = TRUE, warn.conflicts = FALSE)
   slib = intersect(sl.lib, c("SL.glm", "SL.gam",
                              "SL.glm.interaction"))
   slib1 = setdiff(sl.lib, slib)
@@ -290,7 +290,7 @@ qhat_mlogit <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.0
     List.test = List.train
   }
 
-  require("nnet", quietly = TRUE)
+  requireNamespace("nnet", quietly = TRUE)
 
   l = ncol(List.train) - K
 
@@ -307,7 +307,7 @@ qhat_mlogit <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.0
 
     pred = predict(mfit, newdata = List.test, "probs")
     if(is.null(setdiff(c("10", "11", "01"), colnames(pred)))){
-      Error("Training data is missing one or more of the capture history combinations.")
+      stop("Training data is missing one or more of the capture history combinations.")
     }
     q12 = pmax(pred[,"11"], margin)
     q1 = pmin(pred[,"10"] + q12, 1)
@@ -337,7 +337,8 @@ qhat_mlogit <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.0
 #' @import ranger nnls
 #' @export
 qhat_rangerlogit <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005, ...){
-  require("ranger", quietly = TRUE)
+  requireNamespace("ranger", quietly = TRUE)
+  requireNamespace("nnls")
   l = ncol(List.train) - K
   if(missing(List.test)){
     List.test = List.train
@@ -365,7 +366,7 @@ qhat_rangerlogit <- function(List.train, List.test, K = 2, j = 1, k = 2, margin 
     q1.l = ql$q1
     q2.l = ql$q2
 
-    require("nnls")
+    requireNamespace("nnls")
     A = cbind(1, q12.r, q12.l)
     coef = coef(nnls(b = List.test[,paste0('L',j)]*List.test[,paste0('L',k)], A = A))
     coef = coef/sum(coef)

@@ -58,7 +58,7 @@ popsize_cond <- function(data, K = 2, filterrows = FALSE, funcname = c("rangerlo
   }
 
   if(sum(conforminglists) < K){
-    Message(cat("Lists ", which(conforminglists == FALSE), " are not in the required format."))
+    message(cat("Lists ", which(conforminglists == FALSE), " are not in the required format."))
   }
 
   if(!missing(condvar)){
@@ -100,10 +100,10 @@ popsize_cond <- function(data, K = 2, filterrows = FALSE, funcname = c("rangerlo
   }
 }
 #' @export
-print.popsize_cond <- function(obj){
-  obj$result$psi = round(obj$result$psi, 3)
-  obj$result$sigma = round(obj$result$sigma, 3)
-  obj$result$sigman = round(obj$result$sigman, 3)
-  print(obj$result)
-  invisible(obj)
+print.popsize_cond <- function(x, ...){
+  x$result$psi = round(x$result$psi, 3)
+  x$result$sigma = round(x$result$sigma, 3)
+  x$result$sigman = round(x$result$sigman, 3)
+  print(x$result)
+  invisible(x)
 }

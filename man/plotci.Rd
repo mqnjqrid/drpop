@@ -21,12 +21,12 @@ Plot estimated confidence interval of total population size.
 }
 \examples{
 
-data = simuldata(n = 10000, l = 1)$List_matrix_xstar
+data = simuldata(n = 10000, l = 1)$data_xstar
 
-p = popsize(List_matrix = data, funcname = c("logit", "gam"))
+p = popsize(data = data, funcname = c("logit", "gam"))
 plotci(p)
 
-data = simuldata(n = 10000, l = 1, categorical = TRUE)$List_matrix_xstar
-p = popsize_cond(List_matrix = data, condvar = 'catcov')
+data = simuldata(n = 10000, l = 1, categorical = TRUE)$data_xstar
+p = popsize_cond(data = data, condvar = 'catcov')
 plotci(p)
 }

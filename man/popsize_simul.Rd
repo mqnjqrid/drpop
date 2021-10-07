@@ -5,7 +5,7 @@
 \title{Estimate the total population size and capture probabilities using perturbed true nuisance functions.}
 \usage{
 popsize_simul(
-  List_matrix,
+  data,
   n,
   K = 2,
   nfolds = 5,
@@ -13,18 +13,18 @@ popsize_simul(
   pi2,
   omega,
   alpha,
-  eps = 0.005,
+  margin = 0.005,
   iter = 100,
   twolist = TRUE
 )
 }
 \arguments{
-\item{List_matrix}{The data frame in capture-recapture format for which total population is to be estimated.
+\item{data}{The data frame in capture-recapture format for which total population is to be estimated.
 The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.}
 
 \item{n}{The true population size. Required to calculate the added error.}
 
-\item{K}{The number of lists in the data. typically the first \code{K} rows of List_matrix.}
+\item{K}{The number of lists in the data. typically the first \code{K} rows of data.}
 
 \item{nfolds}{The number of folds to be used for cross fitting.}
 
@@ -36,7 +36,7 @@ The first K columns are the capture history indicators for the K lists. The rema
 
 \item{alpha}{The rate of convergence. Takes values in (0, 1].}
 
-\item{eps}{The minimum value the estimates can attain to bound them away from zero.}
+\item{margin}{The minimum value the estimates can attain to bound them away from zero.}
 
 \item{iter}{An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.}
 
@@ -57,9 +57,9 @@ Estimate the total population size and capture probabilities using perturbed tru
 }
 \examples{
 simulresult = simuldata(n = 2000, l = 2)
-data = simulresult$List_matrix
+data = simulresult$data
 
-psin_estimate = popsize_simul(List_matrix = data,
+psin_estimate = popsize_simul(data = data,
       pi1 = simulresult$pi1, pi2 = simulresult$pi2,
       alpha = 0.25, omega = 1)
 }

@@ -2,9 +2,9 @@
 % Please edit documentation in R/qhat_estimation_functions.R
 \name{qhat_mlogit}
 \alias{qhat_mlogit}
-\title{Estimate marginal and joint distribution of lists i and j using multinomial logistic model.}
+\title{Estimate marginal and joint distribution of lists j and k using multinomial logistic model.}
 \usage{
-qhat_mlogit(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...)
+qhat_mlogit(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005, ...)
 }
 \arguments{
 \item{List.train}{The training data matrix used to estimate the distibution functions.}
@@ -13,11 +13,11 @@ qhat_mlogit(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...)
 
 \item{K}{The number of lists in the data.}
 
-\item{i}{The first list that is conditionally independent.}
+\item{j}{The first list that is conditionally independent.}
 
-\item{j}{The second list that is conditionally independent.}
+\item{k}{The second list that is conditionally independent.}
 
-\item{eps}{The minimum value the estimates can attain to bound them away from zero.}
+\item{margin}{The minimum value the estimates can attain to bound them away from zero.}
 
 \item{...}{Any extra arguments passed into the function.}
 }
@@ -25,13 +25,18 @@ qhat_mlogit(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...)
 A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
 }
 \description{
-Estimate marginal and joint distribution of lists i and j using multinomial logistic model.
+Estimate marginal and joint distribution of lists j and k using multinomial logistic model.
 }
 \examples{
 \dontrun{
-qhat = qhat_mlogit(List.train = List.train, List.test = List.test, K = 3, i = 1, j = 2, eps = 0.005)
+qhat = qhat_mlogit(List.train = List.train, List.test = List.test, margin = 0.005)
 q1 = qhat$q1
 q2 = qhat$q2
 q12 = qhat$q12
 }
+}
+\references{
+Croissant Y (2020). Estimation of Random Utility Models in R: The mlogit Package. \emph{Journal of Statistical Software}, \emph{95}(11), 1-41. doi: 10.18637/jss.v095.i11 (URL: https://doi.org/10.18637/jss.v095.i11).
+
+Venables, W. N. & Ripley, B. D. (2002) Modern Applied Statistics with S. Fourth Edition. \emph{Springer}, New York. ISBN 0-387-95457-0
 }

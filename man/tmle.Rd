@@ -7,8 +7,8 @@
 tmle(
   datmat,
   iter = 250,
-  eps = 0.005,
-  eps_stop = 0.005,
+  margin = 0.005,
+  stop_margin = 0.005,
   twolist = FALSE,
   K = 2,
   ...
@@ -19,9 +19,9 @@ tmle(
 
 \item{iter}{An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method. Default value is 100.}
 
-\item{eps}{The minimum value the estimates can attain to bound them away from zero.}
+\item{margin}{The minimum value the estimates can attain to bound them away from zero.}
 
-\item{eps_stop}{The minimum value the estimates can attain to bound them away from zero.}
+\item{stop_margin}{The minimum value the estimates can attain to bound them away from zero.}
 
 \item{twolist}{The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.}
 
@@ -43,7 +43,7 @@ xmat = matrix(runif(nrow(data)*3, 0, 1), nrow = nrow(data))
 datmat = cbind(data, data[,1]*data[,2], xmat)
 colnames(datmat) = c("yj", "yk", "yjk", "q10", "q02", "q12")
 datmat = as.data.frame(datmat)
-result = tmle(datmat, eps = 0.005, eps_stop = 0.00001, twolist = TRUE)
+result = tmle(datmat, margin = 0.005, stop_margin = 0.00001, twolist = TRUE)
 }
 \references{
 Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.

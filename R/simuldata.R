@@ -6,16 +6,17 @@
 #' @param ep A numeric value to change the list probabilities.
 #' @param K The number of lists. Default value is 2. Maximum value is 3.
 #' @return A list of estimates containing the following components:
-#' \item{List_matrix}{  A dataframe in with \code{K} list capture histories and covariates from a population if true size \code{n} with only observed rows.}
-#' \item{List_matrix_xstar}{  A dataframe in with two list capture histories and transformed covariates from a population if true size \code{n} with only observed rows.}
+#' \item{data}{  A dataframe in with \code{K} list capture histories and covariates from a population if true size \code{n} with only observed rows.}
+#' \item{data_xstar}{  A dataframe in with two list capture histories and transformed covariates from a population if true size \code{n} with only observed rows.}
 #' \item{psi0}{  The empirical capture probability for the set-up used.}
 #' \item{pi1}{  The conditional capture probabilities for list 1.}
 #' \item{pi2}{  The conditional capture probabilities for list 2.}
 #' \item{pi3}{  The conditional capture probabilities for list 3 when \code{K = 3}.}
 #'
 #' @examples
-#' data = simuldata(n = 1000, l = 2)$List_matrix
+#' data = simuldata(n = 1000, l = 2)$data
 #' psi0 = simuldata(n = 10000, l = 2)$psi0
+#' @references Tilling, K., & Sterne, J. A. (1999). Capture-recapture models including covariate effects. _American journal of epidemiology_, 149(4), 392-400.
 #' @export
 simuldata = function(n, l, categorical = FALSE, ep = 0, K = 2){
   expit = function(x) {
@@ -91,21 +92,21 @@ simuldata = function(n, l, categorical = FALSE, ep = 0, K = 2){
                                  }
                                }))
   colnames(xp) = colnames(x)
-  List_matrix = cbind.data.frame(y1, y2, x)
-  List_matrix_xstar = cbind.data.frame(y1, y2, xp)
+  data = cbind.data.frame(y1, y2, x)
+  data_xstar = cbind.data.frame(y1, y2, xp)
   psi0 = 1 -  mean((1 - p1)*(1 - p2))
   if(K > 2){
-    List_matrix = cbind.data.frame(y1, y2, y3, x)
-    List_matrix_xstar = cbind.data.frame(y1, y2, y3, xp)
+    data = cbind.data.frame(y1, y2, y3, x)
+    data_xstar = cbind.data.frame(y1, y2, y3, xp)
     psi0 = 1 -  mean((1 - p1)*(1 - p2)*(1 - p3))
   }
   if(categorical){
-    List_matrix$catcov = catcov
-    List_matrix_xstar$catcov = catcov
+    data$catcov = catcov
+    data_xstar$catcov = catcov
   }
 
-  result = list(List_matrix = List_matrix[rowSums(List_matrix[,1:K])>0,],
-                List_matrix_xstar = List_matrix_xstar[rowSums(List_matrix[,1:K])>0,],
+  result = list(data = data[rowSums(data[,1:K])>0,],
+                data_xstar = data_xstar[rowSums(data[,1:K])>0,],
                 psi0 = psi0, pi1 = pi1, pi2 = pi2)
   if(K > 2){
     result$pi3 = pi3
@@ -191,21 +192,21 @@ simuldata = function(n, l, categorical = FALSE, ep = 0, K = 2){
                                    return((x[,li -2] + x[,li] + 20)^2)
                                  }
                                }))
-  List_matrix = cbind.data.frame(y1, y2, x)
-  List_matrix_xstar = cbind.data.frame(y1, y2, xp)
+  data = cbind.data.frame(y1, y2, x)
+  data_xstar = cbind.data.frame(y1, y2, xp)
   psi0 = 1 -  mean((1 - p1)*(1 - p2))
   if(K > 2){
-    List_matrix$y3 = y3
-    List_matrix_xstar$y3 = y3
+    data$y3 = y3
+    data_xstar$y3 = y3
     psi0 = 1 -  mean((1 - p1)*(1 - p2)*(1 - p3))
   }
   if(categorical){
-    List_matrix$catcov = catcov
-    List_matrix_xstar$catcov = catcov
+    data$catcov = catcov
+    data_xstar$catcov = catcov
   }
 
-  result = list(List_matrix = List_matrix[rowSums(List_matrix[,1:K])>0,],
-      List_matrix_xstar = List_matrix_xstar[rowSums(List_matrix[,1:K])>0,],
+  result = list(data = data[rowSums(data[,1:K])>0,],
+      data_xstar = data_xstar[rowSums(data[,1:K])>0,],
       psi0 = psi0, pi1 = pi1, pi2 = pi2)
   if(K > 2){
     result$pi3 = pi3

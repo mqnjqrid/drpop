@@ -5,13 +5,13 @@
 \title{Estimate total population size and capture probability using user provided set of models conditioned on an attribute.}
 \usage{
 popsize_cond(
-  List_matrix,
+  data,
   K = 2,
   filterrows = FALSE,
   funcname = c("rangerlogit"),
   condvar,
   nfolds = 2,
-  eps = 0.005,
+  margin = 0.005,
   sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"),
   TMLE = TRUE,
   PLUGIN = TRUE,
@@ -20,10 +20,10 @@ popsize_cond(
 )
 }
 \arguments{
-\item{List_matrix}{The data frame in capture-recapture format for which total population is to be estimated.
+\item{data}{The data frame in capture-recapture format for which total population is to be estimated.
 The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.}
 
-\item{K}{The number of lists in the data. typically the first \code{K} rows of List_matrix.}
+\item{K}{The number of lists in the data. typically the first \code{K} rows of data.}
 
 \item{filterrows}{A logical value denoting whether to remove all rows with only zeroes.}
 
@@ -33,7 +33,7 @@ The first K columns are the capture history indicators for the K lists. The rema
 
 \item{nfolds}{The number of folds to be used for cross fitting.}
 
-\item{eps}{The minimum value the estimates can attain to bound them away from zero.}
+\item{margin}{The minimum value the estimates can attain to bound them away from zero.}
 
 \item{sl.lib}{algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
 
@@ -65,9 +65,9 @@ A list of estimates containing the following components for each list-pair, mode
 Estimate total population size and capture probability using user provided set of models conditioned on an attribute.
 }
 \examples{
-data = simuldata(n = 10000, l = 2, categorical = TRUE)$List_matrix
+data = simuldata(n = 10000, l = 2, categorical = TRUE)$data
 
-psin_estimate = popsize_cond(List_matrix = data, funcname = c("logit", "gam"),
+psin_estimate = popsize_cond(data = data, funcname = c("logit", "gam"),
      condvar = 'catcov', PLUGIN = TRUE, TMLE = TRUE)
 #this returns the plug-in, the bias-corrected and the tmle estimate for the
 #two models conditioned on column catcov

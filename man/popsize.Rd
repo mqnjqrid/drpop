@@ -5,11 +5,11 @@
 \title{Estimate total population size and capture probability using user provided set of models or user provided nuisance estimates.}
 \usage{
 popsize(
-  List_matrix,
+  data,
   K = 2,
   j,
   k,
-  eps = 0.005,
+  margin = 0.005,
   filterrows = FALSE,
   nfolds = 5,
   funcname = c("rangerlogit"),
@@ -26,7 +26,7 @@ popsize(
 )
 }
 \arguments{
-\item{List_matrix}{The data frame in capture-recapture format with \code{K} lists for which total population is to be estimated.
+\item{data}{The data frame in capture-recapture format with \code{K} lists for which total population is to be estimated.
 The first K columns are the capture history indicators for the \code{K} lists. The remaining columns are covariates in numeric format.}
 
 \item{K}{The number of lists that are present in the data.}
@@ -35,7 +35,7 @@ The first K columns are the capture history indicators for the \code{K} lists. T
 
 \item{k}{The secod list to be used in the estimation.}
 
-\item{eps}{The minimum value the estimates can attain to bound them away from zero.}
+\item{margin}{The minimum value the estimates can attain to bound them away from zero.}
 
 \item{filterrows}{A logical value denoting whether to remove all rows with only zeroes.}
 
@@ -83,12 +83,10 @@ A list of estimates containing the following components for each list-pair, mode
 Estimate total population size and capture probability using user provided set of models or user provided nuisance estimates.
 }
 \examples{
-data = simuldata(1000, l = 3)$List_matrix
-qhat = popsize(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
-psin_estimate = popsize(List_matrix = data, getnuis = qhat$nuis, idfold = qhat$idfold)
+data = simuldata(1000, l = 3)$data
+qhat = popsize(data = data, funcname = c("logit", "gam"), nfolds = 2, margin = 0.005)
+psin_estimate = popsize(data = data, getnuis = qhat$nuis, idfold = qhat$idfold)
 }
 \references{
-Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
-
-van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
+Das, M., & Kennedy, E. H. (2021). Doubly robust capture-recapture methods for estimating population size. arXiv preprint arXiv:2104.14091.
 }

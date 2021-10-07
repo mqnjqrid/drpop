@@ -4,15 +4,15 @@
 \alias{reformat}
 \title{A function to reorder the columns of a data table/matrix/data frame and to change factor variables to numeric.}
 \usage{
-reformat(List_matrix, capturelists)
+reformat(data, capturelists)
 }
 \arguments{
-\item{List_matrix}{The data table/matrix/data frame which is to be checked.}
+\item{data}{The data table/matrix/data frame which is to be checked.}
 
 \item{capturelists}{The vector of column names or locations for the capture history list columns.}
 }
 \value{
-\code{List_matrix} With reordered columns so that the capture history columns are followed by the rest.
+\code{data} With reordered columns so that the capture history columns are followed by the rest.
 }
 \description{
 A function to reorder the columns of a data table/matrix/data frame and to change factor variables to numeric.
@@ -22,5 +22,5 @@ data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
 x = matrix(rnorm(nrow(data)*3, 2, 1), nrow = nrow(data))
 
 data = cbind(x, data)
-result<- reformat(List_matrix = data, capturelists = c(4,5))
+result<- reformat(data = data, capturelists = c(4,5))
 }

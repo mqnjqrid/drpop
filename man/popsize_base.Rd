@@ -5,14 +5,14 @@
 \title{Estimate total population size and capture probability using user provided set of models.}
 \usage{
 popsize_base(
-  List_matrix,
+  data,
   K = 2,
   j0,
   k0,
   filterrows = FALSE,
   funcname = c("rangerlogit"),
   nfolds = 5,
-  eps = 0.005,
+  margin = 0.005,
   sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"),
   Nmin = 500,
   TMLE = TRUE,
@@ -21,10 +21,10 @@ popsize_base(
 )
 }
 \arguments{
-\item{List_matrix}{The data frame in capture-recapture format for which total population is to be estimated.
+\item{data}{The data frame in capture-recapture format for which total population is to be estimated.
 The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.}
 
-\item{K}{The number of lists in the data. typically the first \code{K} rows of List_matrix.}
+\item{K}{The number of lists in the data. typically the first \code{K} rows of data.}
 
 \item{j0}{The first list to be used for estimation.}
 
@@ -36,7 +36,7 @@ The first K columns are the capture history indicators for the K lists. The rema
 
 \item{nfolds}{The number of folds to be used for cross fitting.}
 
-\item{eps}{The minimum value the estimates can attain to bound them away from zero.}
+\item{margin}{The minimum value the estimates can attain to bound them away from zero.}
 
 \item{sl.lib}{algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
 
@@ -68,15 +68,13 @@ A list of estimates containing the following components for each list-pair, mode
 Estimate total population size and capture probability using user provided set of models.
 }
 \examples{
-data = simuldata(n = 6000, l = 3)$List_matrix
-psin_estimate = popsize_base(List_matrix = data[,1:2])
+data = simuldata(n = 6000, l = 3)$data
+psin_estimate = popsize_base(data = data[,1:2])
 #this returns the basic plug-in estimate since covariates are absent.
 
-psin_estimate = popsize_base(List_matrix = data, funcname = c("gam", "rangerlogit"))
+psin_estimate = popsize_base(data = data, funcname = c("gam", "rangerlogit"))
 #this returns the plug-in, the bias-corrected and the tmle estimate for the two models
 }
 \references{
-Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
-
-van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
+Das, M., & Kennedy, E. H. (2021). Doubly robust capture-recapture methods for estimating population size. arXiv preprint arXiv:2104.14091.
 }

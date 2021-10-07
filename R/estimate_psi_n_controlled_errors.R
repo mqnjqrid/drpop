@@ -1,15 +1,15 @@
 #' Estimate the total population size and capture probabilities using perturbed true nuisance functions.
 #'
-#' @param List_matrix The data frame in capture-recapture format for which total population is to be estimated.
+#' @param data The data frame in capture-recapture format for which total population is to be estimated.
 #'                    The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.
 #' @param n The true population size. Required to calculate the added error.
-#' @param K The number of lists in the data. typically the first \code{K} rows of List_matrix.
+#' @param K The number of lists in the data. typically the first \code{K} rows of data.
 #' @param omega The standard deviation from zero of the added error.
 #' @param alpha The rate of convergence. Takes values in (0, 1].
 #' @param nfolds The number of folds to be used for cross fitting.
 #' @param pi1 The function to calculate the conditional capture probabilities of list 1 using covariates.
 #' @param pi2 The function to calculate the conditional capture probabilities of list 2 using covariates.
-#' @param eps The minimum value the estimates can attain to bound them away from zero.
+#' @param margin The minimum value the estimates can attain to bound them away from zero.
 #' @param iter An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method.
 #' @param twolist The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.
 #' @return A list of estimates containing the following components:
@@ -25,16 +25,16 @@
 #' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
 #' @examples
 #' simulresult = simuldata(n = 2000, l = 2)
-#' data = simulresult$List_matrix
+#' data = simulresult$data
 #'
-#' psin_estimate = popsize_simul(List_matrix = data,
+#' psin_estimate = popsize_simul(data = data,
 #'       pi1 = simulresult$pi1, pi2 = simulresult$pi2,
 #'       alpha = 0.25, omega = 1)
 #' @export
-popsize_simul = function(List_matrix, n, K = 2, nfolds = 5, pi1, pi2, omega, alpha, eps = 0.005, iter = 100, twolist = TRUE){
+popsize_simul = function(data, n, K = 2, nfolds = 5, pi1, pi2, omega, alpha, margin = 0.005, iter = 100, twolist = TRUE){
 
   if(missing(n)){
-    n = nrow(List_matrix)
+    n = nrow(data)
   }
   expit = function(x) {
     exp(x)/(1 + exp(x))
@@ -45,10 +45,10 @@ popsize_simul = function(List_matrix, n, K = 2, nfolds = 5, pi1, pi2, omega, alp
   eta = n^alpha
   delta = 0
   #removing all rows with only 0's
-  List_matrix = List_matrix[which(rowSums(List_matrix[,1:K]) > 0),]
-  List_matrix = as.data.frame(List_matrix)
-  N = nrow(List_matrix)
-  colnames(List_matrix) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List_matrix) - K), sep = ''))
+  data = data[which(rowSums(data[,1:K]) > 0),]
+  data = as.data.frame(data)
+  N = nrow(data)
+  colnames(data) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(data) - K), sep = ''))
 
   psiinv_summary = matrix(0, nrow = K*(K - 1)/2, ncol = 3)
   rownames(psiinv_summary) = unlist(sapply(1:(K - 1), function(r) {
@@ -61,12 +61,12 @@ popsize_simul = function(List_matrix, n, K = 2, nfolds = 5, pi1, pi2, omega, alp
   permutset = sample(1:N, N, replace = FALSE)
 
   for(j in 1:(K - 1)){
-    if(!setequal(List_matrix[,j], c(0,1))){
+    if(!setequal(data[,j], c(0,1))){
       #     cat("List ", j, " is not in the required format or is degenerate.\n")
       next
     }
     for(k in (j + 1):K){
-      if(!setequal(List_matrix[,k], c(0,1))){
+      if(!setequal(data[,k], c(0,1))){
         #       cat("List ", k, " is not in the required format or is degenerate.\n")
         next
       }
@@ -77,11 +77,11 @@ popsize_simul = function(List_matrix, n, K = 2, nfolds = 5, pi1, pi2, omega, alp
       for(folds in 1:nfolds){
 
         if(nfolds == 1){
-          List2 = as.data.frame(List_matrix)
+          List2 = as.data.frame(data)
         }else{
           sbset = ((folds - 1)*ceiling(N/nfolds) + 1):(folds*ceiling(N/nfolds))
           sbset = sbset[sbset <= N]
-          List2 = as.data.frame(List_matrix[permutset[sbset],])
+          List2 = as.data.frame(data[permutset[sbset],])
         }
 
         xmat = as.matrix(List2[,-c(1:K)])
@@ -95,10 +95,10 @@ popsize_simul = function(List_matrix, n, K = 2, nfolds = 5, pi1, pi2, omega, alp
         yj = List2[,paste("L", j, sep = '')]
         yk = List2[,paste("L", k, sep = '')]
 
-        epsiln = matrix(rnorm(3*nrow(xmat), 1/eta, omega/eta), ncol = 3)
-        q12 = expit(logit(q12_0) + epsiln[,3])
-        q1 = pmin(expit(logit(q10_0) + epsiln[,1]) + q12, 1)
-        q2 = pmax(pmin(expit(logit(q02_0) + epsiln[,2]) + q12, 1 + q12 - q1), q12/q1)
+        marginiln = matrix(rnorm(3*nrow(xmat), 1/eta, omega/eta), ncol = 3)
+        q12 = expit(logit(q12_0) + marginiln[,3])
+        q1 = pmin(expit(logit(q10_0) + marginiln[,1]) + q12, 1)
+        q2 = pmax(pmin(expit(logit(q02_0) + marginiln[,2]) + q12, 1 + q12 - q1), q12/q1)
 
         #colsubset = stringr::str_subset(colnames(psiinv_summary), func)
 
@@ -117,10 +117,10 @@ popsize_simul = function(List_matrix, n, K = 2, nfolds = 5, pi1, pi2, omega, alp
         varmat[folds, 1:2] = sigmasq/N
 
         datmat = as.data.frame(cbind(yj, yk, yj*yk, q1 - q12, q2 - q12, q12))
-        datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, eps), 1 - eps))}))
+        datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, margin), 1 - margin))}))
         colnames(datmat) = c("yj", "yk", "yjk", "q10", "q02", "q12")
 
-        tmle = tmle(datmat = datmat, iter = iter, eps = eps, eps_stop = 0.00001, twolist = twolist)
+        tmle = tmle(datmat = datmat, iter = iter, margin = margin, margin_stop = 0.00001, twolist = twolist)
 
         if(tmle$error){
           warning("TMLE did not run or converge.")
@@ -128,7 +128,7 @@ popsize_simul = function(List_matrix, n, K = 2, nfolds = 5, pi1, pi2, omega, alp
           varmat[folds,colsubset][3] = NA
         }else{
           datmat = tmle$datmat
-          q12 = pmax(datmat$q12, eps)
+          q12 = pmax(datmat$q12, margin)
           q1 = pmin(datmat$q12 + datmat$q10, 1)
           q2 = pmax(pmin(datmat$q12 + datmat$q02, 1 + q12 - q1, 1), q12/q1)
 

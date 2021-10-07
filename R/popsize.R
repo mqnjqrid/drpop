@@ -1,11 +1,11 @@
 #' Estimate total population size and capture probability using user provided set of models or user provided nuisance estimates.
 #'
-#' @param List_matrix The data frame in capture-recapture format with \code{K} lists for which total population is to be estimated.
+#' @param data The data frame in capture-recapture format with \code{K} lists for which total population is to be estimated.
 #'                    The first K columns are the capture history indicators for the \code{K} lists. The remaining columns are covariates in numeric format.
 #' @param K The number of lists that are present in the data.
 #' @param j The first list to be used for estimation.
 #' @param k The secod list to be used in the estimation.
-#' @param eps The minimum value the estimates can attain to bound them away from zero.
+#' @param margin The minimum value the estimates can attain to bound them away from zero.
 #' @param getnuis A list object with the nuisance function estimates and the fold assignment of the rows for cross-fitting or a data.frame with the nuisance estimates.
 #' @param q1mat A dataframe with capture probabilities for the first list.
 #' @param q2mat A dataframe with capture probabilities for the second list.
@@ -35,14 +35,13 @@
 #' \item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
 #' \item{idfold}{  The division of the rows into sets (folds) for cross-fitting.}
 #'
-#' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
-#' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
+#' @references Das, M., & Kennedy, E. H. (2021). Doubly robust capture-recapture methods for estimating population size. arXiv preprint arXiv:2104.14091.
 #' @examples
-#' data = simuldata(1000, l = 3)$List_matrix
-#' qhat = popsize(List_matrix = data, funcname = c("logit", "gam"), nfolds = 2, eps = 0.005)
-#' psin_estimate = popsize(List_matrix = data, getnuis = qhat$nuis, idfold = qhat$idfold)
+#' data = simuldata(1000, l = 3)$data
+#' qhat = popsize(data = data, funcname = c("logit", "gam"), nfolds = 2, margin = 0.005)
+#' psin_estimate = popsize(data = data, getnuis = qhat$nuis, idfold = qhat$idfold)
 #' @export
-popsize <- function(List_matrix, K = 2, j, k, eps = 0.005, filterrows = FALSE, nfolds = 5, funcname = c("rangerlogit"),
+popsize <- function(data, K = 2, j, k, margin = 0.005, filterrows = FALSE, nfolds = 5, funcname = c("rangerlogit"),
                      sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), getnuis, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, PLUGIN = TRUE, Nmin = 100,...){
 
   if(!missing(j) & !missing(k)){
@@ -62,25 +61,25 @@ popsize <- function(List_matrix, K = 2, j, k, eps = 0.005, filterrows = FALSE, n
     if(!missing(j) & missing(k)){
       print(j)
       if(j == K)
-        return(popsize_base(List_matrix, K = K, k0 = j, filterrows = filterrows, funcname = funcname, nfolds = nfolds, eps = eps,
+        return(popsize_base(data, K = K, k0 = j, filterrows = filterrows, funcname = funcname, nfolds = nfolds, margin = margin,
                           sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
       else
-        return(popsize_base(List_matrix, K = K, j0 = j, filterrows = filterrows, funcname = funcname, nfolds = nfolds, eps = eps,
+        return(popsize_base(data, K = K, j0 = j, filterrows = filterrows, funcname = funcname, nfolds = nfolds, margin = margin,
                             sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
     }else if(missing(j) & !missing(k)){
       if(k < K)
-        return(popsize_base(List_matrix, K = K, j0 = k, filterrows = filterrows, funcname = funcname, nfolds = nfolds, eps = eps,
+        return(popsize_base(data, K = K, j0 = k, filterrows = filterrows, funcname = funcname, nfolds = nfolds, margin = margin,
                             sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
       else
-        return(popsize_base(List_matrix, K = K, k0 = k, filterrows = filterrows, funcname = funcname, nfolds = nfolds, eps = eps,
+        return(popsize_base(data, K = K, k0 = k, filterrows = filterrows, funcname = funcname, nfolds = nfolds, margin = margin,
                             sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
     }else
-      return(popsize_base(List_matrix, K = K, j0 = j, k0 = k, filterrows = filterrows, funcname = funcname, nfolds = nfolds, eps = eps,
+      return(popsize_base(data, K = K, j0 = j, k0 = k, filterrows = filterrows, funcname = funcname, nfolds = nfolds, margin = margin,
                         sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
   }
 
   K = 2
-  n = nrow(List_matrix)
+  n = nrow(data)
 
   if(missing(j)){
     j = 1
@@ -113,20 +112,20 @@ popsize <- function(List_matrix, K = 2, j, k, eps = 0.005, filterrows = FALSE, n
     idfold = rep(1, n)
   }
   nfolds = max(idfold)
-  stopifnot(!is.null(dim(List_matrix)))
+  stopifnot(!is.null(dim(data)))
 
-  if(!informat(List_matrix = List_matrix, K = K)){
-    List_matrix <- reformat(List_matrix = List_matrix, capturelists = 1:K)
+  if(!informat(data = data, K = K)){
+    data <- reformat(data = data, capturelists = 1:K)
   }
 
-  List_matrix = as.data.frame(List_matrix)
+  data = as.data.frame(data)
   #N = number of observed or captured units
-  N = nrow(List_matrix)
+  N = nrow(data)
 
   stopifnot(N > 1)
 
-  #renaming the columns of List_matrix for ease of use
-  colnames(List_matrix) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List_matrix) - K), sep = ''))
+  #renaming the columns of data for ease of use
+  colnames(data) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(data) - K), sep = ''))
 
   psiinv_summary = matrix(0, nrow = K*(K - 1)/2, ncol = 3*length(funcname))
   rownames(psiinv_summary) = paste0(j, ",", k)
@@ -152,7 +151,7 @@ popsize <- function(List_matrix, K = 2, j, k, eps = 0.005, filterrows = FALSE, n
 
   for (folds in 1:nfolds){#print(folds)
 
-    List2 = List_matrix[idfold == folds,]
+    List2 = data[idfold == folds,]
 
     yj = List2[,paste("L", j, sep = '')]
     yk = List2[,paste("L", k, sep = '')]
@@ -183,11 +182,11 @@ popsize <- function(List_matrix, K = 2, j, k, eps = 0.005, filterrows = FALSE, n
       varmat[folds, paste(func, c("PI", "DR"), sep = '.')] = sigmasq/N
 
       datmat = as.data.frame(cbind(yj, yk, yj*yk, q1 - q12, q2 - q12, q12))
-      datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, eps), 1 - eps))}))
+      datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, margin), 1 - margin))}))
       colnames(datmat) = c("yj", "yk", "yjk", "q10", "q02", "q12")
 
       if(TMLE){
-        tmle = tmle(datmat = datmat, eps = eps, K = 2, ...)
+        tmle = tmle(datmat = datmat, margin = margin, K = 2, ...)
       }else{
         tmle = list(error = TRUE)
       }
@@ -198,7 +197,7 @@ popsize <- function(List_matrix, K = 2, j, k, eps = 0.005, filterrows = FALSE, n
         varmat[folds, paste(func, "TMLE", sep = '.')] = NA
       }else{
         datmat = tmle$datmat
-        q12 = pmax(datmat$q12, eps)
+        q12 = pmax(datmat$q12, margin)
         q1 = pmin(datmat$q12 + datmat$q10, 1)
         q2 = pmax(pmin(datmat$q12 + datmat$q02, 1 + q12 - q1, 1), q12/q1)
 

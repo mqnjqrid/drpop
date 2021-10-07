@@ -11,16 +11,11 @@ Authors@R:
            family = "Kennedy",
            role = c("aut"),
            email = "edward@stat.cmu.edu",
-           comment = c(ORCID = "0000-0002-1510-8175")),
-    person(given = "Nicholas P.",
-           family = "Jewell",
-           role = c("aut"),
-           email = "Nicholas.Jewell@lshtm.ac.uk",
-           comment = c(ORCID = "0000-0002-8637-9132")))
+           comment = c(ORCID = "0000-0002-1510-8175")))
 Description: Estimates the total population size from capture-recapture data. User can choose estimation models.
 Depends: stats
 Imports: gam, janitor, reshape2, stringr, tidyr, dplyr, SuperLearner, ggplot2, nnet, nnls, parallel, ranger, tidyverse, xgboost
-License: `use_mit_license()`, `use_gpl3_license()` or friends to
+License: `use_mit_license()`
     pick a license
 Encoding: UTF-8
 LazyData: true

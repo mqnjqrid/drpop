@@ -2,15 +2,15 @@
 % Please edit documentation in R/qhat_estimation_functions.R
 \name{qhat_sl}
 \alias{qhat_sl}
-\title{Estimate marginal and joint distribution of lists i and j using super learner.}
+\title{Estimate marginal and joint distribution of lists j and k using super learner.}
 \usage{
 qhat_sl(
   List.train,
   List.test,
   K = 2,
-  i = 1,
-  j = 2,
-  eps = 0.005,
+  j = 1,
+  k = 2,
+  margin = 0.005,
   sl.lib = c("SL.glm", "SL.gam", "SL.glm.interaction", "SL.ranger", "SL.glmnet"),
   num_cores = NA,
   ...
@@ -23,11 +23,11 @@ qhat_sl(
 
 \item{K}{The number of lists in the data.}
 
-\item{i}{The first list that is conditionally independent.}
+\item{j}{The first list that is conditionally independent.}
 
-\item{j}{The second list that is conditionally independent.}
+\item{k}{The second list that is conditionally independent.}
 
-\item{eps}{The minimum value the estimates can attain to bound them away from zero.}
+\item{margin}{The minimum value the estimates can attain to bound them away from zero.}
 
 \item{sl.lib}{The functions from the SuperLearner library to be used for model fitting.}
 
@@ -39,13 +39,18 @@ qhat_sl(
 A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
 }
 \description{
-Estimate marginal and joint distribution of lists i and j using super learner.
+Estimate marginal and joint distribution of lists j and k using super learner.
 }
 \examples{
 \dontrun{
-qhat = qhat_sl(List.train = List.train, List.test = List.test, K = 3, i = 1, j = 2, eps = 0.005)
+qhat = qhat_sl(List.train = List.train, List.test = List.test, margin = 0.005)
 q1 = qhat$q1
 q2 = qhat$q2
 q12 = qhat$q12
 }
+}
+\references{
+Eric Polley, Erin LeDell, Chris Kennedy and Mark van der Laan (2021). SuperLearner: Super Learner Prediction. R package version 2.0-28. https://CRAN.R-project.org/package=SuperLearner
+
+van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, \emph{Statistical Applications of Genetics and Molecular Biology}, 6, article 25.
 }

@@ -1,14 +1,14 @@
 #' Estimate total population size and capture probability using user provided set of models.
 #'
-#' @param List_matrix The data frame in capture-recapture format for which total population is to be estimated.
+#' @param data The data frame in capture-recapture format for which total population is to be estimated.
 #'                    The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.
-#' @param K The number of lists in the data. typically the first \code{K} rows of List_matrix.
+#' @param K The number of lists in the data. typically the first \code{K} rows of data.
 #' @param j0 The first list to be used for estimation.
 #' @param k0 The secod list to be used in the estimation.
 #' @param filterrows A logical value denoting whether to remove all rows with only zeroes.
 #' @param funcname The vector of estimation function names to obtain the population size.
 #' @param nfolds The number of folds to be used for cross fitting.
-#' @param eps The minimum value the estimates can attain to bound them away from zero.
+#' @param margin The minimum value the estimates can attain to bound them away from zero.
 #' @param sl.lib algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".
 #' @param Nmin The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.
 #' @param TMLE The logical value to indicate whether TMLE has to be computed.
@@ -29,44 +29,46 @@
 #' \item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
 #' \item{idfold}{  The division of the rows into sets (folds) for cross-fitting.}
 #'
-#' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
-#' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
+#' @references Das, M., & Kennedy, E. H. (2021). Doubly robust capture-recapture methods for estimating population size. arXiv preprint arXiv:2104.14091.
 #' @examples
-#' data = simuldata(n = 6000, l = 3)$List_matrix
-#' psin_estimate = popsize_base(List_matrix = data[,1:2])
+#' data = simuldata(n = 6000, l = 3)$data
+#' psin_estimate = popsize_base(data = data[,1:2])
 #' #this returns the basic plug-in estimate since covariates are absent.
 #'
-#' psin_estimate = popsize_base(List_matrix = data, funcname = c("gam", "rangerlogit"))
+#' psin_estimate = popsize_base(data = data, funcname = c("gam", "rangerlogit"))
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the two models
 #setClass("popsize", contains = "list")
 # @exportClass popsize
 #setMethod("print", "popsize", print.popsize)
+#' @importFrom dplyr "%>%" "mutate" "select_if"
+#' @import utils
+#' @import stats
+#' @importFrom tidyr "separate"
 #' @export
-#' @importFrom dplyr "%>%"
-popsize_base <- function(List_matrix, K = 2, j0, k0, filterrows = FALSE, funcname = c("rangerlogit"), nfolds = 5, eps = 0.005,
+popsize_base <- function(data, K = 2, j0, k0, filterrows = FALSE, funcname = c("rangerlogit"), nfolds = 5, margin = 0.005,
                           sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, TMLE = TRUE, PLUGIN = TRUE,...){
 
   require("dplyr", quietly = TRUE, warn.conflicts = FALSE)
   require("tidyr")
-  l = ncol(List_matrix) - K
-  n = nrow(List_matrix)
+  l = ncol(data) - K
+  n = nrow(data)
 
-  stopifnot(!is.null(dim(List_matrix)))
+  stopifnot(!is.null(dim(data)))
 
-  if(!informat(List_matrix = List_matrix, K = K)){
-    List_matrix <- reformat(List_matrix = List_matrix, capturelists = 1:K)
+  if(!informat(data = data, K = K)){
+    data <- reformat(data = data, capturelists = 1:K)
    }
 
-  List_matrix = na.omit(List_matrix)
+  data = na.omit(data)
 
   if(filterrows){
     #removing all rows with only 0's
-    List_matrix = List_matrix[which(rowSums(List_matrix[,1:K]) > 0),]
+    data = data[which(rowSums(data[,1:K]) > 0),]
   }
 
-  List_matrix = as.data.frame(List_matrix)
+  data = as.data.frame(data)
   #N = number of observed or captured units
-  N = nrow(List_matrix)
+  N = nrow(data)
 
   stopifnot(N > 1)
 
@@ -75,7 +77,7 @@ popsize_base <- function(List_matrix, K = 2, j0, k0, filterrows = FALSE, funcnam
     warning(cat("Insufficient number of observations for doubly-robust estimation."))
   }
 
-  conforminglists = apply(List_matrix[,1:K], 2, function(col){return(setequal(col, c(0,1)))})
+  conforminglists = apply(data[,1:K], 2, function(col){return(setequal(col, c(0,1)))})
   if(sum(conforminglists) < 2){
     stop("Data is not in the required format or lists are degenerate.")
     return(NULL)
@@ -96,8 +98,8 @@ popsize_base <- function(List_matrix, K = 2, j0, k0, filterrows = FALSE, funcnam
     list2_vec = c(1:K)
 
   if(l == 0){
-    #renaming the columns of List_matrix for ease of use
-    colnames(List_matrix) = c(paste("L", 1:K, sep = ''))
+    #renaming the columns of data for ease of use
+    colnames(data) = c(paste("L", 1:K, sep = ''))
 
     listpair = unlist(sapply(list1_vec, function(j1) {
       sapply(setdiff(list2_vec, list1_vec[list1_vec <= j1]), function(k1) {
@@ -109,11 +111,11 @@ popsize_base <- function(List_matrix, K = 2, j0, k0, filterrows = FALSE, funcnam
 
     for(j in list1_vec){
       j0 = j
-      if(!setequal(List_matrix[,j], c(0,1))){
+      if(!setequal(data[,j], c(0,1))){
         next
       }
       for(k in setdiff(list2_vec, list1_vec[list1_vec <= j0])){
-        if(!setequal(List_matrix[,k], c(0,1))){
+        if(!setequal(data[,k], c(0,1))){
           next
         }
         if(j0 > k) {
@@ -121,9 +123,9 @@ popsize_base <- function(List_matrix, K = 2, j0, k0, filterrows = FALSE, funcnam
           k = j0
         }else
           j = j0
-        q1 = mean(List_matrix[,j])
-        q2 = mean(List_matrix[,k])
-        q12 = mean(List_matrix[,j]*List_matrix[,k])
+        q1 = mean(data[,j])
+        q2 = mean(data[,k])
+        q12 = mean(data[,j]*data[,k])
         psiinv[psiinv$listpair == paste0(j, ",", k),]$psiin = pmax(q1*q2/q12, 1)
         psiinv[psiinv$listpair == paste0(j, ",", k),]$sigma = sqrt(q1*q2*pmax(q1*q2 - q12, 0)*(1 - q12)/q12^3/N)
       }
@@ -141,8 +143,8 @@ popsize_base <- function(List_matrix, K = 2, j0, k0, filterrows = FALSE, funcnam
     return(object)
   }else{
 
-    #renaming the columns of List_matrix for ease of use
-    colnames(List_matrix) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List_matrix) - K), sep = ''))
+    #renaming the columns of data for ease of use
+    colnames(data) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(data) - K), sep = ''))
 
     if(nfolds > 1 & nfolds > N/50) {
       nfolds = pmax(floor(N/50), 1)
@@ -176,12 +178,12 @@ popsize_base <- function(List_matrix, K = 2, j0, k0, filterrows = FALSE, funcnam
 
     for(j in list1_vec){
       j0 = j
-      if(!setequal(List_matrix[,j], c(0,1))){
+      if(!setequal(data[,j], c(0,1))){
         #     cat("List ", j, " is not in the required format or is degenerate.\n")
         next
       }
       for(k in setdiff(list2_vec, list1_vec[list1_vec <= j0])){
-        if(!setequal(List_matrix[,k], c(0,1))){
+        if(!setequal(data[,k], c(0,1))){
           #       cat("List ", k, " is not in the required format or is degenerate.\n")
           next
         }
@@ -206,14 +208,14 @@ popsize_base <- function(List_matrix, K = 2, j0, k0, filterrows = FALSE, funcnam
         for(folds in 1:nfolds){#print(folds)
 
           if(nfolds == 1){
-            List1 = List_matrix
+            List1 = data
             List2 = List1
             sbset = 1:N
           }else{
             sbset = ((folds - 1)*ceiling(N/nfolds) + 1):(folds*ceiling(N/nfolds))
             sbset = sbset[sbset <= N]
-            List1 = List_matrix[permutset[-sbset],]
-            List2 = List_matrix[permutset[sbset],]
+            List1 = data[permutset[-sbset],]
+            List2 = data[permutset[sbset],]
             idfold[permutset[sbset]] = folds
           }
 
@@ -221,13 +223,13 @@ popsize_base <- function(List_matrix, K = 2, j0, k0, filterrows = FALSE, funcnam
           yk = List2[,paste("L", k, sep = '')]
 
           overlapjk = mean(List1[,j]*List1[,k])
-          if(overlapjk < eps) {
-            warning(cat("Overlap between the lists ", j, " and ", k, " is less than ", eps, '.\n', sep = ''))
+          if(overlapjk < margin) {
+            warning(cat("Overlap between the lists ", j, " and ", k, " is less than ", margin, '.\n', sep = ''))
           }
           for (func in funcname){
 
             #colsubset = stringr::str_subset(colnames(psiinv_summary), func)
-            qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, j, k, eps = eps,...), silent = TRUE)
+            qhat = try(get(paste0("qhat_", func))(List.train = List1, List.test = List2, K, j, k, margin = margin,...), silent = TRUE)
 
             if ("try-error" %in% class(qhat)) {
               next
@@ -258,7 +260,7 @@ popsize_base <- function(List_matrix, K = 2, j0, k0, filterrows = FALSE, funcnam
             colnames(datmat) = c("yj", "yk", "yjk", "q10", "q02", "q12")
 
             if(TMLE) {
-              tmle = tmle(datmat = datmat, eps = eps, K = K,...)
+              tmle = tmle(datmat = datmat, margin = margin, K = K,...)
             }else{
               next
             }
@@ -269,7 +271,7 @@ popsize_base <- function(List_matrix, K = 2, j0, k0, filterrows = FALSE, funcnam
               varmat[folds, paste(func, "TMLE", sep = '.')] = NA
             }else{
               datmat = tmle$datmat
-              q12 = pmax(datmat$q12, eps)
+              q12 = pmax(datmat$q12, margin)
               q1 = pmin(datmat$q12 + datmat$q10, 1)
               q2 = pmax(pmin(datmat$q12 + datmat$q02, 1 + q12 - q1, 1), q12/q1)
 

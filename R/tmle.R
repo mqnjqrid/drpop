@@ -2,8 +2,8 @@
 #'
 #' @param datmat The data frame containing columns \code{yj}, \code{yk}, \code{yjk}, \code{q10}, \code{q02} and \code{q12}.
 #' @param iter An integer denoting the maximum number of iterations allowed for targeted maximum likelihood method. Default value is 100.
-#' @param eps The minimum value the estimates can attain to bound them away from zero.
-#' @param eps_stop The minimum value the estimates can attain to bound them away from zero.
+#' @param margin The minimum value the estimates can attain to bound them away from zero.
+#' @param stop_margin The minimum value the estimates can attain to bound them away from zero.
 #' @param twolist The logical value of whether targeted maximum likelihood algorithm fits only two modes when K = 2.
 #' @param K The number of lists in the original data.
 #' @param ... Any extra arguments passed into the function.
@@ -18,23 +18,22 @@
 #' datmat = cbind(data, data[,1]*data[,2], xmat)
 #' colnames(datmat) = c("yj", "yk", "yjk", "q10", "q02", "q12")
 #' datmat = as.data.frame(datmat)
-#' result = tmle(datmat, eps = 0.005, eps_stop = 0.00001, twolist = TRUE)
+#' result = tmle(datmat, margin = 0.005, stop_margin = 0.00001, twolist = TRUE)
 #' @export
-
-tmle <- function(datmat, iter = 250, eps = 0.005, eps_stop = 0.005, twolist = FALSE, K = 2,...){
+tmle <- function(datmat, iter = 250, margin = 0.005, stop_margin = 0.005, twolist = FALSE, K = 2,...){
 
   if(!prod(c("yj", "yk", "yjk", "q10", "q02", "q12") %in% colnames(datmat))){
     stop("datmat misses one or more of the following columns: \t (yj, yk, yjk, q10, q02, q12).")
     return(list(error = TRUE))
   }
 
-  eps = max(eps, 0.005)
-  datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, eps), 1 - eps))}))
+  margin = max(margin, 0.005)
+  datmat[,4:6] = cbind(apply(datmat[,4:6], 2, function(u) {return(pmin(pmax(u, margin), 1 - margin))}))
 
  # ifval = (datmat$q10+datmat$q12)*(datmat$q10+datmat$q12)/datmat$q12 *(
 #    datmat$yj/(datmat$q10+datmat$q12) + datmat$yk/(datmat$q02+datmat$q12) - datmat$yjk/(datmat$q12) - 1)
 
-#  eps_stop = sqrt(mean((ifval)^2))/max(log(nrow(datmat)), 10)/sqrt(nrow(datmat))
+#  stop_margin = sqrt(mean((ifval)^2))/max(log(nrow(datmat)), 10)/sqrt(nrow(datmat))
   expit = function(x) {
     exp(x)/(1 + exp(x))
   }
@@ -42,10 +41,10 @@ tmle <- function(datmat, iter = 250, eps = 0.005, eps_stop = 0.005, twolist = FA
     log(x/(1 - x))
   }
 
-  epsilon_error = 1 + eps_stop
+  marginilon_error = 1 + stop_margin
   cnt = 0
 
-  while (abs(epsilon_error) > eps_stop){
+  while (abs(marginilon_error) > stop_margin){
     cnt = cnt + 1
     if (cnt > iter){break}
 
@@ -61,8 +60,8 @@ tmle <- function(datmat, iter = 250, eps = 0.005, eps_stop = 0.005, twolist = FA
       datmat[,"q12"] = predict(mod1, newdata = dat1, type = "response")
 
     }
-    epsilon_error = abs(mod1$coefficients)
-    datmat$q12 = pmax(pmin(datmat$q12, 1), eps)
+    marginilon_error = abs(mod1$coefficients)
+    datmat$q12 = pmax(pmin(datmat$q12, 1), margin)
 
     ########################### model 2 for q1
     dat1 = cbind(datmat$yj*(1 - datmat$yk), logit(datmat$q10), (datmat$q02 + datmat$q12)/datmat$q12)
@@ -73,8 +72,8 @@ tmle <- function(datmat, iter = 250, eps = 0.005, eps_stop = 0.005, twolist = FA
       datmat$q10 = predict(mod1, newdata = dat1, type = "response")
       datmat[,"q10"] = pmin(datmat[,"q10"], 1 - datmat$q12)
     }
-    datmat$q10 = pmax(pmin(datmat$q10, 1), eps)
-    epsilon_error = max(abs(mod1$coefficients), epsilon_error)
+    datmat$q10 = pmax(pmin(datmat$q10, 1), margin)
+    marginilon_error = max(abs(mod1$coefficients), marginilon_error)
 
     ########################### model 3 for q2
     if (K > 2 | twolist == FALSE){
@@ -85,22 +84,22 @@ tmle <- function(datmat, iter = 250, eps = 0.005, eps_stop = 0.005, twolist = FA
       if (!("try-error" %in% class(mod1))){
         datmat$q02 = predict(mod1, newdata = dat1, type = "response")
         datmat[,"q02"] = pmin(datmat[,"q02"], 1 - datmat$q10 - datmat$q12)
-        epsilon_error = max(abs(mod1$coefficients), epsilon_error)
+        marginilon_error = max(abs(mod1$coefficients), marginilon_error)
       }
     }else{
       datmat[,"q02"] = pmax(0, 1 - datmat$q10 - datmat$q12)
     }
 
-    datmat$q02 = pmax(pmin(datmat$q02, 1), eps)
+    datmat$q02 = pmax(pmin(datmat$q02, 1), margin)
 
     # ifval = (datmat$q10+datmat$q12)*(datmat$q10+datmat$q12)/datmat$q12 *(
     #   datmat$yj/(datmat$q10+datmat$q12) + datmat$yk/(datmat$q02+datmat$q12) - datmat$yjk/(datmat$q12) - 1)
     # eplison_error = mean(ifval)
-    if(is.null(epsilon_error))
-       epsilon_error = 2
-    #epsilon_error = max(abs(expit(dat1$logitq12) - datmat$q12),
+    if(is.null(marginilon_error))
+       marginilon_error = 2
+    #marginilon_error = max(abs(expit(dat1$logitq12) - datmat$q12),
     #                    abs(expit(dat1$logitq10) - datmat$q10),
     #                    abs(expit(dat1$logitq02) - datmat$q02))
   }
-  return(list(error = abs(epsilon_error) > 1, datmat = datmat, iterations = cnt, epsilon_error = epsilon_error))
+  return(list(error = abs(marginilon_error) > 1, datmat = datmat, iterations = cnt, marginilon_error = marginilon_error))
 }

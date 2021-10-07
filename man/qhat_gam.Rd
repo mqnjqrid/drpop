@@ -2,9 +2,9 @@
 % Please edit documentation in R/qhat_estimation_functions.R
 \name{qhat_gam}
 \alias{qhat_gam}
-\title{Estimate marginal and joint distribution of lists i and j using generalized additive models.}
+\title{Estimate marginal and joint distribution of lists j and k using generalized additive models.}
 \usage{
-qhat_gam(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...)
+qhat_gam(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005, ...)
 }
 \arguments{
 \item{List.train}{The training data matrix used to estimate the distibution functions.}
@@ -13,11 +13,11 @@ qhat_gam(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...)
 
 \item{K}{The number of lists in the data.}
 
-\item{i}{The first list that is conditionally independent.}
+\item{j}{The first list that is conditionally independent.}
 
-\item{j}{The second list that is conditionally independent.}
+\item{k}{The second list that is conditionally independent.}
 
-\item{eps}{The minimum value the estimates can attain to bound them away from zero.}
+\item{margin}{The minimum value the estimates can attain to bound them away from zero.}
 
 \item{...}{Any extra arguments passed into the function.}
 }
@@ -25,13 +25,16 @@ qhat_gam(List.train, List.test, K = 2, i = 1, j = 2, eps = 0.005, ...)
 A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
 }
 \description{
-Estimate marginal and joint distribution of lists i and j using generalized additive models.
+Estimate marginal and joint distribution of lists j and k using generalized additive models.
 }
 \examples{
 \dontrun{
-qhat = qhat_gam(List.train = List.train, List.test = List.test, K = 3, i = 1, j = 2, eps = 0.005)
+qhat = qhat_gam(List.train = List.train, List.test = List.test, margin = 0.005)
 q1 = qhat$q1
 q2 = qhat$q2
 q12 = qhat$q12
 }
+}
+\references{
+Trevor Hastie (2020). gam: Generalized Additive Models. R package version 1.20. https://CRAN.R-project.org/package=gam
 }

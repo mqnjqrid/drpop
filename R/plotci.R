@@ -6,14 +6,14 @@
 #' @return A ggplot object \code{fig} with population size estimates and the 95% confidence intervals.
 #' @examples
 #'
-#' data = simuldata(n = 10000, l = 1)$List_matrix_xstar
+#' data = simuldata(n = 10000, l = 1)$data_xstar
 #'
-#' p = popsize(List_matrix = data, funcname = c("logit", "gam"))
+#' p = popsize(data = data, funcname = c("logit", "gam"))
 #' plotci(p)
 #'
-#' data = simuldata(n = 10000, l = 1, categorical = TRUE)$List_matrix_xstar
+#' data = simuldata(n = 10000, l = 1, categorical = TRUE)$data_xstar
 #
-#' p = popsize_cond(List_matrix = data, condvar = 'catcov')
+#' p = popsize_cond(data = data, condvar = 'catcov')
 #' plotci(p)
 #' @import ggplot2
 #' @export
@@ -33,6 +33,7 @@ plotci <- function(object, tsize = 12,...){
       scale_color_manual("Estimation method", values = c("PI" = "red", "DR" = "#E69F00", "TMLE" = "#56B4E9")) +
       theme_bw() +
       theme(legend.position = "bottom", text = element_text(size = tsize))
+
   }else if(class(object) == "popsize_cond"){
 
     result <- object$result

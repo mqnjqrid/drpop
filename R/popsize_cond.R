@@ -1,13 +1,13 @@
 #' Estimate total population size and capture probability using user provided set of models conditioned on an attribute.
 #'
-#' @param List_matrix The data frame in capture-recapture format for which total population is to be estimated.
+#' @param data The data frame in capture-recapture format for which total population is to be estimated.
 #'                    The first K columns are the capture history indicators for the K lists. The remaining columns are covariates in numeric format.
-#' @param K The number of lists in the data. typically the first \code{K} rows of List_matrix.
+#' @param K The number of lists in the data. typically the first \code{K} rows of data.
 #' @param filterrows A logical value denoting whether to remove all rows with only zeroes.
 #' @param funcname The vector of estimation function names to obtain the population size.
 #' @param condvar The covariate for which conditional estimates are required.
 #' @param nfolds The number of folds to be used for cross fitting.
-#' @param eps The minimum value the estimates can attain to bound them away from zero.
+#' @param margin The minimum value the estimates can attain to bound them away from zero.
 #' @param sl.lib algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".
 #' @param Nmin The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.
 #' @param TMLE The logical value to indicate whether TMLE has to be computed.
@@ -31,27 +31,27 @@
 #' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
 #' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
 #' @examples
-#' data = simuldata(n = 10000, l = 2, categorical = TRUE)$List_matrix
+#' data = simuldata(n = 10000, l = 2, categorical = TRUE)$data
 #'
-#' psin_estimate = popsize_cond(List_matrix = data, funcname = c("logit", "gam"),
+#' psin_estimate = popsize_cond(data = data, funcname = c("logit", "gam"),
 #'      condvar = 'catcov', PLUGIN = TRUE, TMLE = TRUE)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the
 #' #two models conditioned on column catcov
 #' @export
-popsize_cond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), condvar, nfolds = 2, eps = 0.005,
+popsize_cond <- function(data, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), condvar, nfolds = 2, margin = 0.005,
                           sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), TMLE = TRUE, PLUGIN = TRUE, Nmin = 100,...){
 
-  l = ncol(List_matrix) - K
-  n = nrow(List_matrix)
+  l = ncol(data) - K
+  n = nrow(data)
 
-  stopifnot(!is.null(dim(List_matrix)))
+  stopifnot(!is.null(dim(data)))
 
   stopifnot(!missing(condvar))
-  stopifnot(is.element(condvar, colnames(List_matrix)))
+  stopifnot(is.element(condvar, colnames(data)))
 
-  List_matrix = as.data.frame(List_matrix)
+  data = as.data.frame(data)
 
-  conforminglists = apply(List_matrix[,1:K], 2, function(col){return(setequal(col, c(0,1)))})
+  conforminglists = apply(data[,1:K], 2, function(col){return(setequal(col, c(0,1)))})
   if(sum(conforminglists) < 2){
     stop("Data is not in the required format or lists are degenerate.")
     return(NULL)
@@ -63,19 +63,19 @@ popsize_cond <- function(List_matrix, K = 2, filterrows = FALSE, funcname = c("r
 
   if(!missing(condvar)){
     if(is.character(condvar)){
-      stopifnot(condvar %in% colnames(List_matrix))
-      condvar = which(colnames(List_matrix) == condvar) - K
+      stopifnot(condvar %in% colnames(data))
+      condvar = which(colnames(data) == condvar) - K
     }
   }
 
-  condvar_vec = unique(List_matrix[, condvar + K])
+  condvar_vec = unique(data[, condvar + K])
 
   object = NULL
 
   for(cvar in condvar_vec){
 
-    List_matrixsub = List_matrix[List_matrix[,K + condvar] == cvar, -c(K + condvar)]
-    est = try(popsize_base(List_matrix = List_matrixsub, K = K, filterrows = filterrows, funcname = funcname, nfolds = nfolds, eps = eps,
+    datasub = data[data[,K + condvar] == cvar, -c(K + condvar)]
+    est = try(popsize_base(data = datasub, K = K, filterrows = filterrows, funcname = funcname, nfolds = nfolds, margin = margin,
                            sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...), silent = TRUE)
 
     if("try-error" %in% class(est)){

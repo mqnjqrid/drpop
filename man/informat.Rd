@@ -4,15 +4,15 @@
 \alias{informat}
 \title{A function to check whether a given data table/matrix/data frame is in the appropriate for drpop.}
 \usage{
-informat(List_matrix, K = 2)
+informat(data, K = 2)
 }
 \arguments{
-\item{List_matrix}{The data table/matrix/data frame which is to be checked.}
+\item{data}{The data table/matrix/data frame which is to be checked.}
 
 \item{K}{The number of lists (optional).}
 }
 \value{
-A boolean for whether \code{List_matrix} is in the appropriate format.
+A boolean for whether \code{data} is in the appropriate format.
 }
 \description{
 A function to check whether a given data table/matrix/data frame is in the appropriate for drpop.
@@ -21,13 +21,13 @@ A function to check whether a given data table/matrix/data frame is in the appro
 data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
 x = matrix(rnorm(nrow(data)*3, 2,1), nrow = nrow(data))
 
-informat(List_matrix = data)
+informat(data = data)
 #this returns TRUE
 
 data = cbind(data, x)
-informat(List_matrix = data)
+informat(data = data)
 #this returns TRUE
 
-informat(List_matrix = data, K = 3)
+informat(data = data, K = 3)
 #this returns FALSE
 }

@@ -16,7 +16,8 @@
 #' @examples
 #' data = simuldata(n = 1000, l = 2)$data
 #' psi0 = simuldata(n = 10000, l = 2)$psi0
-#' @references Tilling, K., & Sterne, J. A. (1999). Capture-recapture models including covariate effects. _American journal of epidemiology_, 149(4), 392-400.
+#' @references Tilling, K., & Sterne, J. A. (1999). Capture-recapture models including covariate effects. _American journal of epidemiology_, *149*(4), 392-400.
+#' @references Kennedy, E. H. (2019). Nonparametric causal effects based on incremental propensity score interventions. _Journal of the American Statistical Association_, *114*(526), 645-656.
 #' @export
 simuldata = function(n, l, categorical = FALSE, ep = 0, K = 2){
   expit = function(x) {

@@ -43,14 +43,14 @@ Estimate marginal and joint distribution of lists j and k using super learner.
 }
 \examples{
 \dontrun{
-qhat = qhat_sl(List.train = List.train, List.test = List.test, margin = 0.005)
+qhat = qhat_sl(List.train = List.train, List.test = List.test, margin = 0.005, num_cores = 1)
 q1 = qhat$q1
 q2 = qhat$q2
 q12 = qhat$q12
 }
 }
 \references{
-Eric Polley, Erin LeDell, Chris Kennedy and Mark van der Laan (2021). SuperLearner: Super Learner Prediction. R package version 2.0-28. https://CRAN.R-project.org/package=SuperLearner
+Eric Polley, Erin LeDell, Chris Kennedy and Mark van der Laan (2021). SuperLearner: Super Learner Prediction. \emph{R package version 2.0-28}. https://CRAN.R-project.org/package=SuperLearner
 
 van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, \emph{Statistical Applications of Genetics and Molecular Biology}, 6, article 25.
 }

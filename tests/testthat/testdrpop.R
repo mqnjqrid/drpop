@@ -1,7 +1,6 @@
 test_that("qhat_logit estimation runs fine", {
   data = simuldata(n = 2000, l = 1)$data
   qlogit = qhat_logit(List.train = data)
-  print(class(qlogit))
   expect_false(class(qlogit) == "try-error")
 })
 test_that("qhat_gam estimation runs fine", {
@@ -24,13 +23,12 @@ test_that("qhat_ranger estimation runs fine", {
 
 test_that("Runs for single covariate", {
   ps = try(drpop::popsize(data = simuldata(n = 1000, l = 1)$data, funcname = c("logit", "gam", "mlogit")), silent = TRUE)
-  print(ps)
   expect_false(class(ps) == "try-error")
   expect_equal(sum(sapply(ps, anyNA)), 0)
 })
 
 test_that("Runs for single covariate with factor column", {
-  ps = try(popsize(data = simuldata(n = 1000, l = 1, categorical = TRUE)$data, funcname = c("logit", "gam", "mlogit", "ranger")), silent = TRUE)
+  ps = try(popsize(data = simuldata(n = 1000, l = 1, categorical = TRUE)$data, K = 2, funcname = c("logit", "gam", "mlogit", "ranger")), silent = TRUE)
   expect_false(class(ps) == "try-error")
   expect_equal(sum(sapply(ps, anyNA)), 0)
 })

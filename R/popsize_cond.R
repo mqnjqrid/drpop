@@ -27,16 +27,17 @@
 #' \item{nuis}{  The estimated nuisance functions (q12, q1, q2) for each element in funcname.}
 #' \item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
 #' \item{idfold}{  The division of the rows into sets (folds) for cross-fitting.}
-#'
-#' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
-#' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
+#' @seealso \code{\link{popsize}}
+#' @references Das, M., Kennedy, E. H., & Jewell, N.P. (2021). Doubly robust capture-recapture methods for estimating population size. _arXiv preprint_ *arXiv:2104.14091*.
 #' @examples
+#' \donttest{
 #' data = simuldata(n = 10000, l = 2, categorical = TRUE)$data
 #'
 #' psin_estimate = popsize_cond(data = data, funcname = c("logit", "gam"),
 #'      condvar = 'catcov', PLUGIN = TRUE, TMLE = TRUE)
 #' #this returns the plug-in, the bias-corrected and the tmle estimate for the
 #' #two models conditioned on column catcov
+#' }
 #' @export
 popsize_cond <- function(data, K = 2, filterrows = FALSE, funcname = c("rangerlogit"), condvar, nfolds = 2, margin = 0.005,
                           sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), TMLE = TRUE, PLUGIN = TRUE, Nmin = 100,...){

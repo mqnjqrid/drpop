@@ -62,9 +62,8 @@ data = simulresult$data
 psin_estimate = popsize_simul(data = data,
       pi1 = simulresult$pi1, pi2 = simulresult$pi2,
       alpha = 0.25, omega = 1)
+
 }
 \references{
-Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
-
-van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
+Das, M., Kennedy, E. H., & Jewell, N.P. (2021). Doubly robust capture-recapture methods for estimating population size. \emph{arXiv preprint} \emph{arXiv:2104.14091}
 }

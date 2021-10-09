@@ -21,8 +21,6 @@
 #' \item{varn}{  A matrix of the variance for population size estimate in the same format as \code{psi}.}
 #' \item{N}{  The number of data points used in the estimation after removing rows with missing data.}
 #'
-#' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
-#' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
 #' @examples
 #' simulresult = simuldata(n = 2000, l = 2)
 #' data = simulresult$data
@@ -30,6 +28,8 @@
 #' psin_estimate = popsize_simul(data = data,
 #'       pi1 = simulresult$pi1, pi2 = simulresult$pi2,
 #'       alpha = 0.25, omega = 1)
+#'
+#' @references Das, M., Kennedy, E. H., & Jewell, N.P. (2021). Doubly robust capture-recapture methods for estimating population size. _arXiv preprint_ *arXiv:2104.14091*
 #' @export
 popsize_simul = function(data, n, K = 2, nfolds = 5, pi1, pi2, omega, alpha, margin = 0.005, iter = 100, twolist = TRUE){
 

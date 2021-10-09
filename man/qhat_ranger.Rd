@@ -36,5 +36,5 @@ q12 = qhat$q12
 }
 }
 \references{
-Marvin N. Wright, Andreas Ziegler (2017). ranger: A Fast Implementation of Random Forests for High Dimensional Data in C++ and R. Journal of Statistical Software, 77(1), 1-17. doi:10.18637/jss.v077.i01
+Marvin N. Wright, Andreas Ziegler (2017). ranger: A Fast Implementation of Random Forests for High Dimensional Data in C++ and R. \emph{Journal of Statistical Software}, \emph{77}(1), 1-17. doi:10.18637/jss.v077.i01
 }

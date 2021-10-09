@@ -83,6 +83,7 @@ A list of estimates containing the following components for each list-pair, mode
 Estimate total population size and capture probability using user provided set of models or user provided nuisance estimates.
 }
 \examples{
+\donttest{
 data = simuldata(1000, l = 3)$data
 qhat = popsize(data = data, funcname = c("logit", "gam"), nfolds = 2, margin = 0.005)
 psin_estimate = popsize(data = data, getnuis = qhat$nuis, idfold = qhat$idfold)
@@ -93,6 +94,17 @@ psin_estimate = popsize(data = data[,1:2])
 
 psin_estimate = popsize(data = data, funcname = c("gam", "rangerlogit"))
 }
+}
 \references{
-Das, M., & Kennedy, E. H. (2021). Doubly robust capture-recapture methods for estimating population size. arXiv preprint arXiv:2104.14091.
+Bickel, P. J., Klaassen, C. A., Bickel, P. J., Ritov, Y., Klaassen, J., Wellner, J. A., and Ritov, Y. (1993). Efficient and adaptive estimation for semiparametric models, volume 4. \emph{Johns Hopkins University Press Baltimore}
+
+van der Vaart, A. (2002a). Part iii: Semiparameric statistics. Lectures on Probability Theory and Statistics, pages 331-457
+
+van der Laan, M. J. and Robins, J. M. (2003). Unified methods for censored longitudinal data and causality. \emph{Springer Science & Business Media}
+
+Tsiatis, A. (2006). Semiparametric theory and missing data \emph{springer. New York}
+
+Kennedy, E. H. (2016). Semiparametric theory and empirical processes in causal inference. \emph{Statistical causal inferences and their applications in public health research}, pages 141-167. \emph{Springer}
+
+Das, M., Kennedy, E. H., & Jewell, N.P. (2021). Doubly robust capture-recapture methods for estimating population size. \emph{arXiv preprint} \emph{arXiv:2104.14091}.
 }

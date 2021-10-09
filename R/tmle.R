@@ -11,7 +11,8 @@
 #' \item{error}{  An indicator of whether the algorithm ran and converged. Returns FALSE, if it ran correctly and FALSE otherwise.}
 #' \item{datmat}{  A data frame returning \code{datmat} with the updated estimates for the nuisance functions \code{q10}, \code{q02} and \code{q12}. This is returned only if \code{error} is FALSE.}
 
-#' @references Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
+#' @references van der Laan, M. J. and Rubin, D. (2006). Targeted maximum likelihood learning. _The International Journal of Biostatistics_, *2*(1)
+#' @references Das, M., Kennedy, E. H., & Jewell, N.P. (2021). Doubly robust capture-recapture methods for estimating population size. _arXiv preprint_ arXiv:2104.14091.
 #' @examples
 #' data = matrix(sample(c(0,1), 2000, replace = TRUE), ncol = 2)
 #' xmat = matrix(runif(nrow(data)*3, 0, 1), nrow = nrow(data))

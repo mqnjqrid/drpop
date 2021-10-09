@@ -34,5 +34,7 @@ data = simuldata(n = 1000, l = 2)$data
 psi0 = simuldata(n = 10000, l = 2)$psi0
 }
 \references{
-Tilling, K., & Sterne, J. A. (1999). Capture-recapture models including covariate effects. \emph{American journal of epidemiology}, 149(4), 392-400.
+Tilling, K., & Sterne, J. A. (1999). Capture-recapture models including covariate effects. \emph{American journal of epidemiology}, \emph{149}(4), 392-400.
+
+Kennedy, E. H. (2019). Nonparametric causal effects based on incremental propensity score interventions. \emph{Journal of the American Statistical Association}, \emph{114}(526), 645-656.
 }

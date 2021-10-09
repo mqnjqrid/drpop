@@ -36,5 +36,5 @@ q12 = qhat$q12
 }
 }
 \references{
-Trevor Hastie (2020). gam: Generalized Additive Models. R package version 1.20. https://CRAN.R-project.org/package=gam
+Trevor Hastie (2020). gam: Generalized Additive Models. \emph{R package version 1.20}. https://CRAN.R-project.org/package=gam
 }

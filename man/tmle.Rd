@@ -46,5 +46,7 @@ datmat = as.data.frame(datmat)
 result = tmle(datmat, margin = 0.005, stop_margin = 0.00001, twolist = TRUE)
 }
 \references{
-Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
+van der Laan, M. J. and Rubin, D. (2006). Targeted maximum likelihood learning. \emph{The International Journal of Biostatistics}, \emph{2}(1)
+
+Das, M., Kennedy, E. H., & Jewell, N.P. (2021). Doubly robust capture-recapture methods for estimating population size. \emph{arXiv preprint} arXiv:2104.14091.
 }

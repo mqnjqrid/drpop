@@ -1,26 +1,22 @@
 Package: drpop
-Title: Doubly Robust Population Size Estimation
-Version: 0.0.0.9000
+Title: Efficient Doubly Robust Population Size Estimation
+Version: 0.0.1
 Authors@R: 
     c(person(given = "Manjari",
            family = "Das",
            role = c("aut", "cre"),
            email = "manjari8d@gmail.com",
-           comment = c(ORCID = "YOUR-ORCID-ID")),
+           comment = c(ORCID = "0000-0002-6781-6368")),
     person(given = "Edward H.",
            family = "Kennedy",
            role = c("aut"),
            email = "edward@stat.cmu.edu",
            comment = c(ORCID = "0000-0002-1510-8175")))
-Description: Estimates the total population size from capture-recapture data. User can choose estimation models.
+Description: Estimation of the total population size from capture-recapture data efficiently and with low bias implementing the methods from Das M, Kennedy EH, and Jewell NP (2021) <arXiv:2104.14091>. The estimator is doubly robust against errors in the estimation of the intermediate nuisance parameters. Users can choose from the flexible estimation models provided in the package, or use any other preferred model.
 Depends: stats
-Imports: gam, janitor, reshape2, stringr, tidyr, dplyr, SuperLearner, ggplot2, nnet, nnls, parallel, ranger, tidyverse, xgboost
+Imports: gam, janitor, reshape2, stringr, tidyr, dplyr, SuperLearner, ggplot2, nnet, nnls, parallel, ranger
 License: GPL-3
 Encoding: UTF-8
-LazyData: true
-Author: Manjari Das [aut, cre],
-  Edward H. Kennedy [aut]
-Maintainer: Manjari Das <manjari8d@gmail.com>
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Suggests: 

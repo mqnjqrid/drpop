@@ -65,6 +65,7 @@ A list of estimates containing the following components for each list-pair, mode
 Estimate total population size and capture probability using user provided set of models conditioned on an attribute.
 }
 \examples{
+\donttest{
 data = simuldata(n = 10000, l = 2, categorical = TRUE)$data
 
 psin_estimate = popsize_cond(data = data, funcname = c("logit", "gam"),
@@ -72,8 +73,10 @@ psin_estimate = popsize_cond(data = data, funcname = c("logit", "gam"),
 #this returns the plug-in, the bias-corrected and the tmle estimate for the
 #two models conditioned on column catcov
 }
+}
 \references{
-Gruber, S., & Van der Laan, M. J. (2011). tmle: An R package for targeted maximum likelihood estimation.
-
-van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, Statistical Applications of Genetics and Molecular Biology, 6, article 25.
+Das, M., Kennedy, E. H., & Jewell, N.P. (2021). Doubly robust capture-recapture methods for estimating population size. \emph{arXiv preprint} \emph{arXiv:2104.14091}.
+}
+\seealso{
+\code{\link{popsize}}
 }

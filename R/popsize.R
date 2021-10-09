@@ -35,8 +35,14 @@
 #' \item{nuistmle}{  The estimated nuisance functions (q12, q1, q2) from tmle for each element in funcname.}
 #' \item{idfold}{  The division of the rows into sets (folds) for cross-fitting.}
 #'
-#' @references Das, M., & Kennedy, E. H. (2021). Doubly robust capture-recapture methods for estimating population size. arXiv preprint arXiv:2104.14091.
+#' @references Bickel, P. J., Klaassen, C. A., Bickel, P. J., Ritov, Y., Klaassen, J., Wellner, J. A., and Ritov, Y. (1993). Efficient and adaptive estimation for semiparametric models, volume 4. _Johns Hopkins University Press Baltimore_
+#' @references van der Vaart, A. (2002a). Part iii: Semiparameric statistics. Lectures on Probability Theory and Statistics, pages 331-457
+#' @references van der Laan, M. J. and Robins, J. M. (2003). Unified methods for censored longitudinal data and causality. _Springer Science & Business Media_
+#' @references Tsiatis, A. (2006). Semiparametric theory and missing data _springer. New York_
+#' @references Kennedy, E. H. (2016). Semiparametric theory and empirical processes in causal inference. _Statistical causal inferences and their applications in public health research_, pages 141-167. _Springer_
+#' @references Das, M., Kennedy, E. H., & Jewell, N.P. (2021). Doubly robust capture-recapture methods for estimating population size. _arXiv preprint_ *arXiv:2104.14091*.
 #' @examples
+#' \donttest{
 #' data = simuldata(1000, l = 3)$data
 #' qhat = popsize(data = data, funcname = c("logit", "gam"), nfolds = 2, margin = 0.005)
 #' psin_estimate = popsize(data = data, getnuis = qhat$nuis, idfold = qhat$idfold)
@@ -46,6 +52,7 @@
 #' #this returns the basic plug-in estimate since covariates are absent.
 #'
 #' psin_estimate = popsize(data = data, funcname = c("gam", "rangerlogit"))
+#' }
 #' @importFrom dplyr "%>%" "mutate" "select_if"
 #' @import utils
 #' @import stats
@@ -69,7 +76,6 @@ popsize <- function(data, K = 2, j, k, margin = 0.005, filterrows = FALSE, nfold
 
   if(missing(getnuis) & missing(q1mat) & missing(q2mat) & missing(q12mat)){
     if(!missing(j) & missing(k)){
-      print(j)
       if(j == K)
         return(popsize_base(data, K = K, k0 = j, filterrows = filterrows, funcname = funcname, nfolds = nfolds, margin = margin,
                           sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
@@ -260,6 +266,7 @@ popsize <- function(data, K = 2, j, k, margin = 0.005, filterrows = FALSE, nfold
   class(object) = "popsize"
   return(invisible(object))
 }
+
 popsize_base <- function(data, K = 2, j0, k0, filterrows = FALSE, funcname = c("rangerlogit"), nfolds = 5, margin = 0.005,
                          sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, TMLE = TRUE, PLUGIN = TRUE,...){
 

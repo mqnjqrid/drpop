@@ -59,7 +59,7 @@ qhat_logit <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.00
 #' q12 = qhat$q12
 #' }
 #' @import gam
-#' @references Trevor Hastie (2020). gam: Generalized Additive Models. R package version 1.20. https://CRAN.R-project.org/package=gam
+#' @references Trevor Hastie (2020). gam: Generalized Additive Models. _R package version 1.20_. https://CRAN.R-project.org/package=gam
 #' @export
 qhat_gam <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005, ...){
 
@@ -117,7 +117,7 @@ qhat_gam <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005,
 #' q12 = qhat$q12
 #' }
 #' @import ranger
-#' @references Marvin N. Wright, Andreas Ziegler (2017). ranger: A Fast Implementation of Random Forests for High Dimensional Data in C++ and R. Journal of Statistical Software, 77(1), 1-17. doi:10.18637/jss.v077.i01
+#' @references Marvin N. Wright, Andreas Ziegler (2017). ranger: A Fast Implementation of Random Forests for High Dimensional Data in C++ and R. _Journal of Statistical Software_, *77*(1), 1-17. doi:10.18637/jss.v077.i01
 #' @export
 qhat_ranger <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005, ...){
   requireNamespace("ranger", quietly = TRUE)
@@ -160,14 +160,13 @@ qhat_ranger <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.0
 #' @return A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
 #' @examples
 #' \dontrun{
-#' qhat = qhat_sl(List.train = List.train, List.test = List.test, margin = 0.005)
+#' qhat = qhat_sl(List.train = List.train, List.test = List.test, margin = 0.005, num_cores = 1)
 #' q1 = qhat$q1
 #' q2 = qhat$q2
 #' q12 = qhat$q12
 #' }
 #' @import SuperLearner
-# @seealso \code{\link{SuperLearner::SuperLearner}}
-#' @references Eric Polley, Erin LeDell, Chris Kennedy and Mark van der Laan (2021). SuperLearner: Super Learner Prediction. R package version 2.0-28. https://CRAN.R-project.org/package=SuperLearner
+#' @references Eric Polley, Erin LeDell, Chris Kennedy and Mark van der Laan (2021). SuperLearner: Super Learner Prediction. _R package version 2.0-28_. https://CRAN.R-project.org/package=SuperLearner
 #' @references van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2008) Super Learner, _Statistical Applications of Genetics and Molecular Biology_, 6, article 25.
 #' @export
 qhat_sl <- function (List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005,
@@ -183,7 +182,6 @@ qhat_sl <- function (List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005,
   requireNamespace("parallel", quietly = TRUE, warn.conflicts = FALSE)
   requireNamespace("gam", quietly = TRUE, warn.conflicts = FALSE)
   requireNamespace("dplyr")
-  #requireNamespace("xgboost", quietly = TRUE, warn.conflicts = FALSE)
   requireNamespace("janitor", quietly = TRUE, warn.conflicts = FALSE)
   requireNamespace("tidyr", quietly = TRUE, warn.conflicts = FALSE)
   slib = intersect(sl.lib, c("SL.glm", "SL.gam",
@@ -335,6 +333,8 @@ qhat_mlogit <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.0
 #' q12 = qhat$q12
 #' }
 #' @import ranger nnls
+#' @references Marvin N. Wright, Andreas Ziegler (2017). ranger: A Fast Implementation of Random Forests for High Dimensional Data in C++ and R. _Journal of Statistical Software_, *77*(1), 1-17. doi:10.18637/jss.v077.i01
+#' @references Polley, Eric C. and van der Laan, Mark J., (May 2010) Super Learner In Prediction. _U.C. Berkeley Division of Biostatistics Working Paper Series_. Working Paper 266. https://biostats.bepress.com/ucbbiostat/paper266
 #' @export
 qhat_rangerlogit <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005, ...){
   requireNamespace("ranger", quietly = TRUE)
@@ -379,10 +379,6 @@ qhat_rangerlogit <- function(List.train, List.test, K = 2, j = 1, k = 2, margin 
     coef = coef(nnls(b = List.test[,paste0('L',k)], A = A))
     coef = coef/sum(coef)
     q2 = pmin(pmax(A %*% coef, q12), 1 - q1 + q12)
-
-    #q12 = (lm(List.test[,paste0('L',i)]*List.test[,paste0('L',j)] ~ q12.r + q12.l))$fitted.values
-    #q1 = (lm(List.test[,paste0('L',i)] ~ q1.r + q1.l))$fitted.values
-    #q2 = (lm(List.test[,paste0('L',j)] ~ q2.r + q2.l))$fitted.values
 
     return(list(q1 = q1, q2 = q2, q12 = q12))
   }

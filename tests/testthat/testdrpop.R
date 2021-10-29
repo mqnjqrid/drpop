@@ -24,13 +24,13 @@ test_that("qhat_ranger estimation runs fine", {
 test_that("Runs for single covariate", {
   ps = try(drpop::popsize(data = simuldata(n = 1000, l = 1)$data, funcname = c("logit", "gam", "mlogit")), silent = TRUE)
   expect_false(class(ps) == "try-error")
-  expect_equal(sum(sapply(ps, anyNA)), 0)
+  expect_equal(sum(sapply(ps[-6], anyNA)), 0)
 })
 
 test_that("Runs for single covariate with factor column", {
   ps = try(popsize(data = simuldata(n = 1000, l = 1, categorical = TRUE)$data, K = 2, funcname = c("logit", "gam", "mlogit", "ranger")), silent = TRUE)
   expect_false(class(ps) == "try-error")
-  expect_equal(sum(sapply(ps, anyNA)), 0)
+  expect_equal(sum(sapply(ps[-6], anyNA)), 0)
 })
 
 #sdata = simuldata(n = 1000, l = 3, categorical = FALSE)
@@ -43,8 +43,8 @@ data = sdata$data
 ps = popsize(data = data)
 psq = popsize(data = data, getnuis = ps$nuis, idfold = ps$idfold)
 test_that("Returns no NA values", {
-  expect_equal(sum(sapply(ps$result, anyNA)), 0)
-  expect_equal(sum(sapply(psq$result, anyNA)), 0)
+  expect_equal(sum(sapply(ps$result[-6], anyNA)), 0)
+  expect_equal(sum(sapply(psq$result[-6], anyNA)), 0)
 })
 
 test_that("Error catching",{

@@ -165,7 +165,7 @@ popsize <- function(data, K = 2, j, k, margin = 0.005, filterrows = FALSE, nfold
   colnames(psiinvmat) = paste(rep(funcname, each = 3), c("PI", "DR", "TMLE"), sep = '.')
   varmat = psiinvmat
 
-  for (folds in 1:nfolds){#print(folds)
+  for (folds in 1:nfolds){
 
     List2 = data[idfold == folds,]
 
@@ -427,7 +427,7 @@ popsize_base <- function(data, K = 2, j0, k0, filterrows = FALSE, funcname = c("
 
         idfold = rep(1, N)
 
-        for(folds in 1:nfolds){#print(folds)
+        for(folds in 1:nfolds){
 
           if(nfolds == 1){
             List1 = data
@@ -545,7 +545,6 @@ popsize_base <- function(data, K = 2, j0, k0, filterrows = FALSE, funcname = c("
       object$nuistmle = as.data.frame(nuistmle)
     }
     class(object) = "popsize"
-    #print.popsize(result)
     return(object)
   }
 }

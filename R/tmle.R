@@ -42,10 +42,10 @@ tmle <- function(datmat, iter = 250, margin = 0.005, stop_margin = 0.005, twolis
     log(x/(1 - x))
   }
 
-  marginilon_error = 1 + stop_margin
+  margin_error = 1 + stop_margin
   cnt = 0
 
-  while (abs(marginilon_error) > stop_margin){
+  while (abs(margin_error) > stop_margin){
     cnt = cnt + 1
     if (cnt > iter){break}
 
@@ -61,7 +61,7 @@ tmle <- function(datmat, iter = 250, margin = 0.005, stop_margin = 0.005, twolis
       datmat[,"q12"] = predict(mod1, newdata = dat1, type = "response")
 
     }
-    marginilon_error = abs(mod1$coefficients)
+    margin_error = abs(mod1$coefficients)
     datmat$q12 = pmax(pmin(datmat$q12, 1), margin)
 
     ########################### model 2 for q1
@@ -74,7 +74,7 @@ tmle <- function(datmat, iter = 250, margin = 0.005, stop_margin = 0.005, twolis
       datmat[,"q10"] = pmin(datmat[,"q10"], 1 - datmat$q12)
     }
     datmat$q10 = pmax(pmin(datmat$q10, 1), margin)
-    marginilon_error = max(abs(mod1$coefficients), marginilon_error)
+    margin_error = max(abs(mod1$coefficients), margin_error)
 
     ########################### model 3 for q2
     if (K > 2 | twolist == FALSE){
@@ -85,7 +85,7 @@ tmle <- function(datmat, iter = 250, margin = 0.005, stop_margin = 0.005, twolis
       if (!("try-error" %in% class(mod1))){
         datmat$q02 = predict(mod1, newdata = dat1, type = "response")
         datmat[,"q02"] = pmin(datmat[,"q02"], 1 - datmat$q10 - datmat$q12)
-        marginilon_error = max(abs(mod1$coefficients), marginilon_error)
+        margin_error = max(abs(mod1$coefficients), margin_error)
       }
     }else{
       datmat[,"q02"] = pmax(0, 1 - datmat$q10 - datmat$q12)
@@ -96,11 +96,11 @@ tmle <- function(datmat, iter = 250, margin = 0.005, stop_margin = 0.005, twolis
     # ifval = (datmat$q10+datmat$q12)*(datmat$q10+datmat$q12)/datmat$q12 *(
     #   datmat$yj/(datmat$q10+datmat$q12) + datmat$yk/(datmat$q02+datmat$q12) - datmat$yjk/(datmat$q12) - 1)
     # eplison_error = mean(ifval)
-    if(is.null(marginilon_error))
-       marginilon_error = 2
-    #marginilon_error = max(abs(expit(dat1$logitq12) - datmat$q12),
+    if(is.null(margin_error))
+       margin_error = 2
+    #margin_error = max(abs(expit(dat1$logitq12) - datmat$q12),
     #                    abs(expit(dat1$logitq10) - datmat$q10),
     #                    abs(expit(dat1$logitq02) - datmat$q02))
   }
-  return(list(error = abs(marginilon_error) > 1, datmat = datmat, iterations = cnt, marginilon_error = marginilon_error))
+  return(list(error = abs(margin_error) > 1, datmat = datmat, iterations = cnt, margin_error = margin_error))
 }

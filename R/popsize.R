@@ -13,13 +13,12 @@
 #' @param filterrows A logical value denoting whether to remove all rows with only zeroes.
 #' @param funcname The vector of estimation function names to obtain the population size.
 #' @param nfolds The number of folds to be used for cross fitting.
-#' @param sl.lib algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".
-# (See \code{\link[pkg:SuperLearner]{listWrappers}})
+#' @param sl.lib Algorithm library for [qhat_sl()]. See [SuperLearner::listWrappers()]. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".
 #' @param Nmin The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.
 #' @param idfold The fold assignment of each row during estimation.
 #' @param TMLE The logical value to indicate whether TMLE has to be computed.
-#' @param PLUGIN The logical value to indicate whether the plug-in estimates is returned.
-#' @param ... Any extra arguments passed into the function.
+#' @param PLUGIN The logical value to indicate whether the plug-in estimates are returned.
+#' @param ... Any extra arguments passed into the function. See [qhat_rangerlogit()], [qhat_sl()], [tmle()].
 #' @return A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):
 #' \item{result}{  A dataframe of the below estimated quantities.
 #' \itemize{
@@ -78,7 +77,7 @@ popsize <- function(data, K = 2, j, k, margin = 0.005, filterrows = FALSE, nfold
     if(!missing(j) & missing(k)){
       if(j == K)
         return(popsize_base(data, K = K, k0 = j, filterrows = filterrows, funcname = funcname, nfolds = nfolds, margin = margin,
-                          sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
+                            sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
       else
         return(popsize_base(data, K = K, j0 = j, filterrows = filterrows, funcname = funcname, nfolds = nfolds, margin = margin,
                             sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))

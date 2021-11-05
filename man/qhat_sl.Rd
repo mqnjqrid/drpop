@@ -29,14 +29,14 @@ qhat_sl(
 
 \item{margin}{The minimum value the estimates can attain to bound them away from zero.}
 
-\item{sl.lib}{The functions from the SuperLearner library to be used for model fitting.}
+\item{sl.lib}{The functions from the SuperLearner library to be used for model fitting. See \code{\link[SuperLearner:listWrappers]{SuperLearner::listWrappers()}}.}
 
 \item{num_cores}{The number of cores to be used for paralellization in Super Learner.}
 
 \item{...}{Any extra arguments passed into the function.}
 }
 \value{
-A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
+A list of the marginal and joint distribution probabilities \code{q1}, \code{q2} and \code{q12}.
 }
 \description{
 Estimate marginal and joint distribution of lists j and k using super learner.

@@ -7,7 +7,7 @@
 #' @param k The second list that is conditionally independent.
 #' @param margin The minimum value the estimates can attain to bound them away from zero.
 #' @param ... Any extra arguments passed into the function.
-#' @return A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
+#' @return A list of the marginal and joint distribution probabilities \code{q1}, \code{q2} and \code{q12}.
 #' @examples
 #' \dontrun{
 #' qhat = qhat_logit(List.train = List.train, List.test = List.test, margin = 0.005)
@@ -50,7 +50,7 @@ qhat_logit <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.00
 #' @param k The second list that is conditionally independent.
 #' @param margin The minimum value the estimates can attain to bound them away from zero.
 #' @param ... Any extra arguments passed into the function.
-#' @return A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
+#' @return A list of the marginal and joint distribution probabilities \code{q1}, \code{q2} and \code{q12}.
 #' @examples
 #' \dontrun{
 #' qhat = qhat_gam(List.train = List.train, List.test = List.test, margin = 0.005)
@@ -108,7 +108,7 @@ qhat_gam <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005,
 #' @param k The second list that is conditionally independent.
 #' @param margin The minimum value the estimates can attain to bound them away from zero.
 #' @param ... Any extra arguments passed into the function.
-#' @return A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
+#' @return A list of the marginal and joint distribution probabilities \code{q1}, \code{q2} and \code{q12}.
 #' @examples
 #' \dontrun{
 #' qhat = qhat_ranger(List.train = List.train, List.test = List.test, margin = 0.005)
@@ -153,11 +153,11 @@ qhat_ranger <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.0
 #' @param K The number of lists in the data.
 #' @param j The first list that is conditionally independent.
 #' @param k The second list that is conditionally independent.
-#' @param sl.lib The functions from the SuperLearner library to be used for model fitting.
+#' @param sl.lib The functions from the SuperLearner library to be used for model fitting. See [SuperLearner::listWrappers()].
 #' @param margin The minimum value the estimates can attain to bound them away from zero.
-#' @param ... Any extra arguments passed into the function.
 #' @param num_cores The number of cores to be used for paralellization in Super Learner.
-#' @return A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
+#' @param ... Any extra arguments passed into the function.
+#' @return A list of the marginal and joint distribution probabilities \code{q1}, \code{q2} and \code{q12}.
 #' @examples
 #' \dontrun{
 #' qhat = qhat_sl(List.train = List.train, List.test = List.test, margin = 0.005, num_cores = 1)
@@ -180,7 +180,6 @@ qhat_sl <- function (List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005,
 
   requireNamespace("SuperLearner", quietly = TRUE, warn.conflicts = FALSE)
   requireNamespace("parallel", quietly = TRUE, warn.conflicts = FALSE)
-  requireNamespace("gam", quietly = TRUE, warn.conflicts = FALSE)
   requireNamespace("dplyr")
   requireNamespace("janitor", quietly = TRUE, warn.conflicts = FALSE)
   requireNamespace("tidyr", quietly = TRUE, warn.conflicts = FALSE)
@@ -231,17 +230,18 @@ qhat_sl <- function (List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005,
     options(mc.cores = num_cores)
     getOption("mc.cores")
     cl <- parallel::makeCluster(num_cores, type = "PSOCK")
-    parallel::clusterSetRNGStream(cl, iseed = 2343)
-    foo <- parallel::clusterEvalQ(cl, library(SuperLearner))
+    foo <-parallel::clusterEvalQ(cl, library(SuperLearner))
+    parallel::clusterSetRNGStream(cl, iseed = 1)
+    #
     parallel::clusterExport(cl, foo)
 
     fitj = tryCatch(snowSuperLearner(cluster = cl, Y = as.numeric(List.train[,j]), X = xtrain, family = binomial(),
                                      SL.library = slib2, method = "method.AUC",
                                      verbose = FALSE), silent = TRUE)
-    fitk = tryCatch(snowSuperLearner(cluster = cl, Y = as.numeric(List.train[,j]), X = xtrain, family = binomial(),
+    fitk = tryCatch(snowSuperLearner(cluster = cl, Y = as.numeric(List.train[,k]), X = xtrain, family = binomial(),
                                      SL.library = slib2, method = "method.AUC",
                                      verbose = FALSE), silent = TRUE)
-    fitjk = tryCatch(snowSuperLearner(cluster = cl, Y = as.numeric(pmin(List.train[, j], List.train[, j])),
+    fitjk = tryCatch(snowSuperLearner(cluster = cl, Y = as.numeric(pmin(List.train[, j], List.train[, k])),
                                       X = xtrain, family = binomial(), method = "method.AUC",
                                       SL.library = slib2, verbose = FALSE), silent = TRUE)
     parallel::stopCluster(cl)
@@ -269,7 +269,7 @@ qhat_sl <- function (List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005,
 #' @param k The second list that is conditionally independent.
 #' @param margin The minimum value the estimates can attain to bound them away from zero.
 #' @param ... Any extra arguments passed into the function.
-#' @return A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
+#' @return A list of the marginal and joint distribution probabilities \code{q1}, \code{q2} and \code{q12}.
 #' @examples
 #' \dontrun{
 #' qhat = qhat_mlogit(List.train = List.train, List.test = List.test, margin = 0.005)
@@ -324,7 +324,7 @@ qhat_mlogit <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.0
 #' @param k The second list that is conditionally independent.
 #' @param margin The minimum value the estimates can attain to bound them away from zero.
 #' @param ... Any extra arguments passed into the function.
-#' @return A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
+#' @return A list of the marginal and joint distribution probabilities \code{q1}, \code{q2} and \code{q12}.
 #' @examples
 #' \dontrun{
 #' qhat = qhat_ranger(List.train = List.train, List.test = List.test, margin = 0.005)

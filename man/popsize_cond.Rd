@@ -35,15 +35,15 @@ The first K columns are the capture history indicators for the K lists. The rema
 
 \item{margin}{The minimum value the estimates can attain to bound them away from zero.}
 
-\item{sl.lib}{algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
+\item{sl.lib}{Algorithm library for \code{\link[=qhat_sl]{qhat_sl()}}. See \code{\link[SuperLearner:listWrappers]{SuperLearner::listWrappers()}}. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".}
 
 \item{TMLE}{The logical value to indicate whether TMLE has to be computed.}
 
-\item{PLUGIN}{The logical value to indicate whether the plug-in estimates is returned.}
+\item{PLUGIN}{The logical value to indicate whether the plug-in estimates are returned.}
 
 \item{Nmin}{The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.}
 
-\item{...}{Any extra arguments passed into the function.}
+\item{...}{Any extra arguments passed into the function. See \code{\link[=qhat_rangerlogit]{qhat_rangerlogit()}}, \code{\link[=qhat_sl]{qhat_sl()}}, \code{\link[=tmle]{tmle()}}.}
 }
 \value{
 A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):

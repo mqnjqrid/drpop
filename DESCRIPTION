@@ -1,6 +1,6 @@
 Package: drpop
-Title: Efficient Doubly Robust Population Size Estimation
-Version: 0.0.2
+Title: Efficient and Doubly Robust Population Size Estimation
+Version: 0.0.3
 Authors@R: 
     c(person(given = "Manjari",
            family = "Das",

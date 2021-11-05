@@ -8,11 +8,11 @@
 #' @param condvar The covariate for which conditional estimates are required.
 #' @param nfolds The number of folds to be used for cross fitting.
 #' @param margin The minimum value the estimates can attain to bound them away from zero.
-#' @param sl.lib algorithm library for SuperLearner. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".
+#' @param sl.lib Algorithm library for [qhat_sl()]. See [SuperLearner::listWrappers()]. Default library includes "gam", "glm", "glmnet", "glm.interaction", "ranger".
 #' @param Nmin The cutoff for minimum sample size to perform doubly robust estimation. Otherwise, Petersen estimator is returned.
 #' @param TMLE The logical value to indicate whether TMLE has to be computed.
-#' @param PLUGIN The logical value to indicate whether the plug-in estimates is returned.
-#' @param ... Any extra arguments passed into the function.
+#' @param PLUGIN The logical value to indicate whether the plug-in estimates are returned.
+#' @param ... Any extra arguments passed into the function. See [qhat_rangerlogit()], [qhat_sl()], [tmle()].
 #' @return A list of estimates containing the following components for each list-pair, model and method (PI = plug-in, DR = doubly-robust, TMLE = targeted maximum likelihood estimate):
 #' \item{result}{  A dataframe of the below estimated quantities.
 #' \itemize{

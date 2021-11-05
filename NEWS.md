@@ -1,3 +1,10 @@
+Changes in Version 0.0-3 (2021-11-104)
+=====================================
+  
+  o Bug fixes. Fixing minor typing error.
+
+
+
 Changes in Version 0.0-2 (2021-10-18)
 =====================================
   

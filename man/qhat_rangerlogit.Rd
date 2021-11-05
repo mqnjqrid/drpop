@@ -30,7 +30,7 @@ qhat_rangerlogit(
 \item{...}{Any extra arguments passed into the function.}
 }
 \value{
-A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
+A list of the marginal and joint distribution probabilities \code{q1}, \code{q2} and \code{q12}.
 }
 \description{
 Estimate marginal and joint distribution of lists j and k using ensemble of ranger and logit.

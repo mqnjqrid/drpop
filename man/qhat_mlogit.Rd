@@ -22,7 +22,7 @@ qhat_mlogit(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005, ...)
 \item{...}{Any extra arguments passed into the function.}
 }
 \value{
-A list of the marginal and joint distribution probabilities q_1, q_2 and q_12.
+A list of the marginal and joint distribution probabilities \code{q1}, \code{q2} and \code{q12}.
 }
 \description{
 Estimate marginal and joint distribution of lists j and k using multinomial logistic model.

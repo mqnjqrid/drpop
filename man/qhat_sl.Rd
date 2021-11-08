@@ -47,6 +47,11 @@ qhat = qhat_sl(List.train = List.train, List.test = List.test, margin = 0.005, n
 q1 = qhat$q1
 q2 = qhat$q2
 q12 = qhat$q12
+# One can specify the number of cores to be used for parallel computing
+qhat = qhat_sl(List.train = List.train, List.test = List.test, margin = 0.005, num_cores = 2)
+q1 = qhat$q1
+q2 = qhat$q2
+q12 = qhat$q12
 }
 }
 \references{

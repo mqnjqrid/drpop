@@ -27,12 +27,13 @@ plotci <- function(object, tsize = 12,...){
 
     result <- object$result
 
-    fig <- ggplot2::ggplot(result, aes(x = model, color = method)) +
+    fig <- ggplot2::ggplot(result, aes(x = model, color = method, shape = method)) +
       #geom_line(aes(y = n, linetype = method)) +
       ggplot2::geom_point(aes(y = n), position=position_dodge(0.35)) +
       ggplot2::geom_errorbar(aes(ymin = cin.l, ymax = cin.u), width=.2, position=position_dodge(0.35)) +
       ggplot2::facet_wrap(~listpair, labeller = label_both) +
       ggplot2::scale_color_manual("Estimation method", values = c("PI" = "red", "DR" = "#E69F00", "TMLE" = "#56B4E9")) +
+      ggplot2::scale_shape_manual("Estimation method", values = c("PI" = 16, "DR" = 17, "TMLE" = 15)) +
       ggplot2::theme_bw() +
       ggplot2::theme(legend.position = "bottom", text = element_text(size = tsize))
 
@@ -41,13 +42,14 @@ plotci <- function(object, tsize = 12,...){
     result <- object$result
     N <- object$N
 
-    fig <- ggplot2::ggplot(result, aes(x = condvar, color = method)) +
+    fig <- ggplot2::ggplot(result, aes(x = condvar, color = method, shape = method)) +
       #geom_line(aes(y = n, linetype = method)) +
       ggplot2::geom_point(aes(y = n), position=position_dodge(0.35)) +
       ggplot2::geom_errorbar(aes(ymin = cin.l, ymax = cin.u), width=.2, position=position_dodge(0.35)) +
       ggplot2::facet_grid(listpair~model, labeller = label_both) +
       ggplot2::scale_x_discrete(name = "conditional variable (number of observations)", breaks = c(N$condvar), labels = paste(N$condvar, " (", N$N, ')', sep = '')) +
       ggplot2::scale_color_manual("Estimation method", values = c("PI" = "red", "DR" = "#E69F00", "TMLE" = "#56B4E9")) +
+      ggplot2::scale_shape_manual("Estimation method", values = c("PI" = 16, "DR" = 17, "TMLE" = 15)) +
       ggplot2::theme_bw() +
       ggplot2::theme(legend.position = "bottom", text = element_text(size = tsize))
   }else{

@@ -124,8 +124,8 @@ popsize_simul = function(data, n, K = 2, nfolds = 5, pi1, pi2, omega, alpha, mar
 
         if(tmle$error){
           warning("TMLE did not run or converge.")
-          psiinvmat[folds,colsubset][3] = NA
-          varmat[folds,colsubset][3] = NA
+          psiinvmat[folds,3] = NA
+          varmat[folds,3] = NA
         }else{
           datmat = tmle$datmat
           q12 = pmax(datmat$q12, margin)

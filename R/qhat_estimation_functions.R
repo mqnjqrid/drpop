@@ -21,6 +21,7 @@ qhat_logit <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.00
 
   stopifnot(ncol(List.train) > K)
   if(missing(List.test)){
+    warning("Test data is the same as the training data.")
     List.test = List.train
   }
   colnames(List.train) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List.train) - K), sep = ''))
@@ -65,6 +66,7 @@ qhat_gam <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005,
 
   stopifnot(ncol(List.train) > K)
   if(missing(List.test)){
+    warning("Test data is the same as the training data.")
     List.test = List.train
   }
   colnames(List.train) = c(paste("L", 1:K, sep = ''), paste("x", 1:(ncol(List.train) - K), sep = ''))
@@ -125,6 +127,7 @@ qhat_ranger <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.0
 
   stopifnot(l>0)
   if(missing(List.test)){
+    warning("Test data is the same as the training data.")
     List.test = List.train
   }
 
@@ -179,7 +182,9 @@ qhat_sl <- function (List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005,
 {
 
   stopifnot(ncol(List.train) > K)
+
   if(missing(List.test)){
+    warning("Test data is the same as the training data.")
     List.test = List.train
   }
 
@@ -235,10 +240,18 @@ qhat_sl <- function (List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005,
     options(mc.cores = num_cores)
     getOption("mc.cores")
     cl <- parallel::makeCluster(num_cores, type = "PSOCK")
-    foo <-parallel::clusterEvalQ(cl, library(SuperLearner))
+    #foo <-parallel::clusterEvalQ(cl, library(SuperLearner))
     parallel::clusterSetRNGStream(cl, iseed = 1)
     #
-    parallel::clusterExport(cl, foo)
+    parallel::clusterExport(cl, c(listWrappers()
+                                       ,'SuperLearner', 'CV.SuperLearner', 'predict.SuperLearner'
+                                       ,'family', 'nnls'))#, 'List.train', 'List.test', 'xtrain', 'xtest')
+   # )
+
+    parallel::clusterEvalQ(cl, {
+      library(SuperLearner);library(caret);
+      library(ranger);library(xgboost)
+    })
 
     fitj = tryCatch(snowSuperLearner(cluster = cl, Y = as.numeric(List.train[,j]), X = xtrain, family = binomial(),
                                      SL.library = slib2, method = "method.AUC",
@@ -289,7 +302,9 @@ qhat_sl <- function (List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005,
 qhat_mlogit <- function(List.train, List.test, K = 2, j = 1, k = 2, margin = 0.005, ...){
 
   stopifnot(ncol(List.train) > K)
+
   if(missing(List.test)){
+    warning("Test data is the same as the training data.")
     List.test = List.train
   }
 
@@ -346,6 +361,7 @@ qhat_rangerlogit <- function(List.train, List.test, K = 2, j = 1, k = 2, margin 
   requireNamespace("nnls")
   l = ncol(List.train) - K
   if(missing(List.test)){
+    warning("Test data is the same as the training data.")
     List.test = List.train
   }
 

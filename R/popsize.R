@@ -58,7 +58,7 @@
 #' @importFrom tidyr "separate"
 #' @export
 popsize <- function(data, K = 2, j, k, margin = 0.005, filterrows = FALSE, nfolds = 5, funcname = c("rangerlogit"),
-                     sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), getnuis, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, PLUGIN = TRUE, Nmin = 100,...){
+                    sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), getnuis, q1mat, q2mat, q12mat, idfold, TMLE = TRUE, PLUGIN = TRUE, Nmin = 100,...){
 
   if(!missing(j) & !missing(k)){
     if(j == k) {
@@ -77,20 +77,20 @@ popsize <- function(data, K = 2, j, k, margin = 0.005, filterrows = FALSE, nfold
     if(!missing(j) & missing(k)){
       if(j == K)
         return(popsize_base(data, K = K, k0 = j, filterrows = filterrows, funcname = funcname, nfolds = nfolds, margin = margin,
-                            sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
+                            sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, idfold = idfold, ...))
       else
         return(popsize_base(data, K = K, j0 = j, filterrows = filterrows, funcname = funcname, nfolds = nfolds, margin = margin,
-                            sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
+                            sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, idfold = idfold, ...))
     }else if(missing(j) & !missing(k)){
       if(k < K)
         return(popsize_base(data, K = K, j0 = k, filterrows = filterrows, funcname = funcname, nfolds = nfolds, margin = margin,
-                            sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
+                            sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, idfold = idfold, ...))
       else
         return(popsize_base(data, K = K, k0 = k, filterrows = filterrows, funcname = funcname, nfolds = nfolds, margin = margin,
-                            sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
+                            sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, idfold = idfold, ...))
     }else
       return(popsize_base(data, K = K, j0 = j, k0 = k, filterrows = filterrows, funcname = funcname, nfolds = nfolds, margin = margin,
-                        sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, ...))
+                          sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, idfold = idfold, ...))
   }
 
   K = 2

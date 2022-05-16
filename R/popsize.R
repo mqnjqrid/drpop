@@ -69,7 +69,7 @@ popsize <- function(data, K = 2, j, k, margin = 0.005, filterrows = FALSE, nfold
       j = j + k
       k = j - k
       j = j - k
-      warning("Switching j and k to ensure j < k.")
+      warning("Switching j and k to ensure j < k for consistency.")
     }
   }
 
@@ -88,9 +88,10 @@ popsize <- function(data, K = 2, j, k, margin = 0.005, filterrows = FALSE, nfold
       else
         return(popsize_base(data, K = K, k0 = k, filterrows = filterrows, funcname = funcname, nfolds = nfolds, margin = margin,
                             sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, idfold = idfold, ...))
-    }else
+    }else{# if(!missing(j) & !missing(k)){
       return(popsize_base(data, K = K, j0 = j, k0 = k, filterrows = filterrows, funcname = funcname, nfolds = nfolds, margin = margin,
                           sl.lib = sl.lib, Nmin = Nmin, TMLE = TMLE, PLUGIN = PLUGIN, idfold = idfold, ...))
+    }
   }
 
   K = 2
@@ -266,7 +267,7 @@ popsize <- function(data, K = 2, j, k, margin = 0.005, filterrows = FALSE, nfold
   return(invisible(object))
 }
 
-popsize_base <- function(data, K = 2, j0, k0, filterrows = FALSE, funcname = c("rangerlogit"), nfolds = 5, margin = 0.005,
+popsize_base <- function(data, K = 2, j0, k0, filterrows = FALSE, funcname = c("rangerlogit"), nfolds = 5, idfold, margin = 0.005,
                          sl.lib = c("SL.gam", "SL.glm", "SL.glm.interaction", "SL.ranger", "SL.glmnet"), Nmin = 500, TMLE = TRUE, PLUGIN = TRUE,...){
 
   requireNamespace("dplyr", quietly = TRUE, warn.conflicts = FALSE)
@@ -395,7 +396,11 @@ popsize_base <- function(data, K = 2, j0, k0, filterrows = FALSE, funcname = c("
       nuistmle = nuis
     }
 
-    permutset = sample(1:N, N, replace = FALSE)
+    if(missing(idfold)){
+      permutset = sample(1:N, N, replace = FALSE)
+    }else{
+      permutset = 1:N
+    }
 
     for(j in list1_vec){
       j0 = j
@@ -424,7 +429,8 @@ popsize_base <- function(data, K = 2, j0, k0, filterrows = FALSE, funcname = c("
         colnames(nuisfold) = paste(rep(funcname, each = 3), c("q12", "q1", "q2"), sep = '.')
         nuistmlefold = nuisfold
 
-        idfold = rep(1, N)
+        if(missing(idfold))
+          idfold = rep(1, N)
 
         for(folds in 1:nfolds){
 
@@ -432,6 +438,10 @@ popsize_base <- function(data, K = 2, j0, k0, filterrows = FALSE, funcname = c("
             List1 = data
             List2 = List1
             sbset = 1:N
+          }else if(max(idfold) == nfolds){
+            sbset = c(1:N)[idfold != folds]
+            List1 = data[permutset[-sbset],]
+            List2 = data[permutset[sbset],]
           }else{
             sbset = ((folds - 1)*ceiling(N/nfolds) + 1):(folds*ceiling(N/nfolds))
             sbset = sbset[sbset <= N]
@@ -547,6 +557,7 @@ popsize_base <- function(data, K = 2, j0, k0, filterrows = FALSE, funcname = c("
     return(object)
   }
 }
+
 #' @export
 print.popsize <- function(x, ...){
   x$result$psi = round(x$result$psi, 3)

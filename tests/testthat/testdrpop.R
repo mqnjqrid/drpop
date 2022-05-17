@@ -9,11 +9,11 @@ test_that("qhat_gam estimation runs fine", {
   expect_false(class(qgam) == "try-error")
 })
 
-#test_that("qhat_sl estimation runs fine", {
-#  data = simuldata(n = 1000, l = 3)$data
-#  qsl = qhat_sl(List.train = data)
-#  expect_false(class(qsl) == "try-error")
-#})
+test_that("qhat_sl estimation runs fine", {
+  data = simuldata(n = 1000, l = 3)$data
+  qsl = qhat_sl(List.train = data)
+  expect_false(class(qsl) == "try-error")
+})
 
 test_that("qhat_ranger estimation runs fine", {
   data = simuldata(n = 1000, l = 1)$data

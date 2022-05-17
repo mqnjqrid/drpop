@@ -35,7 +35,7 @@ plotci <- function(object, tsize = 12,...){
       ggplot2::scale_color_manual("Estimation method", values = c("PI" = "red", "DR" = "#E69F00", "TMLE" = "#56B4E9")) +
       ggplot2::scale_shape_manual("Estimation method", values = c("PI" = 16, "DR" = 17, "TMLE" = 15)) +
       ggplot2::theme_bw() +
-      ggplot2::theme(legend.position = "bottom", text = element_text(size = tsize))
+      ggplot2::theme(legend.position = "bottom", text = element_text(size = tsize), panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
   }else if(class(object) == "popsize_cond"){
 
@@ -51,7 +51,7 @@ plotci <- function(object, tsize = 12,...){
       ggplot2::scale_color_manual("Estimation method", values = c("PI" = "red", "DR" = "#E69F00", "TMLE" = "#56B4E9")) +
       ggplot2::scale_shape_manual("Estimation method", values = c("PI" = 16, "DR" = 17, "TMLE" = 15)) +
       ggplot2::theme_bw() +
-      ggplot2::theme(legend.position = "bottom", text = element_text(size = tsize))
+      ggplot2::theme(legend.position = "bottom", text = element_text(size = tsize), panel.grid.major = element_blank(), panel.grid.minor = element_blank())
   }else{
     cat("object is not of class popsize or popsize_cond.\n")
   }

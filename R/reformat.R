@@ -10,27 +10,25 @@
 #' data = cbind(x, data)
 #' result<- reformat(data = data, capturelists = c(4,5))
 #' @export
-reformat <- function(data, capturelists){
-
-  #require(tidyverse, quietly = TRUE)
-
+reformat <- function (data, capturelists) 
+{
   data = as.data.frame(data)
-
-  if(!missing(capturelists)){
+  if (!missing(capturelists)) {
     stopifnot(length(capturelists) > 1)
-    stopifnot(class(capturelists) %in% c("character", "numeric"))
+    stopifnot(class(capturelists) %in% c("character", "numeric", "integer"))
     stopifnot(length(capturelists) <= ncol(data))
-
-    if(class(capturelists) == "numeric"){
+    if (class(capturelists) %in% c("numeric", "integer")) {
       capturelists = round(capturelists)
-      data = data[,c(capturelists, setdiff(1:ncol(data), capturelists))]
-    }else{
-      data = data[,c(capturelists, setdiff(colnames(data), capturelists))]
+      data = data[, c(capturelists, setdiff(1:ncol(data), 
+                                            capturelists))]
     }
-    for(i in 1:length(capturelists)){
-      data[,i] <- as.numeric(data[,i])
-     }
+    else {
+      data = data[, c(capturelists, setdiff(colnames(data), 
+                                            capturelists))]
+    }
+    for (i in 1:length(capturelists)) {
+      data[, i] <- as.numeric(data[, i])
+    }
   }
-
   return(data)
 }

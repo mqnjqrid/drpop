@@ -29,6 +29,11 @@ reformat <- function (data, capturelists)
     for (i in 1:length(capturelists)) {
       data[, i] <- as.numeric(data[, i])
     }
+    if(length(capturelists) < ncol(data)) {
+      for (i in (ncol(data) - length(capturelists)):ncol(data)) {
+        data[,i] <- as.factor(data[,i])
+      }
+    }
   }
   return(data)
 }
